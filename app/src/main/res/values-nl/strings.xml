@@ -1,0 +1,63 @@
+<resources>
+    <!-- Main screen -->
+    <string name="status_locked">Gesloten</string>
+    <string name="status_locking">Aan het sluiten…</string>
+    <string name="status_unlocked">Ontgrendeld</string>
+    <string name="status_unlocking">Aan het ontgrendelen…</string>
+    <string name="status_unlatched">Deur open</string>
+    <string name="status_unlatching">Aan het openen…</string>
+    <string name="status_motor_blocked">Motor geblokkeerd!</string>
+    <string name="status_unknown">Status onbekend</string>
+    <string name="status_loading">Laden…</string>
+    <string name="battery_label">Batterij: %1$d%%</string>
+    <string name="btn_open_door">DEUR OPENEN</string>
+    <string name="btn_close_door">DEUR SLUITEN</string>
+    <string name="btn_lock_door">DEUR VERGRENDELEN</string>
+    <string name="btn_open_settings">OPEN INSTELLINGEN</string>
+
+    <!-- Android Auto -->
+    <string name="auto_row_title">NuKey Slot</string>
+    <string name="auto_status_format">Status: %1$s \u2022 %2$d%%</string>
+
+
+    <!-- Settings screen -->
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_subtitle">Vul de gegevens in van je Nuki Web account.</string>
+    <string name="settings_config_title">Nuki Configuratie</string>
+    <string name="hint_api_token">API Token</string>
+    <string name="hint_smartlock_id">Smart Lock ID</string>
+    <string name="helper_api_token">Maak een API token aan via web.nuki.io > API</string>
+    <string name="helper_smartlock_id">Ga naar web.nuki.io > Devices, klik op je slot. Het nummer in de URL is je ID.</string>
+    <string name="btn_save_settings">Instellingen Opslaan</string>
+    <string name="toast_saved">Opgeslagen</string>
+    <string name="toast_fill_all_fields">Vul alle velden in</string>
+
+    <!-- Language -->
+    <string name="settings_language_title">Taal</string>
+    <string name="language_english">English</string>
+    <string name="language_dutch">Nederlands</string>
+
+    <!-- Confirmation -->
+    <string name="settings_confirm_title">Acties bevestigen</string>
+    <string name="settings_confirm_summary">Vraag om bevestiging voor het openen of sluiten van de deur</string>
+    <string name="confirm_open_title">Deur openen?</string>
+    <string name="confirm_open_message">Weet je zeker dat je de deur wil openen?</string>
+    <string name="confirm_close_title">Deur sluiten?</string>
+    <string name="confirm_close_message">Weet je zeker dat je de deur wil sluiten?</string>
+    <string name="confirm_lock_title">Deur vergrendelen?</string>
+    <string name="confirm_lock_message">Weet je zeker dat je de deur wil vergrendelen?</string>
+    <string name="confirm_yes">Ja</string>
+    <string name="confirm_no">Nee</string>
+
+    <!-- Errors -->
+    <string name="error_no_credentials">Geen credentials ingesteld</string>
+    <string name="error_invalid_id">Ongeldig Smart Lock ID</string>
+    <string name="error_unknown_state">Onbekende Nuki state: %1$d</string>
+    <string name="error_connection_failed">Geen verbinding. Controleer je internet.</string>
+    <string name="error_http_unauthorized">Ongeldige API token. Controleer je instellingen.</string>
+    <string name="error_http_not_found">Smart Lock niet gevonden. Controleer je ID.</string>
+    <string name="error_http_rate_limit">Te veel verzoeken. Probeer later opnieuw.</string>
+    <string name="error_http_server">Nuki server niet bereikbaar. Probeer later opnieuw.</string>
+    <string name="error_generic">Er ging iets mis. Probeer opnieuw.</string>
+    <string name="btn_retry">OPNIEUW</string>
+</resources>

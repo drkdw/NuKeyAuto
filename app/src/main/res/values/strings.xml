@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">NuKey Auto</string>
+
+    <!-- Main screen -->
+    <string name="status_locked">Locked</string>
+    <string name="status_locking">Locking…</string>
+    <string name="status_unlocked">Unlocked</string>
+    <string name="status_unlocking">Unlocking…</string>
+    <string name="status_unlatched">Door open</string>
+    <string name="status_unlatching">Opening…</string>
+    <string name="status_motor_blocked">Motor blocked!</string>
+    <string name="status_unknown">Status unknown</string>
+    <string name="status_loading">Loading…</string>
+    <string name="battery_label">Battery: %1$d%%</string>
+    <string name="btn_open_door">OPEN DOOR</string>
+    <string name="btn_close_door">CLOSE DOOR</string>
+    <string name="btn_lock_door">LOCK DOOR</string>
+    <string name="btn_open_settings">OPEN SETTINGS</string>
+
+    <!-- Android Auto -->
+    <string name="auto_row_title">NuKey Lock</string>
+    <string name="auto_status_format">Status: %1$s \u2022 %2$d%%</string>
+
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Enter your Nuki Web account details.</string>
+    <string name="settings_config_title">Nuki Configuration</string>
+    <string name="hint_api_token">API Token</string>
+    <string name="hint_smartlock_id">Smart Lock ID</string>
+    <string name="helper_api_token">Create an API token at web.nuki.io > API</string>
+    <string name="helper_smartlock_id">Go to web.nuki.io > Devices, click your lock. The number in the URL is your ID.</string>
+    <string name="btn_save_settings">Save Settings</string>
+    <string name="toast_saved">Saved</string>
+    <string name="toast_fill_all_fields">Please fill in all fields</string>
+
+    <!-- Language -->
+    <string name="settings_language_title">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_dutch">Nederlands</string>
+
+    <!-- Confirmation -->
+    <string name="settings_confirm_title">Confirm actions</string>
+    <string name="settings_confirm_summary">Ask for confirmation before opening or closing the door</string>
+    <string name="confirm_open_title">Open door?</string>
+    <string name="confirm_open_message">Are you sure you want to open the door?</string>
+    <string name="confirm_close_title">Close door?</string>
+    <string name="confirm_close_message">Are you sure you want to close the door?</string>
+    <string name="confirm_lock_title">Lock door?</string>
+    <string name="confirm_lock_message">Are you sure you want to lock the door?</string>
+    <string name="confirm_yes">Yes</string>
+    <string name="confirm_no">No</string>
+
+    <!-- Errors -->
+    <string name="error_no_credentials">No credentials configured</string>
+    <string name="error_invalid_id">Invalid Smart Lock ID</string>
+    <string name="error_unknown_state">Unknown Nuki state: %1$d</string>
+    <string name="error_connection_failed">No connection. Check your internet.</string>
+    <string name="error_http_unauthorized">Invalid API token. Check your settings.</string>
+    <string name="error_http_not_found">Smart Lock not found. Check your ID.</string>
+    <string name="error_http_rate_limit">Too many requests. Try again later.</string>
+    <string name="error_http_server">Nuki server unavailable. Try again later.</string>
+    <string name="error_generic">Something went wrong. Try again.</string>
+    <string name="btn_retry">RETRY</string>
+</resources>

@@ -1,0 +1,242 @@
+package com.ddw.nukeyauto
+
+import android.content.Intent
+import android.content.res.ColorStateList
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.ddw.nukeyauto.data.model.LockState
+import com.ddw.nukeyauto.data.model.NukiError
+import com.ddw.nukeyauto.data.repo.NukiRepository
+import com.ddw.nukeyauto.ui.mobile.MainViewModel
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity() {
+
+    @Inject lateinit var repository: NukiRepository
+    private val viewModel: MainViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        val ivIcon = findViewById<ImageView>(R.id.ivIcon)
+        val tvStatus = findViewById<TextView>(R.id.tvStatus)
+        val tvBattery = findViewById<TextView>(R.id.tvBattery)
+        val btnAction = findViewById<MaterialButton>(R.id.btnAction)
+        val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
+        val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
+
+        swipeRefresh.setOnRefreshListener { viewModel.refresh() }
+
+        toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "state=$state")
+                    }
+
+                    tvBattery.text = getString(R.string.battery_label, state.battery)
+                    swipeRefresh.isRefreshing = state.isLoading
+
+                    val colorPrimary = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorPrimary)
+                    val colorError = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorError)
+
+                    // Default: hide secondary button
+                    btnSecondary.visibility = View.GONE
+
+                    when (state.lockState) {
+                        LockState.Locked -> {
+                            ivIcon.setImageResource(R.drawable.ic_lock)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                            tvStatus.text = getString(R.string.status_locked)
+                            btnAction.text = getString(R.string.btn_open_door)
+                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.isEnabled = !state.isLoading
+                        }
+                        LockState.Unlocked -> {
+                            ivIcon.setImageResource(R.drawable.ic_lock_open)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                            tvStatus.text = getString(R.string.status_unlocked)
+                            btnAction.text = getString(R.string.btn_open_door)
+                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.isEnabled = !state.isLoading
+                            btnSecondary.text = getString(R.string.btn_lock_door)
+                            btnSecondary.isEnabled = !state.isLoading
+                            btnSecondary.visibility = View.VISIBLE
+                        }
+                        LockState.Unlatched -> {
+                            ivIcon.setImageResource(R.drawable.ic_door_open)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                            tvStatus.text = getString(R.string.status_unlatched)
+                            btnAction.text = getString(R.string.btn_close_door)
+                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.isEnabled = !state.isLoading
+                        }
+                        LockState.Locking -> {
+                            ivIcon.setImageResource(R.drawable.ic_hourglass)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                            tvStatus.text = getString(R.string.status_locking)
+                            btnAction.isEnabled = false
+                        }
+                        LockState.Unlocking -> {
+                            ivIcon.setImageResource(R.drawable.ic_hourglass)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                            tvStatus.text = getString(R.string.status_unlocking)
+                            btnAction.isEnabled = false
+                        }
+                        LockState.Unlatching -> {
+                            ivIcon.setImageResource(R.drawable.ic_hourglass)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                            tvStatus.text = getString(R.string.status_unlatching)
+                            btnAction.isEnabled = false
+                        }
+                        LockState.MotorBlocked -> {
+                            ivIcon.setImageResource(R.drawable.ic_warning)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorError)
+                            tvStatus.text = getString(R.string.status_motor_blocked)
+                            btnAction.text = getString(R.string.btn_open_door)
+                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.isEnabled = !state.isLoading
+                        }
+                        LockState.Unknown -> {
+                            if (state.error != null) {
+                                ivIcon.setImageResource(R.drawable.ic_warning)
+                                ivIcon.imageTintList = ColorStateList.valueOf(colorError)
+                                tvStatus.text = mapError(state.error)
+                                if (state.error.isConfigError()) {
+                                    btnAction.text = getString(R.string.btn_open_settings)
+                                    btnAction.backgroundTintList = ColorStateList.valueOf(colorError)
+                                } else {
+                                    btnAction.text = getString(R.string.btn_retry)
+                                    btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                                }
+                                btnAction.isEnabled = true
+                            } else {
+                                ivIcon.setImageResource(R.drawable.ic_hourglass)
+                                ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                                tvStatus.text = getString(R.string.status_loading)
+                                btnAction.isEnabled = false
+                            }
+                        }
+                    }
+
+                    // Show Snackbar when an error occurs but the UI still shows a valid lock state
+                    if (state.error != null && state.lockState != LockState.Unknown) {
+                        Snackbar.make(swipeRefresh, mapError(state.error), Snackbar.LENGTH_LONG)
+                            .setAction(R.string.btn_retry) { viewModel.refresh() }
+                            .show()
+                    }
+
+                    // Primary button click
+                    btnAction.setOnClickListener {
+                        if (state.lockState == LockState.Unknown && state.error != null) {
+                            if (state.error.isConfigError()) {
+                                startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                            } else {
+                                viewModel.refresh()
+                            }
+                        } else {
+                            val isClose = state.lockState == LockState.Unlatched
+                            val action: () -> Unit = if (isClose) {
+                                { viewModel.lockDoor() }
+                            } else {
+                                { viewModel.openDoor() }
+                            }
+                            maybeConfirmThenExecute(
+                                isLock = isClose,
+                                action = action
+                            )
+                        }
+                    }
+
+                    // Secondary button click (lock — only visible in Unlocked state)
+                    btnSecondary.setOnClickListener {
+                        maybeConfirmThenExecute(
+                            isLock = true,
+                            action = { viewModel.lockDoor() }
+                        )
+                    }
+
+                    tvBattery.visibility = if (
+                        state.lockState != LockState.Unknown || state.battery > 0
+                    ) View.VISIBLE else View.INVISIBLE
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onResume → refresh()")
+        }
+        viewModel.refresh()
+    }
+
+    /**
+     * Show a confirmation dialog if the setting is enabled, otherwise execute directly.
+     *
+     * @param isLock true when locking/closing, false when opening
+     * @param action the lambda to execute after confirmation (or immediately)
+     */
+    private fun maybeConfirmThenExecute(isLock: Boolean, action: () -> Unit) {
+        if (!repository.isConfirmationEnabled()) {
+            action()
+            return
+        }
+
+        val title = if (isLock) R.string.confirm_lock_title else R.string.confirm_open_title
+        val message = if (isLock) R.string.confirm_lock_message else R.string.confirm_open_message
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(R.string.confirm_yes) { _, _ -> action() }
+            .setNegativeButton(R.string.confirm_no, null)
+            .show()
+    }
+
+    /** Map a [NukiError] to a localized user-facing string. */
+    private fun mapError(error: NukiError): String {
+        return when (error) {
+            is NukiError.NoCredentials -> getString(R.string.error_no_credentials)
+            is NukiError.InvalidSmartLockId -> getString(R.string.error_invalid_id)
+            is NukiError.UnknownLockState -> getString(R.string.error_unknown_state, error.stateCode)
+            is NukiError.ConnectionFailed -> getString(R.string.error_connection_failed)
+            is NukiError.HttpError -> getString(NukiError.httpErrorStringRes(error.code))
+            is NukiError.ApiException -> getString(R.string.error_generic)
+        }
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+}
