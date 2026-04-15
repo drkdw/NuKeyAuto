@@ -1,9 +1,57 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.NuKeyAuto" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/md_theme_light_primary</item>
-        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
-        <item name="colorError">@color/md_theme_light_error</item>
-        <item name="colorOnError">@color/md_theme_light_onError</item>
+        <!-- Primary -->
+        <item name="colorPrimary">@color/md_light_primary</item>
+        <item name="colorOnPrimary">@color/md_light_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_light_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_light_onPrimaryContainer</item>
+        <item name="colorPrimaryInverse">@color/md_light_inversePrimary</item>
+
+        <!-- Secondary -->
+        <item name="colorSecondary">@color/md_light_secondary</item>
+        <item name="colorOnSecondary">@color/md_light_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_light_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_light_onSecondaryContainer</item>
+
+        <!-- Tertiary -->
+        <item name="colorTertiary">@color/md_light_tertiary</item>
+        <item name="colorOnTertiary">@color/md_light_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_light_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_light_onTertiaryContainer</item>
+
+        <!-- Error -->
+        <item name="colorError">@color/md_light_error</item>
+        <item name="colorOnError">@color/md_light_onError</item>
+        <item name="colorErrorContainer">@color/md_light_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_light_onErrorContainer</item>
+
+        <!-- Background / surface -->
+        <item name="android:colorBackground">@color/md_light_background</item>
+        <item name="colorOnBackground">@color/md_light_onBackground</item>
+        <item name="colorSurface">@color/md_light_surface</item>
+        <item name="colorOnSurface">@color/md_light_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_light_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_light_onSurfaceVariant</item>
+        <item name="colorSurfaceInverse">@color/md_light_inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/md_light_inverseOnSurface</item>
+        <item name="colorSurfaceDim">@color/md_light_surfaceDim</item>
+        <item name="colorSurfaceBright">@color/md_light_surfaceBright</item>
+        <item name="colorSurfaceContainerLowest">@color/md_light_surfaceContainerLowest</item>
+        <item name="colorSurfaceContainerLow">@color/md_light_surfaceContainerLow</item>
+        <item name="colorSurfaceContainer">@color/md_light_surfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">@color/md_light_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/md_light_surfaceContainerHighest</item>
+
+        <!-- Outline / misc -->
+        <item name="colorOutline">@color/md_light_outline</item>
+        <item name="colorOutlineVariant">@color/md_light_outlineVariant</item>
+        <item name="scrimBackground">@color/md_light_scrim</item>
+
+        <!-- Status / navigation bars follow surface for edge-to-edge look -->
+        <item name="android:statusBarColor">@color/md_light_surface</item>
+        <item name="android:navigationBarColor">@color/md_light_surface</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
     </style>
 
     <style name="Theme.NuKeyAuto" parent="Base.Theme.NuKeyAuto" />

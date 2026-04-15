@@ -11,6 +11,7 @@
     <string name="status_motor_blocked">Motor blocked!</string>
     <string name="status_unknown">Status unknown</string>
     <string name="status_loading">Loading…</string>
+    <string name="status_countdown">Opening in %1$d…</string>
     <string name="battery_label">Battery: %1$d%%</string>
     <string name="btn_open_door">OPEN DOOR</string>
     <string name="btn_close_door">CLOSE DOOR</string>
@@ -28,20 +29,38 @@
     <string name="settings_config_title">Nuki Configuration</string>
     <string name="hint_api_token">API Token</string>
     <string name="hint_smartlock_id">Smart Lock ID</string>
-    <string name="helper_api_token">Create an API token at web.nuki.io > API</string>
+    <string name="helper_api_token">Create an API token at web.nuki.io > API.</string>
     <string name="helper_smartlock_id">Go to web.nuki.io > Devices, click your lock. The number in the URL is your ID.</string>
     <string name="btn_save_settings">Save Settings</string>
+    <string name="version_label">NuKey Auto v%1$s</string>
     <string name="toast_saved">Saved</string>
-    <string name="toast_fill_all_fields">Please fill in all fields</string>
+    <string name="toast_fill_all_fields">Please fill in all fields.</string>
 
     <!-- Language -->
     <string name="settings_language_title">Language</string>
     <string name="language_english">English</string>
     <string name="language_dutch">Nederlands</string>
 
+    <!-- Theme -->
+    <string name="settings_theme_title">Theme</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <!-- Welcome (first setup) -->
+    <string name="welcome_title">Welcome to NuKey Auto!</string>
+    <string name="welcome_message">To get started, add your Nuki Web API token and Smart Lock ID in the settings. It only takes a minute.</string>
+    <string name="btn_get_started">Get started</string>
+
+    <!-- Share -->
+    <string name="settings_share">Share app</string>
+    <string name="share_subject">NuKey Auto</string>
+    <string name="share_text">Check out NuKey Auto — a free Nuki smart lock app with Android Auto support! https://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="share_chooser_title">Share NuKey Auto</string>
+
     <!-- Confirmation -->
     <string name="settings_confirm_title">Confirm actions</string>
-    <string name="settings_confirm_summary">Ask for confirmation before opening or closing the door</string>
+    <string name="settings_confirm_summary">Ask for confirmation before opening or closing the door.</string>
     <string name="confirm_open_title">Open door?</string>
     <string name="confirm_open_message">Are you sure you want to open the door?</string>
     <string name="confirm_close_title">Close door?</string>
@@ -51,10 +70,21 @@
     <string name="confirm_yes">Yes</string>
     <string name="confirm_no">No</string>
 
+    <!-- Delay -->
+    <string name="settings_delay_title">Door open delay</string>
+    <string name="settings_delay_summary">Wait before opening the door, so you have time to walk from the car to the door.</string>
+    <string name="settings_delay_value">%d seconds</string>
+    <string name="settings_delay_off">Off</string>
+
+    <!-- About -->
+    <string name="settings_about_title">About</string>
+    <string name="settings_rate">Rate on Google Play</string>
+    <string name="settings_feedback">Send feedback</string>
+
     <!-- Errors -->
-    <string name="error_no_credentials">No credentials configured</string>
-    <string name="error_invalid_id">Invalid Smart Lock ID</string>
-    <string name="error_unknown_state">Unknown Nuki state: %1$d</string>
+    <string name="error_no_credentials">No credentials configured.</string>
+    <string name="error_invalid_id">Invalid Smart Lock ID.</string>
+    <string name="error_unknown_state">Unknown Nuki state: %1$d.</string>
     <string name="error_connection_failed">No connection. Check your internet.</string>
     <string name="error_http_unauthorized">Invalid API token. Check your settings.</string>
     <string name="error_http_not_found">Smart Lock not found. Check your ID.</string>
@@ -62,4 +92,33 @@
     <string name="error_http_server">Nuki server unavailable. Try again later.</string>
     <string name="error_generic">Something went wrong. Try again.</string>
     <string name="btn_retry">RETRY</string>
+
+    <!-- Support the developer -->
+    <string name="support_title">Support the developer</string>
+    <string name="support_subtitle">This app is free and ad-free. If you find it useful, consider buying the developer a coffee!</string>
+    <string name="support_failed">Purchase could not be completed.</string>
+    <string name="support_unavailable">Support options are currently unavailable.</string>
+
+    <!-- Supporter badge & dialog -->
+    <string name="supporter_badge_title">Supporter</string>
+    <string name="supporter_status_label">You are a supporter!</string>
+    <string name="supporter_dialog_title">Thank you!</string>
+    <plurals name="supporter_thanks">
+        <item quantity="one">Thank you so much for supporting NuKey Auto! You are making a real difference. This app is built with love in my spare time, and your generosity means the world to me. It keeps me motivated to keep improving the app for everyone.</item>
+        <item quantity="other">Wow, you have supported NuKey Auto %d times! I really cannot thank you enough. Your continued generosity is incredible and keeps me motivated to keep improving the app. You are truly one of a kind.</item>
+    </plurals>
+    <plurals name="supporter_dialog_message">
+        <item quantity="one">Thank you so much! This app is built with love in my spare time, and your support means the world to me. It helps keep NuKey Auto free and ad-free for everyone, and motivates me to keep making it better.</item>
+        <item quantity="other">You have donated %d times now -- that is absolutely amazing! Your continued generosity means so much. It helps keep NuKey Auto free and ad-free for everyone, and keeps me motivated to keep improving the app.</item>
+    </plurals>
+    <plurals name="supporter_donation_count">
+        <item quantity="one">You donated %d time.</item>
+        <item quantity="other">You donated %d times.</item>
+    </plurals>
+
+    <!-- Support button labels -->
+    <string name="support_label_coffee">Coffee</string>
+    <string name="support_label_pizza">Pizza</string>
+    <string name="support_label_dinner">Dinner</string>
+    <string name="support_label_support">Support</string>
 </resources>

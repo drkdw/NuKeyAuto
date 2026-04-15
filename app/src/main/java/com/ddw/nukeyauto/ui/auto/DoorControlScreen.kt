@@ -75,6 +75,20 @@ class DoorControlScreen(
             )
             .build()
 
+        // Show countdown when delay is active
+        if (state.countdownSeconds > 0) {
+            val countdownRow = Row.Builder()
+                .setTitle(carContext.getString(R.string.auto_row_title))
+                .addText(carContext.getString(R.string.status_countdown, state.countdownSeconds))
+                .setImage(CarIcon.Builder(
+                    IconCompat.createWithResource(carContext, R.drawable.ic_hourglass)
+                ).setTint(CarColor.PRIMARY).build())
+                .build()
+            return PaneTemplate.Builder(
+                Pane.Builder().addRow(countdownRow).build()
+            ).setHeader(header).build()
+        }
+
         // Empty pane during loading — Car App Library forbids rows+actions with setLoading(true)
         if (state.isLoading) {
             return PaneTemplate.Builder(

@@ -16,6 +16,7 @@ materialVersion = "1.12.0"
 mockitoKotlin = "5.4.0"
 retrofit = "2.11.0"
 securityCrypto = "1.1.0-alpha06"
+billing = "7.1.1"
 swiperefreshlayout = "1.1.0"
 junit = "4.13.2"
 kotlinxCoroutinesTest = "1.9.0"
@@ -32,6 +33,7 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleVersion" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
+billing = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }

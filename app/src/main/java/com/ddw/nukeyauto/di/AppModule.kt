@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.ddw.nukeyauto.BuildConfig
+import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.api.NukiApiService
 import dagger.Module
 import dagger.Provides
@@ -95,7 +96,7 @@ object AppModule {
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
                 try {
-                    val token = prefs.getString("nuki_token", "") ?: ""
+                    val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
                     if (token.isNotEmpty()) {
                         requestBuilder.addHeader("Authorization", "Bearer $token")
                         requestBuilder.header("Accept", "application/json")

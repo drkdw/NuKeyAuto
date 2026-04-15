@@ -43,6 +43,7 @@
                 app:layout_constraintBottom_toTopOf="@id/buttonRow"
                 app:layout_constraintVertical_chainStyle="packed"
                 style="@style/Widget.Material3.CardView.Filled"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
                 app:cardCornerRadius="28dp">
 
                 <LinearLayout
@@ -77,6 +78,18 @@
                         android:text="@string/battery_label"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/tvWelcome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/welcome_message"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textAlignment="center"
+                        android:gravity="center"
+                        android:layout_marginTop="8dp"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 

@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.ddw.nukeyauto.BuildConfig
 import com.ddw.nukeyauto.data.api.NukiApiService
+import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.model.ActionRequest
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
@@ -24,7 +25,8 @@ data class UiState(
     val lockState: LockState = LockState.Unknown,
     val battery: Int = 0,
     val isLoading: Boolean = false,
-    val error: NukiError? = null
+    val error: NukiError? = null,
+    val countdownSeconds: Int = 0
 )
 
 /**
@@ -44,8 +46,8 @@ class NukiRepository @Inject constructor(
      */
     fun saveCredentials(token: String, id: String) {
         prefs.edit()
-            .putString("nuki_token", token)
-            .putString("nuki_id", id)
+            .putString(PrefKeys.NUKI_TOKEN, token)
+            .putString(PrefKeys.NUKI_ID, id)
             .apply()
     }
 
@@ -54,8 +56,8 @@ class NukiRepository @Inject constructor(
      */
     fun hasCredentials(): Boolean {
         return try {
-            val id = prefs.getString("nuki_id", "") ?: ""
-            val token = prefs.getString("nuki_token", "") ?: ""
+            val id = prefs.getString(PrefKeys.NUKI_ID, "") ?: ""
+            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
             id.isNotEmpty() && token.isNotEmpty()
         } catch (e: Exception) {
             false
@@ -73,8 +75,8 @@ class NukiRepository @Inject constructor(
                 Log.d(TAG, "fetchState() started")
             }
 
-            val id = prefs.getString("nuki_id", "") ?: ""
-            val token = prefs.getString("nuki_token", "") ?: ""
+            val id = prefs.getString(PrefKeys.NUKI_ID, "") ?: ""
+            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "ID present: ${id.isNotEmpty()}, Token present: ${token.isNotEmpty()}")
@@ -147,8 +149,8 @@ class NukiRepository @Inject constructor(
      */
     suspend fun performLockAction(shouldLock: Boolean) {
         try {
-            val id = prefs.getString("nuki_id", "") ?: ""
-            val token = prefs.getString("nuki_token", "") ?: ""
+            val id = prefs.getString(PrefKeys.NUKI_ID, "") ?: ""
+            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
             if (id.isEmpty() || token.isEmpty()) {
                 _uiState.update { it.copy(isLoading = false, error = NukiError.NoCredentials) }
                 return
@@ -164,6 +166,22 @@ class NukiRepository @Inject constructor(
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "performLockAction: shouldLock=$shouldLock")
+            }
+
+            // Apply user-configured delay before opening (not locking)
+            if (!shouldLock) {
+                val delaySec = getOpenDelaySeconds()
+                if (delaySec > 0) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "Waiting ${delaySec}s before opening...")
+                    }
+                    _uiState.update { it.copy(countdownSeconds = delaySec) }
+                    for (i in delaySec downTo 1) {
+                        _uiState.update { it.copy(countdownSeconds = i) }
+                        delay(1000L)
+                    }
+                    _uiState.update { it.copy(countdownSeconds = 0) }
+                }
             }
 
             val action = if (shouldLock) 2 else 3
@@ -204,12 +222,24 @@ class NukiRepository @Inject constructor(
     }
 
     /**
+     * Get the configured delay in seconds before opening the door.
+     * Defaults to 0 (no delay).
+     */
+    fun getOpenDelaySeconds(): Int {
+        return try {
+            prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    /**
      * Check whether the user wants a confirmation dialog before door actions.
      * Defaults to true (confirmation enabled).
      */
     fun isConfirmationEnabled(): Boolean {
         return try {
-            prefs.getBoolean(PREF_CONFIRM_ACTION, true)
+            prefs.getBoolean(PrefKeys.CONFIRM_ACTION, true)
         } catch (e: Exception) {
             true
         }
@@ -233,6 +263,5 @@ class NukiRepository @Inject constructor(
         private const val LOCK_MOVEMENT_DELAY_MS = 3500L
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 5
-        private const val PREF_CONFIRM_ACTION = "confirm_action"
     }
 }

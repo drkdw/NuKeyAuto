@@ -1,6 +1,7 @@
 package com.ddw.nukeyauto
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.ddw.nukeyauto.billing.BillingHelper
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.repo.NukiRepository
@@ -30,6 +32,7 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var repository: NukiRepository
+    @Inject lateinit var prefs: SharedPreferences
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         val ivIcon = findViewById<ImageView>(R.id.ivIcon)
         val tvStatus = findViewById<TextView>(R.id.tvStatus)
         val tvBattery = findViewById<TextView>(R.id.tvBattery)
+        val tvWelcome = findViewById<TextView>(R.id.tvWelcome)
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
@@ -48,6 +52,17 @@ class MainActivity : AppCompatActivity() {
 
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
+                R.id.action_supporter -> {
+                    val count = BillingHelper.getDonationCount(prefs)
+                    val msg = resources.getQuantityString(R.plurals.supporter_thanks, count, count)
+                    MaterialAlertDialogBuilder(this)
+                        .setIcon(R.drawable.ic_star)
+                        .setTitle(R.string.supporter_dialog_title)
+                        .setMessage(msg)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
+                    true
+                }
                 R.id.action_settings -> {
                     startActivity(Intent(this, SettingsActivity::class.java))
                     true
@@ -64,13 +79,37 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     tvBattery.text = getString(R.string.battery_label, state.battery)
-                    swipeRefresh.isRefreshing = state.isLoading
+                    swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
+
+                    // Show countdown when delay is active
+                    if (state.countdownSeconds > 0) {
+                        tvStatus.text = getString(R.string.status_countdown, state.countdownSeconds)
+                        btnAction.isEnabled = false
+                        return@collect
+                    }
 
                     val colorPrimary = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorPrimary)
                     val colorError = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorError)
 
-                    // Default: hide secondary button
+                    // Defaults: hide secondary button and welcome message (normal states)
                     btnSecondary.visibility = View.GONE
+                    tvWelcome.visibility = View.GONE
+
+                    // First setup: no credentials yet → friendly welcome screen
+                    if (state.error is NukiError.NoCredentials) {
+                        ivIcon.setImageResource(R.drawable.ic_lock)
+                        ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                        tvStatus.text = getString(R.string.welcome_title)
+                        tvBattery.visibility = View.GONE
+                        tvWelcome.visibility = View.VISIBLE
+                        btnAction.text = getString(R.string.btn_get_started)
+                        btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                        btnAction.isEnabled = true
+                        btnAction.setOnClickListener {
+                            startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                        }
+                        return@collect
+                    }
 
                     when (state.lockState) {
                         LockState.Locked -> {
@@ -199,6 +238,14 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onResume → refresh()")
         }
         viewModel.refresh()
+        updateSupporterBadge()
+    }
+
+    /** Show or hide the supporter star badge based on donation status. */
+    private fun updateSupporterBadge() {
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        val supporterItem = toolbar.menu.findItem(R.id.action_supporter)
+        supporterItem?.isVisible = BillingHelper.isSupporter(prefs)
     }
 
     /**

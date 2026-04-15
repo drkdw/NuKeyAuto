@@ -3,6 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_supporter"
+        android:title="@string/supporter_badge_title"
+        android:icon="@drawable/ic_star"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_settings"
         android:title="@string/settings_title"
         android:icon="@drawable/ic_settings"

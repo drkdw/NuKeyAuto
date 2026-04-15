@@ -17,17 +17,17 @@ val localProps = Properties().apply {
 
 android {
     namespace = "com.ddw.nukeyauto"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.ddw.nukeyauto"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 35
         //versionCode = 101002
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.1.2"
+        versionName = "1.2.1.2-it"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -92,6 +92,9 @@ dependencies {
 
     // Security (encrypted storage)
     implementation(libs.androidx.security.crypto)
+
+    // Google Play Billing (support the developer)
+    implementation(libs.billing)
 
     implementation(libs.androidx.swiperefreshlayout)
 

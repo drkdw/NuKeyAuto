@@ -9,6 +9,7 @@
     <string name="status_motor_blocked">Motor geblokkeerd!</string>
     <string name="status_unknown">Status onbekend</string>
     <string name="status_loading">Laden…</string>
+    <string name="status_countdown">Opent over %1$d…</string>
     <string name="battery_label">Batterij: %1$d%%</string>
     <string name="btn_open_door">DEUR OPENEN</string>
     <string name="btn_close_door">DEUR SLUITEN</string>
@@ -26,20 +27,38 @@
     <string name="settings_config_title">Nuki Configuratie</string>
     <string name="hint_api_token">API Token</string>
     <string name="hint_smartlock_id">Smart Lock ID</string>
-    <string name="helper_api_token">Maak een API token aan via web.nuki.io > API</string>
+    <string name="helper_api_token">Maak een API token aan via web.nuki.io > API.</string>
     <string name="helper_smartlock_id">Ga naar web.nuki.io > Devices, klik op je slot. Het nummer in de URL is je ID.</string>
     <string name="btn_save_settings">Instellingen Opslaan</string>
+    <string name="version_label">NuKey Auto v%1$s</string>
     <string name="toast_saved">Opgeslagen</string>
-    <string name="toast_fill_all_fields">Vul alle velden in</string>
+    <string name="toast_fill_all_fields">Vul alle velden in.</string>
 
     <!-- Language -->
     <string name="settings_language_title">Taal</string>
     <string name="language_english">English</string>
     <string name="language_dutch">Nederlands</string>
 
+    <!-- Theme -->
+    <string name="settings_theme_title">Thema</string>
+    <string name="theme_system">Systeemstandaard</string>
+    <string name="theme_light">Licht</string>
+    <string name="theme_dark">Donker</string>
+
+    <!-- Welcome (eerste setup) -->
+    <string name="welcome_title">Welkom bij NuKey Auto!</string>
+    <string name="welcome_message">Om te beginnen, voeg je Nuki Web API token en Smart Lock ID toe in de instellingen. Het duurt maar een minuutje.</string>
+    <string name="btn_get_started">Aan de slag</string>
+
+    <!-- Delen -->
+    <string name="settings_share">Deel de app</string>
+    <string name="share_subject">NuKey Auto</string>
+    <string name="share_text">Bekijk eens NuKey Auto — een gratis Nuki slimme-slot app met Android Auto ondersteuning! https://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="share_chooser_title">Deel NuKey Auto</string>
+
     <!-- Confirmation -->
     <string name="settings_confirm_title">Acties bevestigen</string>
-    <string name="settings_confirm_summary">Vraag om bevestiging voor het openen of sluiten van de deur</string>
+    <string name="settings_confirm_summary">Vraag om bevestiging voor het openen of sluiten van de deur.</string>
     <string name="confirm_open_title">Deur openen?</string>
     <string name="confirm_open_message">Weet je zeker dat je de deur wil openen?</string>
     <string name="confirm_close_title">Deur sluiten?</string>
@@ -49,10 +68,21 @@
     <string name="confirm_yes">Ja</string>
     <string name="confirm_no">Nee</string>
 
+    <!-- Delay -->
+    <string name="settings_delay_title">Vertraging deur openen</string>
+    <string name="settings_delay_summary">Wacht even voor de deur opent, zodat je tijd hebt om van de auto naar de deur te wandelen.</string>
+    <string name="settings_delay_value">%d seconden</string>
+    <string name="settings_delay_off">Uit</string>
+
+    <!-- About -->
+    <string name="settings_about_title">Over</string>
+    <string name="settings_rate">Beoordeel op Google Play</string>
+    <string name="settings_feedback">Feedback sturen</string>
+
     <!-- Errors -->
-    <string name="error_no_credentials">Geen credentials ingesteld</string>
-    <string name="error_invalid_id">Ongeldig Smart Lock ID</string>
-    <string name="error_unknown_state">Onbekende Nuki state: %1$d</string>
+    <string name="error_no_credentials">Geen credentials ingesteld.</string>
+    <string name="error_invalid_id">Ongeldig Smart Lock ID.</string>
+    <string name="error_unknown_state">Onbekende Nuki state: %1$d.</string>
     <string name="error_connection_failed">Geen verbinding. Controleer je internet.</string>
     <string name="error_http_unauthorized">Ongeldige API token. Controleer je instellingen.</string>
     <string name="error_http_not_found">Smart Lock niet gevonden. Controleer je ID.</string>
@@ -60,4 +90,33 @@
     <string name="error_http_server">Nuki server niet bereikbaar. Probeer later opnieuw.</string>
     <string name="error_generic">Er ging iets mis. Probeer opnieuw.</string>
     <string name="btn_retry">OPNIEUW</string>
+
+    <!-- Support the developer -->
+    <string name="support_title">Steun de ontwikkelaar</string>
+    <string name="support_subtitle">Deze app is gratis en advertentievrij. Vind je de app handig? Trakteer de ontwikkelaar op een koffie!</string>
+    <string name="support_failed">Aankoop kon niet worden voltooid.</string>
+    <string name="support_unavailable">Steunopties zijn momenteel niet beschikbaar.</string>
+
+    <!-- Supporter badge & dialog -->
+    <string name="supporter_badge_title">Supporter</string>
+    <string name="supporter_status_label">Je bent een supporter!</string>
+    <string name="supporter_dialog_title">Bedankt!</string>
+    <plurals name="supporter_thanks">
+        <item quantity="one">Heel erg bedankt voor het steunen van NuKey Auto! Je maakt echt een verschil. Deze app is met liefde gebouwd in mijn vrije tijd, en je steun betekent ontzettend veel voor mij. Het houdt me gemotiveerd om de app te blijven verbeteren voor iedereen.</item>
+        <item quantity="other">Wow, je hebt NuKey Auto al %d keer gesteund! Ik kan je echt niet genoeg bedanken. Je blijvende steun is ongelooflijk en houdt me gemotiveerd om de app te blijven verbeteren. Je bent echt een topper.</item>
+    </plurals>
+    <plurals name="supporter_dialog_message">
+        <item quantity="one">Heel erg bedankt! Deze app is met liefde gebouwd in mijn vrije tijd, en je steun betekent ontzettend veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en motiveert me om de app te blijven verbeteren.</item>
+        <item quantity="other">Je hebt nu al %d keer gedoneerd -- dat is echt geweldig! Je blijvende steun betekent heel veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en houdt me gemotiveerd om de app te blijven verbeteren.</item>
+    </plurals>
+    <plurals name="supporter_donation_count">
+        <item quantity="one">Je hebt %d keer gedoneerd.</item>
+        <item quantity="other">Je hebt %d keer gedoneerd.</item>
+    </plurals>
+
+    <!-- Support button labels -->
+    <string name="support_label_coffee">Koffie</string>
+    <string name="support_label_pizza">Pizza</string>
+    <string name="support_label_dinner">Diner</string>
+    <string name="support_label_support">Steun</string>
 </resources>
