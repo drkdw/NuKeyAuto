@@ -66,7 +66,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/status_locked"
-                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                        android:textAppearance="?attr/textAppearanceDisplaySmallEmphasized"
                         android:textAlignment="center"
                         android:gravity="center"
                         android:layout_marginBottom="8dp" />
