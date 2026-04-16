@@ -45,6 +45,10 @@
     <string name="theme_light">Licht</string>
     <string name="theme_dark">Donker</string>
 
+    <!-- Dynamic colors -->
+    <string name="settings_dynamic_colors_title">Dynamische kleuren</string>
+    <string name="settings_dynamic_colors_summary">Gebruik de kleuren van je achtergrond als app thema. Uitgeschakeld wordt het standaard blauwe thema gebruikt.</string>
+
     <!-- Welcome (eerste setup) -->
     <string name="welcome_title">Welkom bij NuKey Auto!</string>
     <string name="welcome_message">Om te beginnen, voeg je Nuki Web API token en Smart Lock ID toe in de instellingen. Het duurt maar een minuutje.</string>

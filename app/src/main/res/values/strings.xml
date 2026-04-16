@@ -47,6 +47,10 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
 
+    <!-- Dynamic colors -->
+    <string name="settings_dynamic_colors_title">Dynamic colors</string>
+    <string name="settings_dynamic_colors_summary">Use your wallpaper colors for the app theme. When off, the default blue theme is used.</string>
+
     <!-- Welcome (first setup) -->
     <string name="welcome_title">Welcome to NuKey Auto!</string>
     <string name="welcome_message">To get started, add your Nuki Web API token and Smart Lock ID in the settings. It only takes a minute.</string>
