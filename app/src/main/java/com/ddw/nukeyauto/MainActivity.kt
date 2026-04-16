@@ -19,8 +19,10 @@ import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import com.ddw.nukeyauto.ui.mobile.MainViewModel
+import com.ddw.nukeyauto.ui.ExpressiveCardAnimator
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -47,6 +49,9 @@ class MainActivity : AppCompatActivity() {
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
+        val cardStatus = findViewById<MaterialCardView>(R.id.cardStatus)
+        val cardAnimator = ExpressiveCardAnimator(cardStatus)
+        var isFirstState = true
 
         swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
@@ -107,6 +112,12 @@ class MainActivity : AppCompatActivity() {
                         btnAction.isEnabled = true
                         btnAction.setOnClickListener {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                        }
+                        if (isFirstState) {
+                            cardAnimator.setInitialState(LockState.Unknown, isWelcome = true)
+                            isFirstState = false
+                        } else {
+                            cardAnimator.transitionTo(LockState.Unknown, isWelcome = true)
                         }
                         return@collect
                     }
@@ -185,6 +196,15 @@ class MainActivity : AppCompatActivity() {
                                 btnAction.isEnabled = false
                             }
                         }
+                    }
+
+                    // Animate card shape based on state
+                    val isError = state.error != null && state.lockState == LockState.Unknown
+                    if (isFirstState) {
+                        cardAnimator.setInitialState(state.lockState)
+                        isFirstState = false
+                    } else {
+                        cardAnimator.transitionTo(state.lockState, isError = isError)
                     }
 
                     // Show Snackbar when an error occurs but the UI still shows a valid lock state
