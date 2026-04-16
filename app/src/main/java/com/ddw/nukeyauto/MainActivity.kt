@@ -20,9 +20,9 @@ import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import com.ddw.nukeyauto.ui.mobile.MainViewModel
 import com.ddw.nukeyauto.ui.ExpressiveCardAnimator
+import com.ddw.nukeyauto.ui.ShapeMorphView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -49,7 +49,9 @@ class MainActivity : AppCompatActivity() {
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
-        val cardStatus = findViewById<MaterialCardView>(R.id.cardStatus)
+        val cardStatus = findViewById<ShapeMorphView>(R.id.cardStatus)
+        val surfaceAttr = com.google.android.material.R.attr.colorSurfaceContainerHighest
+        cardStatus.shapeColor = MaterialColors.getColor(cardStatus, surfaceAttr, 0)
         val cardAnimator = ExpressiveCardAnimator(cardStatus)
         var isFirstState = true
 

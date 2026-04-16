@@ -52,7 +52,7 @@
 
     <!-- Dynamic colors -->
     <string name="settings_dynamic_colors_title">Dynamic colors</string>
-    <string name="settings_dynamic_colors_summary">Match the app colors to your wallpaper (Android 12+). Requires \"Color palette\" or \"Themed icons\" to be enabled in your device display settings. When off, the default blue theme is used. Restart the app after changing this setting.</string>
+    <string name="settings_dynamic_colors_summary">Match the app colors to your wallpaper (Android 12+). Requires \"Color palette\" or \"Themed icons\" to be enabled in your device display settings. When off, the default purple theme is used. Restart the app after changing this setting.</string>
 
     <!-- Welcome (first setup) -->
     <string name="welcome_title">Welcome to NuKey Auto!</string>

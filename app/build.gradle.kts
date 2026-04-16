@@ -27,7 +27,7 @@ android {
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.2.2-it"
+        versionName = "1.2.2.4-it"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -97,6 +97,9 @@ dependencies {
     implementation(libs.billing)
 
     implementation(libs.androidx.swiperefreshlayout)
+
+    // M3 Expressive shape morphing
+    implementation(libs.graphics.shapes)
 
     // Testing
     testImplementation(libs.junit)
