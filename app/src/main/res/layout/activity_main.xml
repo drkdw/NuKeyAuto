@@ -52,25 +52,56 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:padding="48dp">
+                    android:padding="36dp">
 
-                    <ImageView
-                        android:id="@+id/ivIcon"
+                    <!-- Progress ring shown during countdown -->
+                    <FrameLayout
                         android:layout_width="96dp"
                         android:layout_height="96dp"
-                        android:src="@drawable/ic_lock"
-                        android:contentDescription="@string/status_locked"
-                        android:layout_marginBottom="24dp" />
+                        android:layout_marginBottom="16dp">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progressCountdown"
+                            android:layout_width="96dp"
+                            android:layout_height="96dp"
+                            android:layout_gravity="center"
+                            app:indicatorSize="96dp"
+                            app:trackThickness="4dp"
+                            app:indicatorColor="?attr/colorPrimary"
+                            app:trackColor="@android:color/transparent"
+                            android:indeterminate="false"
+                            android:max="100"
+                            android:progress="100"
+                            android:visibility="gone" />
+
+                        <ImageView
+                            android:id="@+id/ivIcon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_lock"
+                            android:contentDescription="@string/status_locked" />
+
+                    </FrameLayout>
 
                     <TextView
                         android:id="@+id/tvStatus"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/status_locked"
-                        android:textAppearance="?attr/textAppearanceDisplaySmallEmphasized"
+                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
                         android:textAlignment="center"
                         android:gravity="center"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="4dp" />
+
+                    <!-- Countdown subtitle (shown below title during delay) -->
+                    <TextView
+                        android:id="@+id/tvCountdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:layout_marginBottom="4dp"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/tvBattery"

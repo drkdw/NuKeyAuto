@@ -26,6 +26,9 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
     private var currentAnimator: AnimatorSet? = null
     private var currentState: LockState? = null
     private var pulseAnimator: ValueAnimator? = null
+    private var welcomeCycleRunnable: Runnable? = null
+    private var welcomeCycleIndex: Int = 0
+    private var isWelcomeCycling = false
 
     /**
      * Animate the card to the shape and emphasis for the given lock state.
@@ -43,6 +46,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         // Cancel any running animations
         currentAnimator?.cancel()
         stopPulse()
+        stopWelcomeCycle()
 
         // Morph the shape
         shapeView.morphTo(targetShape)
@@ -71,6 +75,14 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
             startPulse()
         }
 
+        // Welcome: cycle through shapes continuously
+        if (isWelcome) {
+            startWelcomeCycle()
+        }
+
+        // Idle rotation for stable states
+        shapeView.startIdleAnimation()
+
         currentState = state
     }
 
@@ -81,6 +93,10 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         val shape = if (isWelcome) welcomeShape() else shapeForState(state, isError = false)
         shapeView.setShape(shape)
         currentState = state
+        shapeView.startIdleAnimation()
+        if (isWelcome) {
+            startWelcomeCycle()
+        }
     }
 
     /** Start a gentle continuous pulse for loading/transitional states. */
@@ -107,9 +123,48 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         shapeView.scaleY = 1f
     }
 
+    /**
+     * Cycle through all M3 shapes on the welcome screen.
+     * Morphs to a new shape every [WELCOME_CYCLE_INTERVAL] ms.
+     */
+    private fun startWelcomeCycle() {
+        if (isWelcomeCycling) return
+        isWelcomeCycling = true
+        welcomeCycleIndex = 0
+
+        welcomeCycleRunnable = object : Runnable {
+            override fun run() {
+                if (!isWelcomeCycling) return
+                welcomeCycleIndex = (welcomeCycleIndex + 1) % WELCOME_SHAPES.size
+                shapeView.morphTo(WELCOME_SHAPES[welcomeCycleIndex](), WELCOME_MORPH_DURATION)
+                shapeView.postDelayed(this, WELCOME_CYCLE_INTERVAL)
+            }
+        }
+        shapeView.postDelayed(welcomeCycleRunnable!!, WELCOME_CYCLE_INTERVAL)
+    }
+
+    /** Stop the welcome shape cycle. */
+    private fun stopWelcomeCycle() {
+        isWelcomeCycling = false
+        welcomeCycleRunnable?.let { shapeView.removeCallbacks(it) }
+        welcomeCycleRunnable = null
+    }
+
     companion object {
         private const val PULSE_DURATION = 800L
         private const val PULSE_SCALE = 0.97f
+        private const val WELCOME_CYCLE_INTERVAL = 3000L
+        private const val WELCOME_MORPH_DURATION = 1200L
+
+        /** Shapes to cycle through on the welcome screen. */
+        private val WELCOME_SHAPES: List<() -> RoundedPolygon> = listOf(
+            ::welcomeShape,
+            ::circleShape,
+            ::diamondShape,
+            ::cookie4Shape,
+            ::sunnyShape,
+            ::cookie6Shape
+        )
 
         // -----------------------------------------------------------------
         // M3 Expressive shape definitions

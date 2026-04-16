@@ -23,11 +23,10 @@ android {
         applicationId = "com.ddw.nukeyauto"
         minSdk = 29
         targetSdk = 35
-        //versionCode = 101002
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.2.4-it"
+        versionName = "1.2.2.5-it"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

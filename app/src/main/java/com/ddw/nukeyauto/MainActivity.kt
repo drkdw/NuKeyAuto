@@ -25,6 +25,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -45,7 +46,9 @@ class MainActivity : AppCompatActivity() {
         val ivIcon = findViewById<ImageView>(R.id.ivIcon)
         val tvStatus = findViewById<TextView>(R.id.tvStatus)
         val tvBattery = findViewById<TextView>(R.id.tvBattery)
+        val tvCountdown = findViewById<TextView>(R.id.tvCountdown)
         val tvWelcome = findViewById<TextView>(R.id.tvWelcome)
+        val progressCountdown = findViewById<CircularProgressIndicator>(R.id.progressCountdown)
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
@@ -88,15 +91,20 @@ class MainActivity : AppCompatActivity() {
                     tvBattery.text = getString(R.string.battery_label, state.battery)
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
-                    // Show countdown when delay is active
-                    if (state.countdownSeconds > 0) {
-                        tvStatus.text = getString(R.string.status_countdown, state.countdownSeconds)
-                        btnAction.isEnabled = false
-                        return@collect
-                    }
-
                     val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
                     val colorError = MaterialColors.getColor(btnAction, android.R.attr.colorError)
+
+                    // Countdown: show as subtitle with circular progress ring
+                    if (state.countdownSeconds > 0) {
+                        tvCountdown.text = getString(R.string.status_countdown, state.countdownSeconds)
+                        tvCountdown.visibility = View.VISIBLE
+                        progressCountdown.visibility = View.VISIBLE
+                        progressCountdown.isIndeterminate = true
+                        btnAction.isEnabled = false
+                    } else {
+                        tvCountdown.visibility = View.GONE
+                        progressCountdown.visibility = View.GONE
+                    }
 
                     // Defaults: hide secondary button and welcome message (normal states)
                     btnSecondary.visibility = View.GONE

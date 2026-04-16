@@ -56,7 +56,7 @@
 
     <!-- Welcome (first setup) -->
     <string name="welcome_title">Welcome to NuKey Auto!</string>
-    <string name="welcome_message">To get started, add your Nuki Web API token and Smart Lock ID in the settings. It only takes a minute.</string>
+    <string name="welcome_message">Control your Nuki smart lock from your phone and Android Auto. To get started, add your Nuki Web API token and Smart Lock ID in the settings.</string>
     <string name="btn_get_started">Get started</string>
 
     <!-- Share -->

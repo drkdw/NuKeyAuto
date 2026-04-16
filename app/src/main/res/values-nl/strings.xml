@@ -54,7 +54,7 @@
 
     <!-- Welcome (eerste setup) -->
     <string name="welcome_title">Welkom bij NuKey Auto!</string>
-    <string name="welcome_message">Om te beginnen, voeg je Nuki Web API token en Smart Lock ID toe in de instellingen. Het duurt maar een minuutje.</string>
+    <string name="welcome_message">Bedien je Nuki slim slot vanaf je telefoon en Android Auto. Om te beginnen, voeg je Nuki Web API token en Smart Lock ID toe in de instellingen.</string>
     <string name="btn_get_started">Aan de slag</string>
 
     <!-- Delen -->

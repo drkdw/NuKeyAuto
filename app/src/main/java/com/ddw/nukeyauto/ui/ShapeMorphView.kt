@@ -41,6 +41,8 @@ class ShapeMorphView @JvmOverloads constructor(
     private var morph: Morph? = null
     private var morphProgress: Float = 1f
     private var morphAnimator: ValueAnimator? = null
+    private var idleAnimator: ValueAnimator? = null
+    private var idleRotation: Float = 0f
 
     /**
      * Fill color for the shape background.
@@ -129,6 +131,9 @@ class ShapeMorphView @JvmOverloads constructor(
         scaleMatrix.reset()
         scaleMatrix.postTranslate(-pathBounds.centerX(), -pathBounds.centerY())
         scaleMatrix.postScale(scale, scale)
+        if (idleRotation != 0f) {
+            scaleMatrix.postRotate(idleRotation)
+        }
         scaleMatrix.postTranslate(width / 2f, height / 2f)
         tempPath.transform(scaleMatrix)
 
@@ -157,7 +162,42 @@ class ShapeMorphView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Start a subtle continuous rotation to keep the shape feeling alive.
+     * Oscillates gently between -[degrees] and +[degrees].
+     */
+    fun startIdleAnimation(degrees: Float = IDLE_ROTATION_DEGREES) {
+        stopIdleAnimation()
+        idleAnimator = ValueAnimator.ofFloat(-degrees, degrees).apply {
+            duration = IDLE_DURATION
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener {
+                idleRotation = it.animatedValue as Float
+                rebuildPath()
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    /**
+     * Stop the idle animation and reset rotation.
+     */
+    fun stopIdleAnimation() {
+        idleAnimator?.cancel()
+        idleAnimator = null
+        if (idleRotation != 0f) {
+            idleRotation = 0f
+            rebuildPath()
+            invalidate()
+        }
+    }
+
     companion object {
         const val MORPH_DURATION = 500L
+        private const val IDLE_DURATION = 4000L
+        private const val IDLE_ROTATION_DEGREES = 3f
     }
 }
