@@ -3,6 +3,7 @@ package com.ddw.nukeyauto.ui
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.graphics.RectF
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
@@ -153,11 +154,12 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
      */
     private fun getCurrentCorners(): FloatArray {
         val shape = card.shapeAppearanceModel
+        val bounds = RectF(0f, 0f, card.measuredWidth.toFloat(), card.measuredHeight.toFloat())
         return floatArrayOf(
-            shape.topLeftCornerSize.getCornerSize(card.measuredWidth.toFloat(), card.measuredHeight.toFloat()),
-            shape.topRightCornerSize.getCornerSize(card.measuredWidth.toFloat(), card.measuredHeight.toFloat()),
-            shape.bottomRightCornerSize.getCornerSize(card.measuredWidth.toFloat(), card.measuredHeight.toFloat()),
-            shape.bottomLeftCornerSize.getCornerSize(card.measuredWidth.toFloat(), card.measuredHeight.toFloat())
+            shape.topLeftCornerSize.getCornerSize(bounds),
+            shape.topRightCornerSize.getCornerSize(bounds),
+            shape.bottomRightCornerSize.getCornerSize(bounds),
+            shape.bottomLeftCornerSize.getCornerSize(bounds)
         )
     }
 
