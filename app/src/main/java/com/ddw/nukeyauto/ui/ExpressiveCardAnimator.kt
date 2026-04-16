@@ -3,14 +3,12 @@ package com.ddw.nukeyauto.ui
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.graphics.RectF
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import com.ddw.nukeyauto.data.model.LockState
 import com.google.android.material.card.MaterialCardView
-import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 
 /**
@@ -22,24 +20,28 @@ import com.google.android.material.shape.ShapeAppearanceModel
  */
 class ExpressiveCardAnimator(private val card: MaterialCardView) {
 
+    private val density = card.resources.displayMetrics.density
     private var currentAnimator: AnimatorSet? = null
     private var currentState: LockState? = null
     private var pulseAnimator: ValueAnimator? = null
 
+    /** Current corner radii in px, tracked internally to avoid measurement issues. */
+    private var currentCornersPx = floatArrayOf(0f, 0f, 0f, 0f)
+
     /** Corner radii per state: [topLeft, topRight, bottomRight, bottomLeft] in dp. */
     private val stateShapes: Map<LockState, FloatArray> = mapOf(
-        LockState.Locked to floatArrayOf(40f, 20f, 40f, 20f),
-        LockState.Unlocked to floatArrayOf(20f, 40f, 20f, 40f),
-        LockState.Unlatched to floatArrayOf(36f, 36f, 36f, 36f),
+        LockState.Locked to floatArrayOf(48f, 16f, 48f, 16f),
+        LockState.Unlocked to floatArrayOf(16f, 48f, 16f, 48f),
+        LockState.Unlatched to floatArrayOf(40f, 40f, 40f, 40f),
         LockState.Locking to floatArrayOf(28f, 28f, 28f, 28f),
         LockState.Unlocking to floatArrayOf(28f, 28f, 28f, 28f),
         LockState.Unlatching to floatArrayOf(28f, 28f, 28f, 28f),
-        LockState.MotorBlocked to floatArrayOf(12f, 12f, 12f, 12f),
+        LockState.MotorBlocked to floatArrayOf(8f, 8f, 8f, 8f),
         LockState.Unknown to floatArrayOf(32f, 32f, 32f, 32f)
     )
 
     /** Shape for the welcome / no-credentials state. */
-    private val welcomeShape = floatArrayOf(36f, 36f, 36f, 36f)
+    private val welcomeShape = floatArrayOf(40f, 40f, 40f, 40f)
 
     /**
      * Animate the card to the shape and emphasis for the given lock state.
@@ -49,14 +51,16 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
      * @param isError true when the state includes an error (Unknown + error)
      */
     fun transitionTo(state: LockState, isWelcome: Boolean = false, isError: Boolean = false) {
+        // Skip if same state (avoid redundant animations)
+        if (state == currentState && !isWelcome) return
+
         val targetCorners = if (isWelcome) welcomeShape else stateShapes[state] ?: stateShapes[LockState.Unknown]!!
 
         // Cancel any running animations
         currentAnimator?.cancel()
         stopPulse()
 
-        val density = card.resources.displayMetrics.density
-        val currentShape = getCurrentCorners()
+        val startCorners = currentCornersPx.copyOf()
         val targetPx = targetCorners.map { it * density }.toFloatArray()
 
         // Shape morph animation
@@ -64,18 +68,13 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
             duration = MORPH_DURATION
             interpolator = AccelerateDecelerateInterpolator()
             addUpdateListener { anim ->
-                val fraction = anim.animatedFraction
-                val tl = lerp(currentShape[0], targetPx[0], fraction)
-                val tr = lerp(currentShape[1], targetPx[1], fraction)
-                val br = lerp(currentShape[2], targetPx[2], fraction)
-                val bl = lerp(currentShape[3], targetPx[3], fraction)
+                val f = anim.animatedFraction
+                val tl = lerp(startCorners[0], targetPx[0], f)
+                val tr = lerp(startCorners[1], targetPx[1], f)
+                val br = lerp(startCorners[2], targetPx[2], f)
+                val bl = lerp(startCorners[3], targetPx[3], f)
 
-                card.shapeAppearanceModel = ShapeAppearanceModel.builder()
-                    .setTopLeftCornerSize(tl)
-                    .setTopRightCornerSize(tr)
-                    .setBottomRightCornerSize(br)
-                    .setBottomLeftCornerSize(bl)
-                    .build()
+                applyCorners(tl, tr, br, bl)
             }
         }
 
@@ -139,28 +138,33 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
      */
     fun setInitialState(state: LockState, isWelcome: Boolean = false) {
         val corners = if (isWelcome) welcomeShape else stateShapes[state] ?: stateShapes[LockState.Unknown]!!
-        val density = card.resources.displayMetrics.density
-        card.shapeAppearanceModel = ShapeAppearanceModel.builder()
-            .setTopLeftCornerSize(corners[0] * density)
-            .setTopRightCornerSize(corners[1] * density)
-            .setBottomRightCornerSize(corners[2] * density)
-            .setBottomLeftCornerSize(corners[3] * density)
-            .build()
+        val tl = corners[0] * density
+        val tr = corners[1] * density
+        val br = corners[2] * density
+        val bl = corners[3] * density
+        applyCorners(tl, tr, br, bl)
         currentState = state
     }
 
     /**
-     * Get the current corner sizes in pixels from the card.
+     * Apply corner sizes in pixels to the card and force a visual update.
      */
-    private fun getCurrentCorners(): FloatArray {
-        val shape = card.shapeAppearanceModel
-        val bounds = RectF(0f, 0f, card.measuredWidth.toFloat(), card.measuredHeight.toFloat())
-        return floatArrayOf(
-            shape.topLeftCornerSize.getCornerSize(bounds),
-            shape.topRightCornerSize.getCornerSize(bounds),
-            shape.bottomRightCornerSize.getCornerSize(bounds),
-            shape.bottomLeftCornerSize.getCornerSize(bounds)
-        )
+    private fun applyCorners(tl: Float, tr: Float, br: Float, bl: Float) {
+        currentCornersPx[0] = tl
+        currentCornersPx[1] = tr
+        currentCornersPx[2] = br
+        currentCornersPx[3] = bl
+
+        card.shapeAppearanceModel = ShapeAppearanceModel.builder()
+            .setTopLeftCornerSize(tl)
+            .setTopRightCornerSize(tr)
+            .setBottomRightCornerSize(br)
+            .setBottomLeftCornerSize(bl)
+            .build()
+
+        // Force MaterialCardView to redraw with the new shape
+        card.invalidateOutline()
+        card.invalidate()
     }
 
     private fun lerp(start: Float, end: Float, fraction: Float): Float {
@@ -168,7 +172,7 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
     }
 
     companion object {
-        private const val MORPH_DURATION = 400L
+        private const val MORPH_DURATION = 500L
         private const val PULSE_DURATION = 800L
         private const val PULSE_SCALE = 0.97f
 
@@ -178,7 +182,7 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
         fun buildShakeAnimator(view: View): ObjectAnimator {
             return ObjectAnimator.ofFloat(
                 view, "translationX",
-                0f, -12f, 12f, -10f, 10f, -6f, 6f, 0f
+                0f, -16f, 16f, -12f, 12f, -8f, 8f, 0f
             ).apply {
                 duration = 500
                 interpolator = DecelerateInterpolator()
@@ -189,12 +193,12 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
          * Bounce scale for success states (door opened).
          */
         fun buildBounceAnimator(view: View): AnimatorSet {
-            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.05f, 0.97f, 1f).apply {
-                duration = 500
+            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.06f, 0.96f, 1f).apply {
+                duration = 600
                 interpolator = OvershootInterpolator(2f)
             }
-            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.05f, 0.97f, 1f).apply {
-                duration = 500
+            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.06f, 0.96f, 1f).apply {
+                duration = 600
                 interpolator = OvershootInterpolator(2f)
             }
             return AnimatorSet().apply { playTogether(scaleX, scaleY) }
@@ -204,12 +208,12 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
          * Subtle settle animation for locked state (slight scale down then back).
          */
         fun buildSettleAnimator(view: View): AnimatorSet {
-            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.98f, 1f).apply {
-                duration = 350
+            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.97f, 1f).apply {
+                duration = 400
                 interpolator = DecelerateInterpolator()
             }
-            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.98f, 1f).apply {
-                duration = 350
+            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.97f, 1f).apply {
+                duration = 400
                 interpolator = DecelerateInterpolator()
             }
             return AnimatorSet().apply { playTogether(scaleX, scaleY) }
@@ -219,12 +223,12 @@ class ExpressiveCardAnimator(private val card: MaterialCardView) {
          * Single pulse for unlocked state.
          */
         fun buildPulseOnce(view: View): AnimatorSet {
-            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.03f, 1f).apply {
-                duration = 400
+            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.04f, 1f).apply {
+                duration = 500
                 interpolator = AccelerateDecelerateInterpolator()
             }
-            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.03f, 1f).apply {
-                duration = 400
+            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.04f, 1f).apply {
+                duration = 500
                 interpolator = AccelerateDecelerateInterpolator()
             }
             return AnimatorSet().apply { playTogether(scaleX, scaleY) }
