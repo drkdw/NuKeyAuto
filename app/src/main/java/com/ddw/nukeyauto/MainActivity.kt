@@ -88,8 +88,8 @@ class MainActivity : AppCompatActivity() {
                         return@collect
                     }
 
-                    val colorPrimary = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorPrimary)
-                    val colorError = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorError)
+                    val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
+                    val colorError = MaterialColors.getColor(btnAction, android.R.attr.colorError)
 
                     // Defaults: hide secondary button and welcome message (normal states)
                     btnSecondary.visibility = View.GONE
