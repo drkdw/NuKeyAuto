@@ -75,6 +75,10 @@ class NukiRepository @Inject constructor(
                 Log.d(TAG, "fetchState() started")
             }
 
+            // Always signal loading first so StateFlow emits even when
+            // the resulting state is identical (fixes stuck SwipeRefreshLayout).
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
             val id = prefs.getString(PrefKeys.NUKI_ID, "") ?: ""
             val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
 
@@ -98,8 +102,6 @@ class NukiRepository @Inject constructor(
                 _uiState.update { it.copy(isLoading = false, error = NukiError.InvalidSmartLockId) }
                 return
             }
-
-            _uiState.update { it.copy(isLoading = true, error = null) }
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "API call for Smart Lock ID: $smartlockId")

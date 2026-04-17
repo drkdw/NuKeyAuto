@@ -41,15 +41,22 @@
     <string name="language_english">English</string>
     <string name="language_dutch">Nederlands</string>
 
+    <!-- Appearance -->
+    <string name="settings_appearance_title">Appearance</string>
+
     <!-- Theme -->
     <string name="settings_theme_title">Theme</string>
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
 
+    <!-- Dynamic colors -->
+    <string name="settings_dynamic_colors_title">Dynamic colors</string>
+    <string name="settings_dynamic_colors_summary">Match the app colors to your wallpaper (Android 12+). Requires \"Color palette\" or \"Themed icons\" to be enabled in your device display settings. When off, the default purple theme is used. Restart the app after changing this setting.</string>
+
     <!-- Welcome (first setup) -->
     <string name="welcome_title">Welcome to NuKey Auto!</string>
-    <string name="welcome_message">To get started, add your Nuki Web API token and Smart Lock ID in the settings. It only takes a minute.</string>
+    <string name="welcome_message">Control your Nuki smart lock from your phone and Android Auto. To get started, add your Nuki Web API token and Smart Lock ID in the settings.</string>
     <string name="btn_get_started">Get started</string>
 
     <!-- Share -->
@@ -57,6 +64,9 @@
     <string name="share_subject">NuKey Auto</string>
     <string name="share_text">Check out NuKey Auto — a free Nuki smart lock app with Android Auto support! https://play.google.com/store/apps/details?id=%1$s</string>
     <string name="share_chooser_title">Share NuKey Auto</string>
+
+    <!-- Behavior -->
+    <string name="settings_behavior_title">Behavior</string>
 
     <!-- Confirmation -->
     <string name="settings_confirm_title">Confirm actions</string>
@@ -78,6 +88,7 @@
 
     <!-- About -->
     <string name="settings_about_title">About</string>
+    <string name="settings_about_description">NuKey Auto brings your Nuki smart lock to Android Auto and your phone. Lock, unlock and open your door with a single tap.</string>
     <string name="settings_rate">Rate on Google Play</string>
     <string name="settings_feedback">Send feedback</string>
 

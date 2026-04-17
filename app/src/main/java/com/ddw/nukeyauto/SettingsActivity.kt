@@ -106,6 +106,13 @@ class SettingsActivity : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(NukiApp.themeToNightMode(newTheme))
         }
 
+        // Dynamic colors switch — default ON
+        val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
+        switchDynamicColors.isChecked = prefs.getBoolean(PrefKeys.DYNAMIC_COLORS, true)
+        switchDynamicColors.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(PrefKeys.DYNAMIC_COLORS, isChecked).apply()
+        }
+
         // Confirmation switch — read from prefs, default ON
         switchConfirm.isChecked = prefs.getBoolean(PrefKeys.CONFIRM_ACTION, true)
 

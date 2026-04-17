@@ -19,6 +19,8 @@ import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import com.ddw.nukeyauto.ui.mobile.MainViewModel
+import com.ddw.nukeyauto.ui.ExpressiveCardAnimator
+import com.ddw.nukeyauto.ui.ShapeMorphView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
@@ -43,10 +45,17 @@ class MainActivity : AppCompatActivity() {
         val ivIcon = findViewById<ImageView>(R.id.ivIcon)
         val tvStatus = findViewById<TextView>(R.id.tvStatus)
         val tvBattery = findViewById<TextView>(R.id.tvBattery)
+        val tvCountdown = findViewById<TextView>(R.id.tvCountdown)
         val tvWelcome = findViewById<TextView>(R.id.tvWelcome)
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
+        val cardStatus = findViewById<ShapeMorphView>(R.id.cardStatus)
+        val surfaceAttr = com.google.android.material.R.attr.colorSurfaceContainerHighest
+        cardStatus.shapeColor = MaterialColors.getColor(cardStatus, surfaceAttr, 0)
+        val cardAnimator = ExpressiveCardAnimator(cardStatus)
+        var isFirstState = true
+        var countdownMax = 0
 
         swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
@@ -81,19 +90,40 @@ class MainActivity : AppCompatActivity() {
                     tvBattery.text = getString(R.string.battery_label, state.battery)
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
-                    // Show countdown when delay is active
+                    val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
+                    val colorError = MaterialColors.getColor(btnAction, android.R.attr.colorError)
+
+                    // Countdown: fixed shape + smooth progress stroke
                     if (state.countdownSeconds > 0) {
-                        tvStatus.text = getString(R.string.status_countdown, state.countdownSeconds)
+                        if (countdownMax == 0) {
+                            countdownMax = state.countdownSeconds
+                            cardAnimator.holdCountdownShape()
+                            // Start one smooth animation from 0→1 over the full duration
+                            val strokeWidthPx = 4f * resources.displayMetrics.density
+                            val totalMs = countdownMax * 1000L
+                            cardStatus.startStrokeAnimation(totalMs, colorPrimary, strokeWidthPx)
+                        }
+                        tvCountdown.text = getString(R.string.status_countdown, state.countdownSeconds)
+                        tvCountdown.visibility = View.VISIBLE
                         btnAction.isEnabled = false
-                        return@collect
+                    } else {
+                        if (countdownMax > 0) {
+                            // Brief pause at full, then clear and resume cycling
+                            cardStatus.postDelayed({
+                                cardStatus.stopStrokeLoader()
+                                cardAnimator.resumeAmbientCycle()
+                            }, 300)
+                        }
+                        countdownMax = 0
+                        tvCountdown.visibility = View.GONE
                     }
 
-                    val colorPrimary = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorPrimary)
-                    val colorError = MaterialColors.getColor(btnAction, com.google.android.material.R.attr.colorError)
-
-                    // Defaults: hide secondary button and welcome message (normal states)
+                    // Defaults: hide secondary button, welcome message, stroke (normal states)
                     btnSecondary.visibility = View.GONE
                     tvWelcome.visibility = View.GONE
+                    if (state.countdownSeconds == 0 && state.lockState != LockState.MotorBlocked) {
+                        cardStatus.stopStrokeLoader()
+                    }
 
                     // First setup: no credentials yet → friendly welcome screen
                     if (state.error is NukiError.NoCredentials) {
@@ -107,6 +137,12 @@ class MainActivity : AppCompatActivity() {
                         btnAction.isEnabled = true
                         btnAction.setOnClickListener {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                        }
+                        if (isFirstState) {
+                            cardAnimator.setInitialState(LockState.Unknown, isWelcome = true)
+                            isFirstState = false
+                        } else {
+                            cardAnimator.transitionTo(LockState.Unknown, isWelcome = true)
                         }
                         return@collect
                     }
@@ -161,6 +197,8 @@ class MainActivity : AppCompatActivity() {
                             ivIcon.setImageResource(R.drawable.ic_warning)
                             ivIcon.imageTintList = ColorStateList.valueOf(colorError)
                             tvStatus.text = getString(R.string.status_motor_blocked)
+                            val strokeWidthPx = 4f * resources.displayMetrics.density
+                            cardStatus.setStrokeProgress(1f, colorError, strokeWidthPx)
                             btnAction.text = getString(R.string.btn_open_door)
                             btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
                             btnAction.isEnabled = !state.isLoading
@@ -185,6 +223,15 @@ class MainActivity : AppCompatActivity() {
                                 btnAction.isEnabled = false
                             }
                         }
+                    }
+
+                    // Animate card shape based on state
+                    val isError = state.error != null && state.lockState == LockState.Unknown
+                    if (isFirstState) {
+                        cardAnimator.setInitialState(state.lockState)
+                        isFirstState = false
+                    } else {
+                        cardAnimator.transitionTo(state.lockState, isError = isError)
                     }
 
                     // Show Snackbar when an error occurs but the UI still shows a valid lock state

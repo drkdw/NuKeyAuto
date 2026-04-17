@@ -39,15 +39,22 @@
     <string name="language_english">English</string>
     <string name="language_dutch">Nederlands</string>
 
+    <!-- Appearance -->
+    <string name="settings_appearance_title">Uiterlijk</string>
+
     <!-- Theme -->
     <string name="settings_theme_title">Thema</string>
     <string name="theme_system">Systeemstandaard</string>
     <string name="theme_light">Licht</string>
     <string name="theme_dark">Donker</string>
 
+    <!-- Dynamic colors -->
+    <string name="settings_dynamic_colors_title">Dynamische kleuren</string>
+    <string name="settings_dynamic_colors_summary">Pas de app kleuren aan op je achtergrond (Android 12+). Vereist dat \"Kleurenpalet\" of \"App-iconen met thema\" is ingeschakeld in je beeldscherminstellingen. Uitgeschakeld wordt het standaard paarse thema gebruikt. Herstart de app na het wijzigen van deze instelling.</string>
+
     <!-- Welcome (eerste setup) -->
     <string name="welcome_title">Welkom bij NuKey Auto!</string>
-    <string name="welcome_message">Om te beginnen, voeg je Nuki Web API token en Smart Lock ID toe in de instellingen. Het duurt maar een minuutje.</string>
+    <string name="welcome_message">Bedien je Nuki slim slot vanaf je telefoon en Android Auto. Om te beginnen, voeg je Nuki Web API token en Smart Lock ID toe in de instellingen.</string>
     <string name="btn_get_started">Aan de slag</string>
 
     <!-- Delen -->
@@ -55,6 +62,9 @@
     <string name="share_subject">NuKey Auto</string>
     <string name="share_text">Bekijk eens NuKey Auto — een gratis Nuki slimme-slot app met Android Auto ondersteuning! https://play.google.com/store/apps/details?id=%1$s</string>
     <string name="share_chooser_title">Deel NuKey Auto</string>
+
+    <!-- Behavior -->
+    <string name="settings_behavior_title">Gedrag</string>
 
     <!-- Confirmation -->
     <string name="settings_confirm_title">Acties bevestigen</string>
@@ -76,6 +86,7 @@
 
     <!-- About -->
     <string name="settings_about_title">Over</string>
+    <string name="settings_about_description">NuKey Auto brengt je Nuki slim slot naar Android Auto en je telefoon. Vergrendel, ontgrendel en open je deur met één tik.</string>
     <string name="settings_rate">Beoordeel op Google Play</string>
     <string name="settings_feedback">Feedback sturen</string>
 

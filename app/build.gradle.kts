@@ -23,11 +23,10 @@ android {
         applicationId = "com.ddw.nukeyauto"
         minSdk = 29
         targetSdk = 35
-        //versionCode = 101002
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.1.2-it"
+        versionName = "1.2.3.2-it"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -97,6 +96,9 @@ dependencies {
     implementation(libs.billing)
 
     implementation(libs.androidx.swiperefreshlayout)
+
+    // M3 Expressive shape morphing
+    implementation(libs.graphics.shapes)
 
     // Testing
     testImplementation(libs.junit)
