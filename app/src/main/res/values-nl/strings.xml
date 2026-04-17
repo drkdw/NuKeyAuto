@@ -86,6 +86,7 @@
 
     <!-- About -->
     <string name="settings_about_title">Over</string>
+    <string name="settings_about_description">NuKey Auto brengt je Nuki slim slot naar Android Auto en je telefoon. Vergrendel, ontgrendel en open je deur met één tik.</string>
     <string name="settings_rate">Beoordeel op Google Play</string>
     <string name="settings_feedback">Feedback sturen</string>
 

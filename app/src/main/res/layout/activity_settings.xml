@@ -343,6 +343,16 @@
                     android:orientation="vertical"
                     android:paddingVertical="8dp">
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_about_description"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:paddingHorizontal="16dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="12dp" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnRate"
                         style="@style/Widget.Material3.Button.TextButton"

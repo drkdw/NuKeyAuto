@@ -26,9 +26,9 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
     private var currentAnimator: AnimatorSet? = null
     private var currentState: LockState? = null
     private var pulseAnimator: ValueAnimator? = null
-    private var welcomeCycleRunnable: Runnable? = null
-    private var welcomeCycleIndex: Int = 0
-    private var isWelcomeCycling = false
+    private var ambientCycleRunnable: Runnable? = null
+    private var ambientCycleIndex: Int = 0
+    private var isAmbientCycling = false
 
     /**
      * Animate the card to the shape and emphasis for the given lock state.
@@ -46,7 +46,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         // Cancel any running animations
         currentAnimator?.cancel()
         stopPulse()
-        stopWelcomeCycle()
+        stopAmbientCycle()
 
         // Morph the shape
         shapeView.morphTo(targetShape)
@@ -75,10 +75,8 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
             startPulse()
         }
 
-        // Welcome: cycle through shapes continuously
-        if (isWelcome) {
-            startWelcomeCycle()
-        }
+        // Continuous ambient shape morphing for all states
+        startAmbientCycle(state, isWelcome)
 
         // Idle rotation for stable states
         shapeView.startIdleAnimation()
@@ -94,9 +92,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         shapeView.setShape(shape)
         currentState = state
         shapeView.startIdleAnimation()
-        if (isWelcome) {
-            startWelcomeCycle()
-        }
+        startAmbientCycle(state, isWelcome)
     }
 
     /** Start a gentle continuous pulse for loading/transitional states. */
@@ -124,47 +120,102 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
     }
 
     /**
-     * Cycle through all M3 shapes on the welcome screen.
-     * Morphs to a new shape every [WELCOME_CYCLE_INTERVAL] ms.
+     * Cycle through ambient shapes for all states.
+     *
+     * Each state has a set of related shapes it gently morphs through,
+     * always returning to its home shape. Welcome uses a faster cycle;
+     * other states use a slower, more subtle cadence.
      */
-    private fun startWelcomeCycle() {
-        if (isWelcomeCycling) return
-        isWelcomeCycling = true
-        welcomeCycleIndex = 0
+    private fun startAmbientCycle(state: LockState, isWelcome: Boolean) {
+        if (isAmbientCycling) return
+        isAmbientCycling = true
+        ambientCycleIndex = 0
 
-        welcomeCycleRunnable = object : Runnable {
+        val shapes = if (isWelcome) WELCOME_SHAPES else ambientShapesForState(state)
+        val interval = if (isWelcome) WELCOME_CYCLE_INTERVAL else AMBIENT_CYCLE_INTERVAL
+        val morphDuration = if (isWelcome) WELCOME_MORPH_DURATION else AMBIENT_MORPH_DURATION
+
+        ambientCycleRunnable = object : Runnable {
             override fun run() {
-                if (!isWelcomeCycling) return
-                welcomeCycleIndex = (welcomeCycleIndex + 1) % WELCOME_SHAPES.size
-                shapeView.morphTo(WELCOME_SHAPES[welcomeCycleIndex](), WELCOME_MORPH_DURATION)
-                shapeView.postDelayed(this, WELCOME_CYCLE_INTERVAL)
+                if (!isAmbientCycling) return
+                ambientCycleIndex = (ambientCycleIndex + 1) % shapes.size
+                shapeView.morphTo(shapes[ambientCycleIndex](), morphDuration)
+                shapeView.postDelayed(this, interval)
             }
         }
-        shapeView.postDelayed(welcomeCycleRunnable!!, WELCOME_CYCLE_INTERVAL)
+        shapeView.postDelayed(ambientCycleRunnable!!, interval)
     }
 
-    /** Stop the welcome shape cycle. */
-    private fun stopWelcomeCycle() {
-        isWelcomeCycling = false
-        welcomeCycleRunnable?.let { shapeView.removeCallbacks(it) }
-        welcomeCycleRunnable = null
+    /** Stop the ambient shape cycle. */
+    private fun stopAmbientCycle() {
+        isAmbientCycling = false
+        ambientCycleRunnable?.let { shapeView.removeCallbacks(it) }
+        ambientCycleRunnable = null
+    }
+
+    /**
+     * Hold a fixed shape during countdown (no ambient morphing).
+     * Morphs once to the countdown shape and stays there.
+     */
+    fun holdCountdownShape() {
+        stopAmbientCycle()
+        shapeView.morphTo(countdownShape())
+    }
+
+    /**
+     * Resume ambient shape cycling for the current state after countdown.
+     */
+    fun resumeAmbientCycle() {
+        val state = currentState ?: return
+        startAmbientCycle(state, isWelcome = false)
     }
 
     companion object {
         private const val PULSE_DURATION = 800L
         private const val PULSE_SCALE = 0.97f
-        private const val WELCOME_CYCLE_INTERVAL = 3000L
-        private const val WELCOME_MORPH_DURATION = 1200L
+        private const val WELCOME_CYCLE_INTERVAL = 2500L
+        private const val WELCOME_MORPH_DURATION = 1000L
+        private const val AMBIENT_CYCLE_INTERVAL = 3500L
+        private const val AMBIENT_MORPH_DURATION = 1200L
 
         /** Shapes to cycle through on the welcome screen. */
         private val WELCOME_SHAPES: List<() -> RoundedPolygon> = listOf(
-            ::welcomeShape,
-            ::circleShape,
             ::diamondShape,
             ::cookie4Shape,
             ::sunnyShape,
-            ::cookie6Shape
+            ::cookie6Shape,
+            ::diamondShape,
+            ::sunnyShape
         )
+
+        /**
+         * Return an ambient shape cycle for a given [LockState].
+         *
+         * Each list starts with the home shape and includes 2-3 related
+         * shapes for gentle, continuous variation.
+         */
+        private fun ambientShapesForState(state: LockState): List<() -> RoundedPolygon> {
+            return when (state) {
+                LockState.Locked -> listOf(
+                    ::cookie6Shape, ::sunnyShape, ::cookie4Shape, ::burstShape
+                )
+                LockState.Unlocked -> listOf(
+                    ::sunnyShape, ::diamondShape, ::cookie6Shape, ::burstShape
+                )
+                LockState.Unlatched -> listOf(
+                    ::diamondShape, ::cookie4Shape, ::cookie6Shape, ::burstShape
+                )
+                LockState.Locking, LockState.Unlocking, LockState.Unlatching -> listOf(
+                    ::diamondShape, ::sunnyShape, ::cookie4Shape, ::burstShape
+                )
+                LockState.MotorBlocked -> listOf(
+                    ::diamondShape, ::cookie6Shape, ::sunnyShape, ::cookie4Shape
+                )
+                LockState.Unknown -> listOf(
+                    ::sunnyShape, ::cookie4Shape, ::cookie6Shape, ::burstShape
+                )
+            }
+        }
 
         // -----------------------------------------------------------------
         // M3 Expressive shape definitions
@@ -219,6 +270,19 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
+         * 7-sided cookie — held during countdown / delay transitions.
+         *
+         * Slightly more complex than cookie6 for visual distinction.
+         */
+        private fun cookie7Shape(): RoundedPolygon = RoundedPolygon.star(
+            numVerticesPerRadius = 7,
+            radius = 1f,
+            innerRadius = 0.76f,
+            rounding = CornerRounding(radius = 0.16f, smoothing = 0.5f),
+            innerRounding = CornerRounding(radius = 0.16f, smoothing = 0.5f)
+        )
+
+        /**
          * Burst — sharp, jagged alarm feel (MotorBlocked / error).
          *
          * 8-point star with minimal rounding.
@@ -232,10 +296,11 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * Circle — neutral, waiting state (Unknown / loading).
+         * Circle — neutral, waiting state.
          *
          * High-vertex polygon with maximum rounding to approximate a circle.
          */
+        @Suppress("unused")
         private fun circleShape(): RoundedPolygon = RoundedPolygon(
             numVertices = 10,
             radius = 1f,
@@ -245,15 +310,15 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * Pentagon — friendly, gem-like feel (Welcome / first setup).
+         * Countdown shape — fixed shape held during delay/countdown.
+         * Uses the 7-sided cookie for visual distinction.
          */
-        private fun welcomeShape(): RoundedPolygon = RoundedPolygon(
-            numVertices = 5,
-            radius = 1f,
-            centerX = 0f,
-            centerY = 0f,
-            rounding = CornerRounding(radius = 0.3f, smoothing = 0.5f)
-        )
+        fun countdownShape(): RoundedPolygon = cookie7Shape()
+
+        /**
+         * Welcome shape — reuses diamond for a clean starting point.
+         */
+        private fun welcomeShape(): RoundedPolygon = diamondShape()
 
         /**
          * Map a [LockState] to its corresponding M3 Expressive [RoundedPolygon].
@@ -269,7 +334,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
                     LockState.Unlocking,
                     LockState.Unlatching -> cookie6Shape()
                     LockState.MotorBlocked -> burstShape()
-                    LockState.Unknown -> circleShape()
+                    LockState.Unknown -> diamondShape()
                 }
             }
         }

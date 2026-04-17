@@ -3,14 +3,17 @@ package com.ddw.nukeyauto.ui
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.DashPathEffect
 import android.graphics.Matrix
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.PathMeasure
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.ViewOutlineProvider
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
@@ -22,6 +25,9 @@ import androidx.graphics.shapes.toPath
  *
  * Supports smooth morphing transitions between any two [RoundedPolygon] shapes
  * via the [androidx.graphics.shapes.Morph] class.
+ *
+ * An optional animated stroke ("wave loader") can be shown around the shape
+ * perimeter via [startStrokeLoader] / [stopStrokeLoader].
  */
 class ShapeMorphView @JvmOverloads constructor(
     context: Context,
@@ -31,6 +37,11 @@ class ShapeMorphView @JvmOverloads constructor(
 
     private val shapePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
+    }
+
+    private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
     }
 
     private val shapePath = Path()
@@ -44,6 +55,12 @@ class ShapeMorphView @JvmOverloads constructor(
     private var idleAnimator: ValueAnimator? = null
     private var idleRotation: Float = 0f
 
+    // Stroke progress state
+    private var strokeProgress: Float = 0f
+    private var strokePathLength: Float = 0f
+    private var isStrokeActive = false
+    private var strokeAnimator: ValueAnimator? = null
+
     /**
      * Fill color for the shape background.
      */
@@ -51,6 +68,26 @@ class ShapeMorphView @JvmOverloads constructor(
         get() = shapePaint.color
         set(value) {
             shapePaint.color = value
+            invalidate()
+        }
+
+    /**
+     * Stroke color for the wave loader. Defaults to [strokePaint] color.
+     */
+    var strokeColor: Int
+        get() = strokePaint.color
+        set(value) {
+            strokePaint.color = value
+            invalidate()
+        }
+
+    /**
+     * Stroke width in pixels for the wave loader.
+     */
+    var strokeWidth: Float
+        get() = strokePaint.strokeWidth
+        set(value) {
+            strokePaint.strokeWidth = value
             invalidate()
         }
 
@@ -138,6 +175,13 @@ class ShapeMorphView @JvmOverloads constructor(
         tempPath.transform(scaleMatrix)
 
         shapePath.set(tempPath)
+
+        // Update stroke path length for progress calculation
+        if (isStrokeActive) {
+            val measure = PathMeasure(shapePath, true)
+            strokePathLength = measure.length
+            updateStrokeProgress()
+        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -148,6 +192,11 @@ class ShapeMorphView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         if (!shapePath.isEmpty) {
             canvas.drawPath(shapePath, shapePaint)
+
+            // Draw progress stroke on top of fill
+            if (isStrokeActive && strokePathLength > 0f) {
+                canvas.drawPath(shapePath, strokePaint)
+            }
         }
     }
 
@@ -161,6 +210,95 @@ class ShapeMorphView @JvmOverloads constructor(
             super.dispatchDraw(canvas)
         }
     }
+
+    // -----------------------------------------------------------------
+    // Stroke progress indicator
+    // -----------------------------------------------------------------
+
+    /**
+     * Start a single smooth stroke animation from 0% to 100% over [durationMs].
+     * The stroke draws continuously around the shape perimeter.
+     *
+     * @param durationMs total animation duration in milliseconds
+     * @param color stroke color
+     * @param widthPx stroke width in pixels
+     */
+    fun startStrokeAnimation(durationMs: Long, color: Int, widthPx: Float = STROKE_DEFAULT_WIDTH) {
+        strokePaint.color = color
+        strokePaint.strokeWidth = widthPx
+        isStrokeActive = true
+        strokeProgress = 0f
+
+        // Measure current path
+        val measure = PathMeasure(shapePath, true)
+        strokePathLength = measure.length
+        updateStrokeProgress()
+
+        strokeAnimator?.cancel()
+        strokeAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = durationMs
+            interpolator = LinearInterpolator()
+            addUpdateListener {
+                strokeProgress = it.animatedValue as Float
+                updateStrokeProgress()
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    /**
+     * Set stroke progress directly (no animation). Used for static states
+     * like motor blocked.
+     *
+     * @param progress value between 0.0 and 1.0
+     * @param color stroke color
+     * @param widthPx stroke width in pixels
+     */
+    fun setStrokeProgress(progress: Float, color: Int, widthPx: Float = STROKE_DEFAULT_WIDTH) {
+        strokeAnimator?.cancel()
+        strokePaint.color = color
+        strokePaint.strokeWidth = widthPx
+        strokeProgress = progress.coerceIn(0f, 1f)
+        isStrokeActive = true
+
+        val measure = PathMeasure(shapePath, true)
+        strokePathLength = measure.length
+        updateStrokeProgress()
+        invalidate()
+    }
+
+    /**
+     * Stop the stroke progress indicator and clear the stroke.
+     */
+    fun stopStrokeLoader() {
+        strokeAnimator?.cancel()
+        strokeAnimator = null
+        isStrokeActive = false
+        strokeProgress = 0f
+        strokePaint.pathEffect = null
+        invalidate()
+    }
+
+    /**
+     * Update the [DashPathEffect] so the visible dash covers [strokeProgress]
+     * fraction of the total path length.
+     */
+    private fun updateStrokeProgress() {
+        if (strokePathLength <= 0f) return
+
+        val dashLen = strokeProgress * strokePathLength
+        val gapLen = strokePathLength
+
+        strokePaint.pathEffect = DashPathEffect(
+            floatArrayOf(dashLen, gapLen),
+            0f
+        )
+    }
+
+    // -----------------------------------------------------------------
+    // Idle animation
+    // -----------------------------------------------------------------
 
     /**
      * Start a subtle continuous rotation to keep the shape feeling alive.
@@ -199,5 +337,8 @@ class ShapeMorphView @JvmOverloads constructor(
         const val MORPH_DURATION = 500L
         private const val IDLE_DURATION = 4000L
         private const val IDLE_ROTATION_DEGREES = 3f
+
+        /** Default stroke width in dp-ish pixels. */
+        private const val STROKE_DEFAULT_WIDTH = 6f
     }
 }

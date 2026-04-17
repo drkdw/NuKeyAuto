@@ -25,7 +25,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -48,7 +47,6 @@ class MainActivity : AppCompatActivity() {
         val tvBattery = findViewById<TextView>(R.id.tvBattery)
         val tvCountdown = findViewById<TextView>(R.id.tvCountdown)
         val tvWelcome = findViewById<TextView>(R.id.tvWelcome)
-        val progressCountdown = findViewById<CircularProgressIndicator>(R.id.progressCountdown)
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
@@ -57,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         cardStatus.shapeColor = MaterialColors.getColor(cardStatus, surfaceAttr, 0)
         val cardAnimator = ExpressiveCardAnimator(cardStatus)
         var isFirstState = true
+        var countdownMax = 0
 
         swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
@@ -94,21 +93,37 @@ class MainActivity : AppCompatActivity() {
                     val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
                     val colorError = MaterialColors.getColor(btnAction, android.R.attr.colorError)
 
-                    // Countdown: show as subtitle with circular progress ring
+                    // Countdown: fixed shape + smooth progress stroke
                     if (state.countdownSeconds > 0) {
+                        if (countdownMax == 0) {
+                            countdownMax = state.countdownSeconds
+                            cardAnimator.holdCountdownShape()
+                            // Start one smooth animation from 0→1 over the full duration
+                            val strokeWidthPx = 4f * resources.displayMetrics.density
+                            val totalMs = countdownMax * 1000L
+                            cardStatus.startStrokeAnimation(totalMs, colorPrimary, strokeWidthPx)
+                        }
                         tvCountdown.text = getString(R.string.status_countdown, state.countdownSeconds)
                         tvCountdown.visibility = View.VISIBLE
-                        progressCountdown.visibility = View.VISIBLE
-                        progressCountdown.isIndeterminate = true
                         btnAction.isEnabled = false
                     } else {
+                        if (countdownMax > 0) {
+                            // Brief pause at full, then clear and resume cycling
+                            cardStatus.postDelayed({
+                                cardStatus.stopStrokeLoader()
+                                cardAnimator.resumeAmbientCycle()
+                            }, 300)
+                        }
+                        countdownMax = 0
                         tvCountdown.visibility = View.GONE
-                        progressCountdown.visibility = View.GONE
                     }
 
-                    // Defaults: hide secondary button and welcome message (normal states)
+                    // Defaults: hide secondary button, welcome message, stroke (normal states)
                     btnSecondary.visibility = View.GONE
                     tvWelcome.visibility = View.GONE
+                    if (state.countdownSeconds == 0 && state.lockState != LockState.MotorBlocked) {
+                        cardStatus.stopStrokeLoader()
+                    }
 
                     // First setup: no credentials yet → friendly welcome screen
                     if (state.error is NukiError.NoCredentials) {
@@ -182,6 +197,8 @@ class MainActivity : AppCompatActivity() {
                             ivIcon.setImageResource(R.drawable.ic_warning)
                             ivIcon.imageTintList = ColorStateList.valueOf(colorError)
                             tvStatus.text = getString(R.string.status_motor_blocked)
+                            val strokeWidthPx = 4f * resources.displayMetrics.density
+                            cardStatus.setStrokeProgress(1f, colorError, strokeWidthPx)
                             btnAction.text = getString(R.string.btn_open_door)
                             btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
                             btnAction.isEnabled = !state.isLoading

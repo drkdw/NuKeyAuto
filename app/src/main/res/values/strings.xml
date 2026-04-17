@@ -88,6 +88,7 @@
 
     <!-- About -->
     <string name="settings_about_title">About</string>
+    <string name="settings_about_description">NuKey Auto brings your Nuki smart lock to Android Auto and your phone. Lock, unlock and open your door with a single tap.</string>
     <string name="settings_rate">Rate on Google Play</string>
     <string name="settings_feedback">Send feedback</string>
 

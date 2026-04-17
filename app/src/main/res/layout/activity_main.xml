@@ -33,6 +33,7 @@
             android:layout_height="match_parent"
             android:padding="24dp">
 
+            <!-- Shape with icon only — text lives outside so it never clips -->
             <com.ddw.nukeyauto.ui.ShapeMorphView
                 android:id="@+id/cardStatus"
                 android:layout_width="0dp"
@@ -41,91 +42,78 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/buttonRow"
+                app:layout_constraintBottom_toTopOf="@id/tvStatus"
                 app:layout_constraintVertical_chainStyle="packed"
                 app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintHeight_max="400dp"
-                app:layout_constraintWidth_max="400dp">
+                app:layout_constraintHeight_max="280dp"
+                app:layout_constraintWidth_max="280dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="36dp">
-
-                    <!-- Progress ring shown during countdown -->
-                    <FrameLayout
-                        android:layout_width="96dp"
-                        android:layout_height="96dp"
-                        android:layout_marginBottom="16dp">
-
-                        <com.google.android.material.progressindicator.CircularProgressIndicator
-                            android:id="@+id/progressCountdown"
-                            android:layout_width="96dp"
-                            android:layout_height="96dp"
-                            android:layout_gravity="center"
-                            app:indicatorSize="96dp"
-                            app:trackThickness="4dp"
-                            app:indicatorColor="?attr/colorPrimary"
-                            app:trackColor="@android:color/transparent"
-                            android:indeterminate="false"
-                            android:max="100"
-                            android:progress="100"
-                            android:visibility="gone" />
-
-                        <ImageView
-                            android:id="@+id/ivIcon"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/ic_lock"
-                            android:contentDescription="@string/status_locked" />
-
-                    </FrameLayout>
-
-                    <TextView
-                        android:id="@+id/tvStatus"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/status_locked"
-                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                        android:textAlignment="center"
-                        android:gravity="center"
-                        android:layout_marginBottom="4dp" />
-
-                    <!-- Countdown subtitle (shown below title during delay) -->
-                    <TextView
-                        android:id="@+id/tvCountdown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:layout_marginBottom="4dp"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/tvBattery"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/battery_label"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:id="@+id/tvWelcome"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/welcome_message"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textAlignment="center"
-                        android:gravity="center"
-                        android:layout_marginTop="8dp"
-                        android:visibility="gone" />
-
-                </LinearLayout>
+                <ImageView
+                    android:id="@+id/ivIcon"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_lock"
+                    android:contentDescription="@string/status_locked" />
 
             </com.ddw.nukeyauto.ui.ShapeMorphView>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/status_locked"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/cardStatus"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/tvCountdown" />
+
+            <!-- Countdown subtitle (shown below title during delay) -->
+            <TextView
+                android:id="@+id/tvCountdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/tvStatus"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/tvBattery" />
+
+            <TextView
+                android:id="@+id/tvBattery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/battery_label"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/tvCountdown"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/tvWelcome" />
+
+            <TextView
+                android:id="@+id/tvWelcome"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_message"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/tvBattery"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/buttonRow" />
 
             <LinearLayout
                 android:id="@+id/buttonRow"
@@ -133,7 +121,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:orientation="horizontal"
-                app:layout_constraintTop_toBottomOf="@id/cardStatus"
+                app:layout_constraintTop_toBottomOf="@id/tvWelcome"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent">
