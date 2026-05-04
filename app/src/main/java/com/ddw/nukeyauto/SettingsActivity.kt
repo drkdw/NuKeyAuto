@@ -10,7 +10,10 @@ import android.widget.AutoCompleteTextView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
@@ -48,8 +51,16 @@ class SettingsActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        // Handle window insets for edge-to-edge display
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbarSettings)
         setSupportActionBar(toolbar)
@@ -145,9 +156,9 @@ class SettingsActivity : AppCompatActivity() {
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(FEEDBACK_EMAIL))
                 putExtra(Intent.EXTRA_SUBJECT, getString(R.string.version_label, BuildConfig.VERSION_NAME))
             }
-            if (intent.resolveActivity(packageManager) != null) {
+            try {
                 startActivity(intent)
-            } else {
+            } catch (e: Exception) {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("mailto:$FEEDBACK_EMAIL")))
             }
         }
@@ -296,9 +307,9 @@ class SettingsActivity : AppCompatActivity() {
      */
     private fun productIdToLabel(productId: String): String {
         return when (productId) {
-            "support_small" -> getString(R.string.support_label_coffee)
-            "support_medium" -> getString(R.string.support_label_pizza)
-            "support_large" -> getString(R.string.support_label_dinner)
+            BillingHelper.PRODUCT_SMALL -> getString(R.string.support_label_coffee)
+            BillingHelper.PRODUCT_MEDIUM -> getString(R.string.support_label_pizza)
+            BillingHelper.PRODUCT_LARGE -> getString(R.string.support_label_dinner)
             else -> getString(R.string.support_label_support)
         }
     }

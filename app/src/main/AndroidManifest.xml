@@ -23,7 +23,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NuKeyAuto"
         android:localeConfig="@xml/locales_config"
-        tools:targetApi="31">
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        tools:targetApi="35">
 
         <activity
             android:name=".MainActivity"

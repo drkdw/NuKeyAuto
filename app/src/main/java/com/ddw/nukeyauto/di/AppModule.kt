@@ -18,8 +18,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
-import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Hilt module providing app-wide singletons: encrypted SharedPreferences and Retrofit API client.
@@ -55,6 +55,8 @@ object AppModule {
         }
     }
 
+    // Suppressed: EncryptedSharedPreferences.create() is marked deprecated in security-crypto
+    // 1.1.0-alpha06 but no stable replacement exists yet. Safe to use until 1.1.0-stable ships.
     @Suppress("DEPRECATION")
     private fun createEncryptedPrefs(context: Context, masterKey: MasterKey): SharedPreferences {
         return EncryptedSharedPreferences.create(
@@ -88,15 +90,15 @@ object AppModule {
         val logger = HttpLoggingInterceptor().apply { level = logLevel }
 
         val client = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(10.seconds)
+            .readTimeout(15.seconds)
+            .writeTimeout(15.seconds)
             // Auth interceptor: reads token from encrypted prefs on every request
             .addInterceptor { chain ->
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
                 try {
-                    val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
+                    val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
                     if (token.isNotEmpty()) {
                         requestBuilder.addHeader("Authorization", "Bearer $token")
                         requestBuilder.header("Accept", "application/json")

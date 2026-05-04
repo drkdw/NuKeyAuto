@@ -90,11 +90,11 @@ class BillingHelper(
             .setProductList(productList)
             .build()
 
-        billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+        billingClient.queryProductDetailsAsync(params) { billingResult, queryResult ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 // Sort by price (lowest first)
-                val sorted = productDetailsList.sortedBy {
-                    it.oneTimePurchaseOfferDetails?.priceAmountMicros ?: 0L
+                val sorted = queryResult.productDetailsList.sortedBy { product ->
+                    product.oneTimePurchaseOfferDetails?.priceAmountMicros ?: 0L
                 }
                 _products.value = sorted
                 Log.d(TAG, "Found ${sorted.size} products")
@@ -174,15 +174,11 @@ class BillingHelper(
     companion object {
         private const val TAG = "BillingHelper"
 
-        /**
-         * Product IDs matching the ones created in Google Play Console.
-         * Create these in Play Console > Monetize > In-app products.
-         */
-        val PRODUCT_IDS = listOf(
-            "support_small",
-            "support_medium",
-            "support_large"
-        )
+        /** Product IDs matching the ones created in Google Play Console. */
+        const val PRODUCT_SMALL = "support_small"
+        const val PRODUCT_MEDIUM = "support_medium"
+        const val PRODUCT_LARGE = "support_large"
+        val PRODUCT_IDS = listOf(PRODUCT_SMALL, PRODUCT_MEDIUM, PRODUCT_LARGE)
 
         /**
          * Check if the user has donated at least once.

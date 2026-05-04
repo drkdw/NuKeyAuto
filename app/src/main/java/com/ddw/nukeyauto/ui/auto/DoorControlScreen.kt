@@ -43,7 +43,7 @@ class DoorControlScreen(
 
                 // Show toast when error occurs but UI still shows a valid lock state
                 if (state.error != null && state.lockState != LockState.Unknown) {
-                    val message = mapError(state.error)
+                    val message = state.error?.toLocalizedString(carContext)
                     if (message != null) {
                         CarToast.makeText(carContext, message, CarToast.LENGTH_LONG).show()
                     }
@@ -124,7 +124,7 @@ class DoorControlScreen(
             LockState.Unlatched  -> carContext.getString(R.string.status_unlatched)
             LockState.Unlatching -> carContext.getString(R.string.status_unlatching)
             LockState.MotorBlocked -> carContext.getString(R.string.status_motor_blocked)
-            LockState.Unknown    -> mapError(state.error) ?: carContext.getString(R.string.status_unknown)
+            LockState.Unknown    -> state.error?.toLocalizedString(carContext) ?: carContext.getString(R.string.status_unknown)
         }
 
         // Hide battery info when in error state with no valid battery reading
@@ -252,16 +252,4 @@ class DoorControlScreen(
         }
     }
 
-    /** Map a [NukiError] to a localized string for Android Auto display. */
-    private fun mapError(error: NukiError?): String? {
-        return when (error) {
-            is NukiError.NoCredentials -> carContext.getString(R.string.error_no_credentials)
-            is NukiError.InvalidSmartLockId -> carContext.getString(R.string.error_invalid_id)
-            is NukiError.UnknownLockState -> carContext.getString(R.string.error_unknown_state, error.stateCode)
-            is NukiError.ConnectionFailed -> carContext.getString(R.string.error_connection_failed)
-            is NukiError.HttpError -> carContext.getString(NukiError.httpErrorStringRes(error.code))
-            is NukiError.ApiException -> carContext.getString(R.string.error_generic)
-            null -> null
-        }
-    }
 }

@@ -56,8 +56,8 @@ class NukiRepository @Inject constructor(
      */
     fun hasCredentials(): Boolean {
         return try {
-            val id = prefs.getString(PrefKeys.NUKI_ID, "") ?: ""
-            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
+            val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
+            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
             id.isNotEmpty() && token.isNotEmpty()
         } catch (e: Exception) {
             false
@@ -79,8 +79,8 @@ class NukiRepository @Inject constructor(
             // the resulting state is identical (fixes stuck SwipeRefreshLayout).
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val id = prefs.getString(PrefKeys.NUKI_ID, "") ?: ""
-            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
+            val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
+            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "ID present: ${id.isNotEmpty()}, Token present: ${token.isNotEmpty()}")
@@ -151,8 +151,8 @@ class NukiRepository @Inject constructor(
      */
     suspend fun performLockAction(shouldLock: Boolean) {
         try {
-            val id = prefs.getString(PrefKeys.NUKI_ID, "") ?: ""
-            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "") ?: ""
+            val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
+            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
             if (id.isEmpty() || token.isEmpty()) {
                 _uiState.update { it.copy(isLoading = false, error = NukiError.NoCredentials) }
                 return

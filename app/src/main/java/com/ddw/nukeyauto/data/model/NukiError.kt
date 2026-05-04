@@ -1,5 +1,6 @@
 package com.ddw.nukeyauto.data.model
 
+import android.content.Context
 import com.ddw.nukeyauto.R
 
 /**
@@ -24,6 +25,23 @@ sealed class NukiError {
             is InvalidSmartLockId -> true
             is HttpError -> code in listOf(401, 403, 404)
             else -> false
+        }
+    }
+
+    /**
+     * Map this error to a localized user-facing string.
+     *
+     * @param context any valid Context for string resource resolution
+     * @return localized error description
+     */
+    fun toLocalizedString(context: Context): String {
+        return when (this) {
+            is NoCredentials -> context.getString(R.string.error_no_credentials)
+            is InvalidSmartLockId -> context.getString(R.string.error_invalid_id)
+            is UnknownLockState -> context.getString(R.string.error_unknown_state, stateCode)
+            is ConnectionFailed -> context.getString(R.string.error_connection_failed)
+            is HttpError -> context.getString(httpErrorStringRes(code))
+            is ApiException -> context.getString(R.string.error_generic)
         }
     }
 

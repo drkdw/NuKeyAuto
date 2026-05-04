@@ -8,8 +8,11 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -38,8 +41,16 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Handle window insets for edge-to-edge display
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         val ivIcon = findViewById<ImageView>(R.id.ivIcon)
@@ -207,7 +218,7 @@ class MainActivity : AppCompatActivity() {
                             if (state.error != null) {
                                 ivIcon.setImageResource(R.drawable.ic_warning)
                                 ivIcon.imageTintList = ColorStateList.valueOf(colorError)
-                                tvStatus.text = mapError(state.error)
+                                tvStatus.text = state.error.toLocalizedString(this@MainActivity)
                                 if (state.error.isConfigError()) {
                                     btnAction.text = getString(R.string.btn_open_settings)
                                     btnAction.backgroundTintList = ColorStateList.valueOf(colorError)
@@ -236,7 +247,7 @@ class MainActivity : AppCompatActivity() {
 
                     // Show Snackbar when an error occurs but the UI still shows a valid lock state
                     if (state.error != null && state.lockState != LockState.Unknown) {
-                        Snackbar.make(swipeRefresh, mapError(state.error), Snackbar.LENGTH_LONG)
+                        Snackbar.make(swipeRefresh, state.error.toLocalizedString(this@MainActivity), Snackbar.LENGTH_LONG)
                             .setAction(R.string.btn_retry) { viewModel.refresh() }
                             .show()
                     }
@@ -318,17 +329,6 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    /** Map a [NukiError] to a localized user-facing string. */
-    private fun mapError(error: NukiError): String {
-        return when (error) {
-            is NukiError.NoCredentials -> getString(R.string.error_no_credentials)
-            is NukiError.InvalidSmartLockId -> getString(R.string.error_invalid_id)
-            is NukiError.UnknownLockState -> getString(R.string.error_unknown_state, error.stateCode)
-            is NukiError.ConnectionFailed -> getString(R.string.error_connection_failed)
-            is NukiError.HttpError -> getString(NukiError.httpErrorStringRes(error.code))
-            is NukiError.ApiException -> getString(R.string.error_generic)
-        }
-    }
 
     companion object {
         private const val TAG = "MainActivity"
