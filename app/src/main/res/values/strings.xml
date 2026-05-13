@@ -19,7 +19,7 @@
     <string name="btn_open_settings">OPEN SETTINGS</string>
 
     <!-- Android Auto -->
-    <string name="auto_row_title">NuKey Lock</string>
+    <string name="auto_row_title">Smart lock</string>
     <string name="auto_status_format">Status: %1$s \u2022 %2$d%%</string>
 
 
