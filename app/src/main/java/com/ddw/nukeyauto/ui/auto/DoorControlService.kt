@@ -13,8 +13,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class DoorControlService : CarAppService() {
 
-    @Inject
-    lateinit var repository: NukiRepository
+    @Inject lateinit var repository: NukiRepository
 
     override fun createHostValidator(): HostValidator {
         return HostValidator.ALLOW_ALL_HOSTS_VALIDATOR
