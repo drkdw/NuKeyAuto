@@ -275,7 +275,7 @@ class SettingsActivity : AppCompatActivity() {
         val message = resources.getQuantityString(R.plurals.supporter_dialog_message, count, count)
 
         MaterialAlertDialogBuilder(this)
-            .setIcon(R.drawable.ic_star)
+            .setIcon(R.drawable.ic_star_shine)
             .setTitle(R.string.supporter_dialog_title)
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)

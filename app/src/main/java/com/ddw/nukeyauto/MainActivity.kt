@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
                     val count = BillingHelper.getDonationCount(prefs)
                     val msg = resources.getQuantityString(R.plurals.supporter_thanks, count, count)
                     MaterialAlertDialogBuilder(this)
-                        .setIcon(R.drawable.ic_star)
+                        .setIcon(R.drawable.ic_star_shine)
                         .setTitle(R.string.supporter_dialog_title)
                         .setMessage(msg)
                         .setPositiveButton(android.R.string.ok, null)
@@ -213,6 +213,22 @@ class MainActivity : AppCompatActivity() {
                             btnAction.text = getString(R.string.btn_open_door)
                             btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
                             btnAction.isEnabled = !state.isLoading
+                        }
+                        LockState.Uncalibrated -> {
+                            ivIcon.setImageResource(R.drawable.ic_warning)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorError)
+                            tvStatus.text = getString(R.string.status_uncalibrated)
+                            btnAction.text = getString(R.string.btn_retry)
+                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.isEnabled = true
+                        }
+                        LockState.Undefined -> {
+                            ivIcon.setImageResource(R.drawable.ic_cloud_off)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorError)
+                            tvStatus.text = getString(R.string.status_undefined)
+                            btnAction.text = getString(R.string.btn_retry)
+                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.isEnabled = true
                         }
                         LockState.Unknown -> {
                             if (state.error != null) {

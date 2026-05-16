@@ -3,65 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NuKey Auto - Privacy Policy</title>
+    <title>NuKey Auto — Privacy Policy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px; line-height: 1.6; color: #1a1a1a; }
-        h1 { font-size: 1.8em; margin-bottom: 0.2em; }
-        h2 { font-size: 1.3em; margin-top: 2em; }
-        .updated { color: #666; font-size: 0.9em; margin-bottom: 2em; }
-        a { color: #6750A4; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.7; }
+
+        .hero-sm {
+            background: linear-gradient(135deg, #6750A4 0%, #4A3580 50%, #2D1B5E 100%);
+            color: #fff;
+            padding: 48px 24px 64px;
+            text-align: center;
+            position: relative;
+        }
+        .hero-sm::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: #fff;
+            border-radius: 40px 40px 0 0;
+        }
+        .hero-sm .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 0.9em;
+            margin-bottom: 16px;
+        }
+        .hero-sm .back:hover { color: #fff; }
+        .hero-sm h1 { font-size: 2.2em; font-weight: 700; letter-spacing: -0.02em; }
+        .hero-sm .updated { opacity: 0.7; font-size: 0.9em; margin-top: 8px; }
+
+        .content {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .content h2 {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            color: #6750A4;
+        }
+        .content p {
+            color: #333;
+            margin-bottom: 16px;
+        }
+        .content a { color: #6750A4; text-decoration: none; }
+        .content a:hover { text-decoration: underline; }
+
+        .card {
+            background: #f8f6fc;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .card h3 {
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #6750A4;
+        }
+        .card p { margin-bottom: 0; color: #444; font-size: 0.95em; }
+
+        .footer {
+            text-align: center;
+            padding: 32px 24px;
+            color: #888;
+            font-size: 0.85em;
+            border-top: 1px solid #eee;
+        }
+        .footer a { color: #6750A4; text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .hero-sm h1 { font-size: 1.6em; }
+        }
     </style>
 </head>
 <body>
 
-<h1>Privacy Policy</h1>
-<p class="updated">Last updated: May 13, 2026</p>
+<section class="hero-sm">
+    <a href="index.html" class="back">&#x2190; Back to NuKey Auto</a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: May 13, 2026</p>
+</section>
 
-<p>NuKey Auto ("the app") is developed by Dirk De Wever. This policy explains what data the app accesses, how it is used, and how it is protected.</p>
+<div class="content">
+    <p>NuKey Auto ("the app") is developed by Dirk De Wever. This policy explains what data the app accesses, how it is used, and how it is protected.</p>
 
-<h2>Data the app stores locally</h2>
+    <h2>Data stored on your device</h2>
+    <div class="card">
+        <h3>Credentials</h3>
+        <p>Your Nuki Web API token and Smart Lock ID, entered manually in Settings. Stored using Android's EncryptedSharedPreferences backed by the hardware Android KeyStore. Never transmitted to any server other than the official Nuki Web API (api.nuki.io).</p>
+    </div>
+    <div class="card">
+        <h3>Preferences</h3>
+        <p>Theme, language, confirmation setting, door open delay, dynamic colors, and supporter status. Stored locally and never leave your device.</p>
+    </div>
 
-<p>The app stores the following data on your device only, using Android's EncryptedSharedPreferences backed by the hardware-backed Android KeyStore:</p>
+    <h2>Network communication</h2>
+    <p>The app communicates exclusively with the Nuki Web API at api.nuki.io to retrieve your smart lock status and to send lock, unlock, and open commands. Your API token is sent as a Bearer token in the Authorization header of each request. No other network calls are made by the app.</p>
 
-<p>Your Nuki Web API token and Smart Lock ID, which you enter manually in Settings. These credentials are required to communicate with your Nuki smart lock and are never transmitted to any server other than the official Nuki Web API (api.nuki.io).</p>
+    <h2>Google Play Billing</h2>
+    <p>The app offers optional one-time donations ("Support the developer") through Google Play's billing system. These transactions are handled entirely by Google Play. The app does not process, store, or have access to any payment information.</p>
 
-<p>Your app preferences: theme, language, confirmation dialog setting, door open delay, dynamic color preference, and supporter/donation status. These are stored locally and never leave your device.</p>
+    <h2>What we don't collect</h2>
+    <div class="card">
+        <p>No personal information. No usage analytics. No crash reports. No advertising identifiers. No location data. No device identifiers. No advertising. No third-party analytics SDKs.</p>
+    </div>
 
-<h2>Network communication</h2>
+    <h2>Android Auto</h2>
+    <p>The app integrates with Android Auto to display your smart lock status and controls on your car's screen. No additional data is collected through Android Auto.</p>
 
-<p>The app communicates exclusively with the Nuki Web API at api.nuki.io to retrieve your smart lock status and to send lock/unlock/open commands. Your API token is sent as a Bearer token in the Authorization header of each request. No other network calls are made by the app itself.</p>
+    <h2>Data sharing</h2>
+    <p>The app does not share any data with third parties. Your Nuki API credentials are only sent to the official Nuki Web API as required for the app to function.</p>
 
-<h2>Google Play Billing</h2>
+    <h2>Data retention and deletion</h2>
+    <p>All data is stored locally on your device. Uninstalling the app removes all stored data, including your API credentials and preferences. You can also clear the app's data at any time via Android Settings.</p>
 
-<p>The app offers optional one-time donations ("Support the developer") through Google Play's billing system. These transactions are handled entirely by Google Play. The app does not process, store, or have access to any payment information. Google's own privacy policy applies to these transactions.</p>
+    <h2>Children's privacy</h2>
+    <p>The app is not directed at children under the age of 13 and does not knowingly collect any data from children.</p>
 
-<h2>Data the app does not collect</h2>
+    <h2>Changes to this policy</h2>
+    <p>This policy may be updated to reflect changes in the app. The "Last updated" date at the top indicates when the policy was last revised.</p>
 
-<p>The app does not collect, store, or transmit any personal information, usage analytics, crash reports, advertising identifiers, location data, or device identifiers. The app contains no advertising and no third-party analytics SDKs.</p>
+    <h2>Contact</h2>
+    <p>Questions about this privacy policy? Reach out at <a href="mailto:hoolite+nukey@gmail.com">hoolite+nukey@gmail.com</a>.</p>
+</div>
 
-<h2>Android Auto</h2>
-
-<p>The app integrates with Android Auto to display your smart lock status and controls on your car's dashboard. No additional data is collected through Android Auto. The same Nuki Web API communication described above applies.</p>
-
-<h2>Data sharing</h2>
-
-<p>The app does not share any data with third parties. Your Nuki API credentials are only sent to the official Nuki Web API as required for the app to function.</p>
-
-<h2>Data retention and deletion</h2>
-
-<p>All data is stored locally on your device. Uninstalling the app removes all stored data, including your API credentials and preferences. You can also clear the app's data at any time via Android Settings.</p>
-
-<h2>Children's privacy</h2>
-
-<p>The app is not directed at children under the age of 13 and does not knowingly collect any data from children.</p>
-
-<h2>Changes to this policy</h2>
-
-<p>This policy may be updated to reflect changes in the app. The "Last updated" date at the top of this page indicates when the policy was last revised.</p>
-
-<h2>Contact</h2>
-
-<p>If you have questions about this privacy policy, contact us at <a href="mailto:hoolite+nukey@gmail.com">hoolite+nukey@gmail.com</a>.</p>
+<footer class="footer">
+    <p><a href="index.html">NuKey Auto</a> &middot; <a href="support.html">Support</a> &middot; <a href="privacy-policy.html">Privacy Policy</a></p>
+</footer>
 
 </body>
 </html>

@@ -22,6 +22,7 @@ data class ActionRequest(
 
 /** Nuki lock states as defined by the Nuki Web API. */
 enum class LockState {
+    Uncalibrated, // State 0: not yet calibrated
     Locked,       // State 1: locked
     Unlocking,    // State 2: unlocking in progress
     Unlocked,     // State 3: unlocked, door closed
@@ -29,5 +30,6 @@ enum class LockState {
     Unlatched,    // State 5: latch open, door physically open
     Unlatching,   // State 7: unlatching in progress
     MotorBlocked, // State 254: motor blocked
+    Undefined,    // State 255: lock offline / unavailable
     Unknown
 }

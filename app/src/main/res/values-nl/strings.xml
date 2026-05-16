@@ -7,6 +7,8 @@
     <string name="status_unlatched">Deur open</string>
     <string name="status_unlatching">Aan het openen…</string>
     <string name="status_motor_blocked">Motor geblokkeerd!</string>
+    <string name="status_uncalibrated">Niet gekalibreerd</string>
+    <string name="status_undefined">Slot offline</string>
     <string name="status_unknown">Status onbekend</string>
     <string name="status_loading">Laden…</string>
     <string name="status_countdown">Opent over %1$d…</string>
@@ -19,6 +21,10 @@
     <!-- Android Auto -->
     <string name="auto_row_title">Smart lock</string>
     <string name="auto_status_format">Status: %1$s \u2022 %2$d%%</string>
+    <string name="auto_battery_good">Goede conditie</string>
+    <string name="auto_battery_medium">Overweeg op te laden</string>
+    <string name="auto_battery_low">Batterij bijna leeg \u2014 laad op</string>
+    <string name="auto_battery_unknown">Status onbekend</string>
 
 
     <!-- Settings screen -->

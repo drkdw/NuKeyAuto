@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_supporter"
         android:title="@string/supporter_badge_title"
-        android:icon="@drawable/ic_star"
+        android:icon="@drawable/ic_star_shine"
         android:visible="false"
         app:showAsAction="always" />
 

@@ -116,6 +116,7 @@ class NukiRepository @Inject constructor(
             }
 
             val lockState = when (nukiStateInt) {
+                0 -> LockState.Uncalibrated
                 1 -> LockState.Locked
                 2 -> LockState.Unlocking
                 3 -> LockState.Unlocked
@@ -123,6 +124,7 @@ class NukiRepository @Inject constructor(
                 5 -> LockState.Unlatched
                 7 -> LockState.Unlatching
                 254 -> LockState.MotorBlocked
+                255 -> LockState.Undefined
                 else -> LockState.Unknown
             }
 

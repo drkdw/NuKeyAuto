@@ -53,7 +53,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
 
         // Build emphasis animation based on state type
         val emphasisAnimator = when {
-            isError || state == LockState.MotorBlocked -> buildShakeAnimator(shapeView)
+            isError || state in listOf(LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined) -> buildShakeAnimator(shapeView)
             state == LockState.Unlatched -> buildBounceAnimator(shapeView)
             state == LockState.Locked -> buildSettleAnimator(shapeView)
             state == LockState.Unlocked -> buildPulseOnce(shapeView)
@@ -208,7 +208,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
                 LockState.Locking, LockState.Unlocking, LockState.Unlatching -> listOf(
                     ::diamondShape, ::sunnyShape, ::cookie4Shape, ::burstShape
                 )
-                LockState.MotorBlocked -> listOf(
+                LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined -> listOf(
                     ::diamondShape, ::cookie6Shape, ::sunnyShape, ::cookie4Shape
                 )
                 LockState.Unknown -> listOf(
@@ -333,7 +333,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
                     LockState.Locking,
                     LockState.Unlocking,
                     LockState.Unlatching -> cookie6Shape()
-                    LockState.MotorBlocked -> burstShape()
+                    LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined -> burstShape()
                     LockState.Unknown -> diamondShape()
                 }
             }

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NuKey Auto — Support & FAQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.7; }
+
+        .hero-sm {
+            background: linear-gradient(135deg, #6750A4 0%, #4A3580 50%, #2D1B5E 100%);
+            color: #fff;
+            padding: 48px 24px 64px;
+            text-align: center;
+            position: relative;
+        }
+        .hero-sm::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: #fff;
+            border-radius: 40px 40px 0 0;
+        }
+        .hero-sm .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 0.9em;
+            margin-bottom: 16px;
+        }
+        .hero-sm .back:hover { color: #fff; }
+        .hero-sm h1 { font-size: 2.2em; font-weight: 700; letter-spacing: -0.02em; }
+        .hero-sm .subtitle { opacity: 0.85; font-size: 1.05em; margin-top: 8px; }
+
+        .content {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .content h2 {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-top: 48px;
+            margin-bottom: 20px;
+            color: #1a1a2e;
+        }
+        .content a { color: #6750A4; text-decoration: none; }
+        .content a:hover { text-decoration: underline; }
+
+        /* FAQ accordion */
+        .faq-item {
+            border-bottom: 1px solid #eee;
+        }
+        .faq-q {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #1a1a2e;
+            user-select: none;
+        }
+        .faq-q::after {
+            content: '+';
+            font-size: 1.4em;
+            font-weight: 400;
+            color: #6750A4;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+        .faq-item.open .faq-q::after {
+            content: '-';
+        }
+        .faq-a {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+        .faq-item.open .faq-a {
+            max-height: 500px;
+            padding-bottom: 20px;
+        }
+        .faq-a p {
+            color: #444;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+        .faq-a code {
+            background: #f3edf7;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #4A3580;
+        }
+
+        /* Steps */
+        .setup-steps {
+            counter-reset: setup;
+        }
+        .setup-step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .setup-step::before {
+            counter-increment: setup;
+            content: counter(setup);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            background: #6750A4;
+            color: #fff;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1em;
+        }
+        .setup-step-content h3 {
+            font-size: 1.05em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .setup-step-content p {
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        /* Contact card */
+        .contact-card {
+            background: linear-gradient(135deg, #6750A4, #4A3580);
+            color: #fff;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 48px;
+        }
+        .contact-card h2 { color: #fff; margin-top: 0; margin-bottom: 8px; }
+        .contact-card p { opacity: 0.9; margin-bottom: 20px; }
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            color: #6750A4;
+            padding: 14px 28px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .contact-btn:hover { transform: translateY(-2px); }
+
+        .footer {
+            text-align: center;
+            padding: 32px 24px;
+            color: #888;
+            font-size: 0.85em;
+            border-top: 1px solid #eee;
+        }
+        .footer a { color: #6750A4; text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .hero-sm h1 { font-size: 1.6em; }
+        }
+    </style>
+</head>
+<body>
+
+<section class="hero-sm">
+    <a href="index.html" class="back">&#x2190; Back to NuKey Auto</a>
+    <h1>Support & FAQ</h1>
+    <p class="subtitle">Everything you need to get started and troubleshoot.</p>
+</section>
+
+<div class="content">
+
+    <h2>Getting started</h2>
+    <div class="setup-steps">
+        <div class="setup-step">
+            <div class="setup-step-content">
+                <h3>Create a Nuki Web API token</h3>
+                <p>Go to <a href="https://web.nuki.io" target="_blank">web.nuki.io</a>, sign in, and navigate to <strong>API</strong>. Click "Generate API token" and copy the token.</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="setup-step-content">
+                <h3>Find your Smart Lock ID</h3>
+                <p>In the Nuki Web dashboard, go to <strong>Devices</strong> and click on your smart lock. The number in the URL is your Smart Lock ID (e.g. <code>https://web.nuki.io/#/smartlock/123456789</code>).</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="setup-step-content">
+                <h3>Enter credentials in the app</h3>
+                <p>Open NuKey Auto, tap the gear icon to open Settings, and paste your API token and Smart Lock ID. Tap "Save Settings".</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="setup-step-content">
+                <h3>Use in Android Auto</h3>
+                <p>Connect your phone to your car. NuKey Auto appears in the Android Auto app launcher. Tap it to see your lock status and control your door.</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>Frequently asked questions</h2>
+
+    <div class="faq-item">
+        <div class="faq-q">I see "Invalid API token. Check your settings."</div>
+        <div class="faq-a">
+            <p>Your API token is incorrect or has expired. Go to <a href="https://web.nuki.io" target="_blank">web.nuki.io</a> > API, generate a new token, and paste it in the app's Settings. Make sure there are no extra spaces before or after the token.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">I see "Smart Lock not found. Check your ID."</div>
+        <div class="faq-a">
+            <p>The Smart Lock ID you entered doesn't match any lock on your Nuki account. Double-check the number in the URL when you view your lock at web.nuki.io. It should be a numeric ID like <code>123456789</code>.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">I see "No connection. Check your internet."</div>
+        <div class="faq-a">
+            <p>The app can't reach the Nuki Web API. Check your internet connection. If you're on a company or hotel Wi-Fi, it may block API traffic. Try switching to mobile data.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">I see "Too many requests. Try again later."</div>
+        <div class="faq-a">
+            <p>You've hit the Nuki Web API rate limit. Wait a minute and try again. This can happen if you refresh the status very frequently.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">I see "Motor blocked!"</div>
+        <div class="faq-a">
+            <p>Your smart lock's motor is jammed. This usually means something is physically blocking the lock mechanism. Check your door and lock, then try again from the app.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">What does the door open delay do?</div>
+        <div class="faq-a">
+            <p>When you tap "Open door", the app waits the configured number of seconds before sending the open command. This gives you time to walk from your car to your front door before it opens. Set it in Settings > Door open delay.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">Does the app work without Android Auto?</div>
+        <div class="faq-a">
+            <p>Yes. The app works as a standalone phone app too. You get the same lock status, battery info, and controls on your phone screen.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">Which Nuki locks are supported?</div>
+        <div class="faq-a">
+            <p>Any Nuki smart lock that is connected to the Nuki Web API. This includes Nuki Smart Lock 1.0, 2.0, 3.0 (Pro), and 4.0, as long as they have a Nuki Bridge or Wi-Fi module connected to Nuki Web.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">Is my data safe?</div>
+        <div class="faq-a">
+            <p>Your API token and Smart Lock ID are stored encrypted on your device using Android's hardware-backed KeyStore. They are never sent anywhere except to the official Nuki Web API. The app collects no analytics, no tracking data, and contains no ads. See our <a href="privacy-policy.html">Privacy Policy</a> for full details.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-q">The app doesn't show up in Android Auto</div>
+        <div class="faq-a">
+            <p>Make sure NuKey Auto is installed and that Android Auto is up to date. On your phone, go to Android Auto settings > "Customize launcher" and check that NuKey Auto is enabled. Restart Android Auto if needed.</p>
+        </div>
+    </div>
+
+    <div class="contact-card">
+        <h2>Still need help?</h2>
+        <p>Send us an email and we'll get back to you as soon as possible.</p>
+        <a href="mailto:hoolite+nukey@gmail.com" class="contact-btn">Send feedback</a>
+    </div>
+</div>
+
+<footer class="footer">
+    <p><a href="index.html">NuKey Auto</a> &middot; <a href="support.html">Support</a> &middot; <a href="privacy-policy.html">Privacy Policy</a></p>
+</footer>
+
+<script>
+document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+        q.parentElement.classList.toggle('open');
+    });
+});
+</script>
+
+</body>
+</html>

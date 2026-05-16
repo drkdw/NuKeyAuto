@@ -9,6 +9,8 @@
     <string name="status_unlatched">Door open</string>
     <string name="status_unlatching">Opening…</string>
     <string name="status_motor_blocked">Motor blocked!</string>
+    <string name="status_uncalibrated">Not calibrated</string>
+    <string name="status_undefined">Lock offline</string>
     <string name="status_unknown">Status unknown</string>
     <string name="status_loading">Loading…</string>
     <string name="status_countdown">Opening in %1$d…</string>
@@ -21,6 +23,10 @@
     <!-- Android Auto -->
     <string name="auto_row_title">Smart lock</string>
     <string name="auto_status_format">Status: %1$s \u2022 %2$d%%</string>
+    <string name="auto_battery_good">Good condition</string>
+    <string name="auto_battery_medium">Consider charging</string>
+    <string name="auto_battery_low">Low battery \u2014 charge soon</string>
+    <string name="auto_battery_unknown">Status unavailable</string>
 
 
     <!-- Settings screen -->
