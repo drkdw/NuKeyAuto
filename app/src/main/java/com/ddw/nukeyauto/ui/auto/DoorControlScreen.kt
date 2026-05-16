@@ -236,7 +236,7 @@ class DoorControlScreen(
                         paneBuilder.addAction(
                             Action.Builder()
                                 .setTitle(carContext.getString(R.string.btn_retry))
-                                .setBackgroundColor(CarColor.PRIMARY)
+                
                                 .setOnClickListener { viewModel.refresh() }
                                 .build()
                         )
@@ -280,7 +280,7 @@ class DoorControlScreen(
         return if (isConfirming) {
             Action.Builder()
                 .setTitle(carContext.getString(confirmLabel))
-                .setBackgroundColor(CarColor.PRIMARY)
+
                 .setOnClickListener {
                     pendingAction = null
                     execute()
@@ -289,7 +289,7 @@ class DoorControlScreen(
         } else if (repository.isConfirmationEnabled()) {
             Action.Builder()
                 .setTitle(carContext.getString(label))
-                .setBackgroundColor(CarColor.PRIMARY)
+
                 .setOnClickListener {
                     pendingAction = pendingType
                     invalidate()
@@ -298,7 +298,7 @@ class DoorControlScreen(
         } else {
             Action.Builder()
                 .setTitle(carContext.getString(label))
-                .setBackgroundColor(CarColor.PRIMARY)
+
                 .setOnClickListener { execute() }
                 .build()
         }

@@ -26,7 +26,7 @@ android {
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.7.6-it"
+        versionName = "1.2.7.7-it"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -73,7 +73,7 @@
                         app:helperTextEnabled="true"
                         app:helperText="@string/helper_api_token"
                         app:endIconMode="password_toggle"
-                        app:endIconDrawable="@drawable/ic_visibility"
+
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_marginBottom="16dp">
 
@@ -92,7 +92,7 @@
                         app:helperTextEnabled="true"
                         app:helperText="@string/helper_smartlock_id"
                         app:endIconMode="password_toggle"
-                        app:endIconDrawable="@drawable/ic_visibility"
+
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_marginBottom="16dp">
 
