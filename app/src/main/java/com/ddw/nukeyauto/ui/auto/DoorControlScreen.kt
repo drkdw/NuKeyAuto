@@ -15,7 +15,6 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.lifecycleScope
 import com.ddw.nukeyauto.R
 import com.ddw.nukeyauto.data.model.LockState
-import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import kotlinx.coroutines.launch
 
@@ -43,9 +42,11 @@ class DoorControlScreen(
 
                 // Show toast when error occurs but UI still shows a valid lock state
                 if (state.error != null && state.lockState != LockState.Unknown) {
-                    state.error.toLocalizedString(carContext)?.let {
-                        CarToast.makeText(carContext, it, CarToast.LENGTH_LONG).show()
-                    }
+                    CarToast.makeText(
+                        carContext,
+                        state.error.toLocalizedString(carContext),
+                        CarToast.LENGTH_LONG
+                    ).show()
                 }
 
                 invalidate()
@@ -190,7 +191,6 @@ class DoorControlScreen(
                         paneBuilder.addAction(
                             Action.Builder()
                                 .setTitle(carContext.getString(R.string.btn_retry))
-                
                                 .setOnClickListener { viewModel.refresh() }
                                 .build()
                         )
