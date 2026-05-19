@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NuKey Auto</string>
+    <string name="app_name" translatable="false">NuKey Auto</string>
 
     <!-- Main screen -->
     <string name="status_locked">Locked</string>
