@@ -20,7 +20,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.ddw.nukeyauto.billing.BillingHelper
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
-import com.ddw.nukeyauto.data.repo.NukiRepository
 import com.ddw.nukeyauto.ui.mobile.MainViewModel
 import com.ddw.nukeyauto.ui.ExpressiveCardAnimator
 import com.ddw.nukeyauto.ui.ShapeMorphView
@@ -36,7 +35,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    @Inject lateinit var repository: NukiRepository
     @Inject lateinit var prefs: SharedPreferences
     private val viewModel: MainViewModel by viewModels()
 
@@ -329,7 +327,7 @@ class MainActivity : AppCompatActivity() {
      * @param action the lambda to execute after confirmation (or immediately)
      */
     private fun maybeConfirmThenExecute(isLock: Boolean, action: () -> Unit) {
-        if (!repository.isConfirmationEnabled()) {
+        if (!viewModel.isConfirmationEnabled()) {
             action()
             return
         }

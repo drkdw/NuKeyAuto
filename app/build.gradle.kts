@@ -26,7 +26,7 @@ android {
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.7.7-it"
+        versionName = "1.2.8.1-it"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -45,6 +45,12 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+    }
+
+    testOptions {
+        // Android framework classes (Log, etc.) return default values instead of throwing
+        // RuntimeException when called from JVM unit tests.
+        unitTests.isReturnDefaultValues = true
     }
 
     buildTypes {

@@ -8,6 +8,7 @@ import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.model.ActionRequest
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
+import com.ddw.nukeyauto.data.model.UiState
 import java.io.IOException
 import kotlinx.coroutines.delay
 import retrofit2.HttpException
@@ -17,17 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
-
-/**
- * UI state exposed by the repository. Shared between mobile and Android Auto.
- */
-data class UiState(
-    val lockState: LockState = LockState.Unknown,
-    val battery: Int = 0,
-    val isLoading: Boolean = false,
-    val error: NukiError? = null,
-    val countdownSeconds: Int = 0
-)
 
 /**
  * Single source of truth for Nuki smart lock state.

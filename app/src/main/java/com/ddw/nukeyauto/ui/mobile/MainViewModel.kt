@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ddw.nukeyauto.BuildConfig
-import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -25,6 +24,7 @@ class MainViewModel @Inject constructor(
         refresh()
     }
 
+    /** Refresh the lock state from the API. */
     fun refresh() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "refresh()")
@@ -47,6 +47,9 @@ class MainViewModel @Inject constructor(
             repository.performLockAction(true)
         }
     }
+
+    /** Whether the user wants a confirmation dialog before door actions. */
+    fun isConfirmationEnabled(): Boolean = repository.isConfirmationEnabled()
 
     companion object {
         private const val TAG = "MainViewModel"

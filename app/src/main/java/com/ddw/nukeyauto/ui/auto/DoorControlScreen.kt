@@ -94,29 +94,7 @@ class DoorControlScreen(
             statusTitle = carContext.getString(R.string.auto_row_title)
             statusSubtitle = carContext.getString(R.string.status_countdown, state.countdownSeconds)
         } else {
-            statusRowIcon = when (state.lockState) {
-                LockState.Locked -> CarIcon.Builder(
-                    IconCompat.createWithResource(carContext, R.drawable.ic_lock)
-                ).setTint(CarColor.PRIMARY).build()
-                LockState.Unlocked -> CarIcon.Builder(
-                    IconCompat.createWithResource(carContext, R.drawable.ic_lock_open)
-                ).setTint(CarColor.PRIMARY).build()
-                LockState.Unlatched -> CarIcon.Builder(
-                    IconCompat.createWithResource(carContext, R.drawable.ic_door_open)
-                ).setTint(CarColor.PRIMARY).build()
-                LockState.Locking, LockState.Unlocking, LockState.Unlatching -> CarIcon.Builder(
-                    IconCompat.createWithResource(carContext, R.drawable.ic_hourglass)
-                ).setTint(CarColor.PRIMARY).build()
-                LockState.MotorBlocked, LockState.Uncalibrated -> CarIcon.Builder(
-                    IconCompat.createWithResource(carContext, R.drawable.ic_warning)
-                ).setTint(CarColor.YELLOW).build()
-                LockState.Undefined -> CarIcon.Builder(
-                    IconCompat.createWithResource(carContext, R.drawable.ic_cloud_off)
-                ).setTint(CarColor.YELLOW).build()
-                LockState.Unknown -> CarIcon.Builder(
-                    IconCompat.createWithResource(carContext, R.drawable.ic_warning)
-                ).setTint(CarColor.YELLOW).build()
-            }
+            statusRowIcon = lockStateToCarIcon(state.lockState)
             statusTitle = carContext.getString(R.string.auto_row_title)
             statusSubtitle = when (state.lockState) {
                 LockState.Locked -> carContext.getString(R.string.status_locked)
@@ -172,29 +150,7 @@ class DoorControlScreen(
             .build()
 
         // --- Large image on the right side (padded pane versions) ---
-        val paneImage = when (state.lockState) {
-            LockState.Locked -> CarIcon.Builder(
-                IconCompat.createWithResource(carContext, R.drawable.ic_lock)
-            ).setTint(CarColor.PRIMARY).build()
-            LockState.Unlocked -> CarIcon.Builder(
-                IconCompat.createWithResource(carContext, R.drawable.ic_lock_open)
-            ).setTint(CarColor.PRIMARY).build()
-            LockState.Unlatched -> CarIcon.Builder(
-                IconCompat.createWithResource(carContext, R.drawable.ic_door_open)
-            ).setTint(CarColor.PRIMARY).build()
-            LockState.Locking, LockState.Unlocking, LockState.Unlatching -> CarIcon.Builder(
-                IconCompat.createWithResource(carContext, R.drawable.ic_hourglass)
-            ).setTint(CarColor.PRIMARY).build()
-            LockState.MotorBlocked, LockState.Uncalibrated -> CarIcon.Builder(
-                IconCompat.createWithResource(carContext, R.drawable.ic_warning)
-            ).setTint(CarColor.YELLOW).build()
-            LockState.Undefined -> CarIcon.Builder(
-                IconCompat.createWithResource(carContext, R.drawable.ic_cloud_off)
-            ).setTint(CarColor.YELLOW).build()
-            LockState.Unknown -> CarIcon.Builder(
-                IconCompat.createWithResource(carContext, R.drawable.ic_warning)
-            ).setTint(CarColor.YELLOW).build()
-        }
+        val paneImage = lockStateToCarIcon(state.lockState)
 
         // --- Build pane ---
         val paneBuilder = Pane.Builder()
@@ -286,10 +242,9 @@ class DoorControlScreen(
                     execute()
                 }
                 .build()
-        } else if (repository.isConfirmationEnabled()) {
+        } else if (viewModel.isConfirmationEnabled()) {
             Action.Builder()
                 .setTitle(carContext.getString(label))
-
                 .setOnClickListener {
                     pendingAction = pendingType
                     invalidate()
@@ -298,9 +253,36 @@ class DoorControlScreen(
         } else {
             Action.Builder()
                 .setTitle(carContext.getString(label))
-
                 .setOnClickListener { execute() }
                 .build()
         }
+    }
+
+    /**
+     * Map a [LockState] to the corresponding [CarIcon] for display in rows and pane image.
+     * Transition states and errors use warning icons; stable states use the matching lock icon.
+     */
+    private fun lockStateToCarIcon(lockState: LockState): CarIcon = when (lockState) {
+        LockState.Locked -> CarIcon.Builder(
+            IconCompat.createWithResource(carContext, R.drawable.ic_lock)
+        ).setTint(CarColor.PRIMARY).build()
+        LockState.Unlocked -> CarIcon.Builder(
+            IconCompat.createWithResource(carContext, R.drawable.ic_lock_open)
+        ).setTint(CarColor.PRIMARY).build()
+        LockState.Unlatched -> CarIcon.Builder(
+            IconCompat.createWithResource(carContext, R.drawable.ic_door_open)
+        ).setTint(CarColor.PRIMARY).build()
+        LockState.Locking, LockState.Unlocking, LockState.Unlatching -> CarIcon.Builder(
+            IconCompat.createWithResource(carContext, R.drawable.ic_hourglass)
+        ).setTint(CarColor.PRIMARY).build()
+        LockState.MotorBlocked, LockState.Uncalibrated -> CarIcon.Builder(
+            IconCompat.createWithResource(carContext, R.drawable.ic_warning)
+        ).setTint(CarColor.YELLOW).build()
+        LockState.Undefined -> CarIcon.Builder(
+            IconCompat.createWithResource(carContext, R.drawable.ic_cloud_off)
+        ).setTint(CarColor.YELLOW).build()
+        LockState.Unknown -> CarIcon.Builder(
+            IconCompat.createWithResource(carContext, R.drawable.ic_warning)
+        ).setTint(CarColor.YELLOW).build()
     }
 }

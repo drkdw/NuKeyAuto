@@ -1,6 +1,7 @@
 package com.ddw.nukeyauto
 
 import android.content.SharedPreferences
+import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.api.NukiApiService
 import com.ddw.nukeyauto.data.model.ActionRequest
 import com.ddw.nukeyauto.data.model.LockState
@@ -33,8 +34,8 @@ class NukiRepositoryTest {
 
     /** Helper: mock both prefs keys (nuki_id and nuki_token) at once. */
     private fun mockCredentials(id: String = "123456789", token: String = "test-token") {
-        whenever(prefs.getString("nuki_id", "")).thenReturn(id)
-        whenever(prefs.getString("nuki_token", "")).thenReturn(token)
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn(id)
+        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn(token)
     }
 
     /** Helper: create a standard SmartLockResponse. */
@@ -55,8 +56,8 @@ class NukiRepositoryTest {
 
     @Test
     fun `fetchState without credentials sets NoCredentials error`() = runTest {
-        whenever(prefs.getString("nuki_id", "")).thenReturn("")
-        whenever(prefs.getString("nuki_token", "")).thenReturn("")
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn("")
+        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("")
 
         repository.fetchState()
 
@@ -66,8 +67,8 @@ class NukiRepositoryTest {
 
     @Test
     fun `fetchState without token sets NoCredentials error`() = runTest {
-        whenever(prefs.getString("nuki_id", "")).thenReturn("123456789")
-        whenever(prefs.getString("nuki_token", "")).thenReturn("")
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn("123456789")
+        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("")
 
         repository.fetchState()
 
@@ -188,7 +189,7 @@ class NukiRepositoryTest {
     @Test
     fun `fetchState on IOException sets ConnectionFailed error`() = runTest {
         mockCredentials()
-        whenever(api.getSmartLockState(any())).thenThrow(java.io.IOException("Socket timeout"))
+        whenever(api.getSmartLockState(any())).thenAnswer { throw java.io.IOException("Socket timeout") }
 
         repository.fetchState()
 
@@ -199,7 +200,7 @@ class NukiRepositoryTest {
 
     @Test
     fun `fetchState on prefs exception sets ApiException error`() = runTest {
-        whenever(prefs.getString("nuki_id", "")).thenThrow(SecurityException("KeyStore corrupted"))
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenThrow(SecurityException("KeyStore corrupted"))
 
         repository.fetchState()
 
@@ -233,8 +234,8 @@ class NukiRepositoryTest {
 
     @Test
     fun `performLockAction without credentials does nothing`() = runTest {
-        whenever(prefs.getString("nuki_id", "")).thenReturn("")
-        whenever(prefs.getString("nuki_token", "")).thenReturn("")
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn("")
+        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("")
 
         repository.performLockAction(shouldLock = true)
 
@@ -265,7 +266,7 @@ class NukiRepositoryTest {
     @Test
     fun `performLockAction on IOException sets ConnectionFailed error`() = runTest {
         mockCredentials()
-        whenever(api.performAction(any(), any())).thenThrow(java.io.IOException("Connection refused"))
+        whenever(api.performAction(any(), any())).thenAnswer { throw java.io.IOException("Connection refused") }
 
         repository.performLockAction(shouldLock = false)
 
@@ -284,8 +285,8 @@ class NukiRepositoryTest {
 
         repository.saveCredentials("my-token-123", "987654321")
 
-        verify(editor).putString("nuki_token", "my-token-123")
-        verify(editor).putString("nuki_id", "987654321")
+        verify(editor).putString(PrefKeys.NUKI_TOKEN, "my-token-123")
+        verify(editor).putString(PrefKeys.NUKI_ID, "987654321")
         verify(editor).apply()
     }
 }

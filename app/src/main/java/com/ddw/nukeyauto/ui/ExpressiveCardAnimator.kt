@@ -135,7 +135,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         val interval = if (isWelcome) WELCOME_CYCLE_INTERVAL else AMBIENT_CYCLE_INTERVAL
         val morphDuration = if (isWelcome) WELCOME_MORPH_DURATION else AMBIENT_MORPH_DURATION
 
-        ambientCycleRunnable = object : Runnable {
+        val runnable = object : Runnable {
             override fun run() {
                 if (!isAmbientCycling) return
                 ambientCycleIndex = (ambientCycleIndex + 1) % shapes.size
@@ -143,7 +143,8 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
                 shapeView.postDelayed(this, interval)
             }
         }
-        shapeView.postDelayed(ambientCycleRunnable!!, interval)
+        ambientCycleRunnable = runnable
+        shapeView.postDelayed(runnable, interval)
     }
 
     /** Stop the ambient shape cycle. */
@@ -293,20 +294,6 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
             innerRadius = 0.65f,
             rounding = CornerRounding(radius = 0.07f, smoothing = 0.3f),
             innerRounding = CornerRounding(radius = 0.07f, smoothing = 0.3f)
-        )
-
-        /**
-         * Circle — neutral, waiting state.
-         *
-         * High-vertex polygon with maximum rounding to approximate a circle.
-         */
-        @Suppress("unused")
-        private fun circleShape(): RoundedPolygon = RoundedPolygon(
-            numVertices = 10,
-            radius = 1f,
-            centerX = 0f,
-            centerY = 0f,
-            rounding = CornerRounding(radius = 1f, smoothing = 1f)
         )
 
         /**

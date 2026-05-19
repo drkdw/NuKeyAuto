@@ -42,6 +42,9 @@ class MainViewModel(private val repository: NukiRepository) : ViewModel() {
         }
     }
 
+    /** Whether the user wants a confirmation dialog before door actions. */
+    fun isConfirmationEnabled(): Boolean = repository.isConfirmationEnabled()
+
     companion object {
         private const val TAG = "AutoMainViewModel"
     }

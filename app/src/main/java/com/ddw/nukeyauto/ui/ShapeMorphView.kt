@@ -150,7 +150,7 @@ class ShapeMorphView @JvmOverloads constructor(
 
         tempPath.reset()
         if (morph != null && morphProgress < 1f) {
-            morph!!.toPath(morphProgress, tempPath)
+            morph?.toPath(morphProgress, tempPath)
         } else {
             currentPolygon?.toPath(tempPath) ?: return
         }
