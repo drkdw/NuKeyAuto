@@ -43,9 +43,8 @@ class DoorControlScreen(
 
                 // Show toast when error occurs but UI still shows a valid lock state
                 if (state.error != null && state.lockState != LockState.Unknown) {
-                    val message = state.error?.toLocalizedString(carContext)
-                    if (message != null) {
-                        CarToast.makeText(carContext, message, CarToast.LENGTH_LONG).show()
+                    state.error.toLocalizedString(carContext)?.let {
+                        CarToast.makeText(carContext, it, CarToast.LENGTH_LONG).show()
                     }
                 }
 
@@ -119,7 +118,6 @@ class DoorControlScreen(
 
         // --- Row 2: Battery (icon matches level) ---
         val batteryIconRes = when {
-            state.battery <= 0 -> R.drawable.ic_battery_0
             state.battery < 15 -> R.drawable.ic_battery_0
             state.battery < 30 -> R.drawable.ic_battery_1
             state.battery < 45 -> R.drawable.ic_battery_2

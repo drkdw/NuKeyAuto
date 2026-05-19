@@ -11,16 +11,19 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.ddw.nukeyauto.BuildConfig
 import com.ddw.nukeyauto.billing.BillingHelper
 import com.ddw.nukeyauto.data.PrefKeys
-import com.ddw.nukeyauto.data.repo.NukiRepository
+import com.ddw.nukeyauto.ui.mobile.SettingsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
@@ -35,8 +38,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
 
-    @Inject lateinit var repository: NukiRepository
     @Inject lateinit var prefs: SharedPreferences
+    private val viewModel: SettingsViewModel by viewModels()
 
     private var billingHelper: BillingHelper? = null
 
@@ -203,32 +206,34 @@ class SettingsActivity : AppCompatActivity() {
         billingHelper?.connect()
 
         lifecycleScope.launch {
-            billingHelper?.products?.collect { productList ->
-                supportContainer.removeAllViews()
-                if (productList.isEmpty()) {
-                    tvSupportUnavailable.visibility = View.VISIBLE
-                } else {
-                    tvSupportUnavailable.visibility = View.GONE
-                    for (product in productList) {
-                        val price = product.oneTimePurchaseOfferDetails?.formattedPrice ?: ""
-                        val label = productIdToLabel(product.productId)
-                        val button = MaterialButton(
-                            this@SettingsActivity,
-                            null,
-                            com.google.android.material.R.attr.materialButtonOutlinedStyle
-                        ).apply {
-                            text = "$label — $price"
-                            layoutParams = LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.MATCH_PARENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                billingHelper?.products?.collect { productList ->
+                    supportContainer.removeAllViews()
+                    if (productList.isEmpty()) {
+                        tvSupportUnavailable.visibility = View.VISIBLE
+                    } else {
+                        tvSupportUnavailable.visibility = View.GONE
+                        for (product in productList) {
+                            val price = product.oneTimePurchaseOfferDetails?.formattedPrice ?: ""
+                            val label = productIdToLabel(product.productId)
+                            val button = MaterialButton(
+                                this@SettingsActivity,
+                                null,
+                                com.google.android.material.R.attr.materialButtonOutlinedStyle
                             ).apply {
-                                bottomMargin = (8 * resources.displayMetrics.density).toInt()
+                                text = "$label — $price"
+                                layoutParams = LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT
+                                ).apply {
+                                    bottomMargin = (8 * resources.displayMetrics.density).toInt()
+                                }
+                                setOnClickListener {
+                                    billingHelper?.launchPurchase(product)
+                                }
                             }
-                            setOnClickListener {
-                                billingHelper?.launchPurchase(product)
-                            }
+                            supportContainer.addView(button)
                         }
-                        supportContainer.addView(button)
                     }
                 }
             }
@@ -240,7 +245,7 @@ class SettingsActivity : AppCompatActivity() {
             val id = etId.text.toString().replace("\\s".toRegex(), "")
 
             if (token.isNotEmpty() && id.isNotEmpty()) {
-                repository.saveCredentials(token, id)
+                viewModel.saveCredentials(token, id)
 
                 // Save preferences
                 prefs.edit()

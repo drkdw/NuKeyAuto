@@ -69,29 +69,7 @@ class NukiRepository @Inject constructor(
             // the resulting state is identical (fixes stuck SwipeRefreshLayout).
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
-            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
-
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "ID present: ${id.isNotEmpty()}, Token present: ${token.isNotEmpty()}")
-            }
-
-            if (id.isEmpty() || token.isEmpty()) {
-                if (BuildConfig.DEBUG) {
-                    Log.w(TAG, "No credentials configured")
-                }
-                _uiState.update { it.copy(isLoading = false, error = NukiError.NoCredentials) }
-                return
-            }
-
-            val smartlockId = id.toLongOrNull()
-            if (smartlockId == null) {
-                if (BuildConfig.DEBUG) {
-                    Log.w(TAG, "Invalid Smart Lock ID: '$id'")
-                }
-                _uiState.update { it.copy(isLoading = false, error = NukiError.InvalidSmartLockId) }
-                return
-            }
+            val smartlockId = validateAndGetSmartlockId() ?: return
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "API call for Smart Lock ID: $smartlockId")
@@ -143,18 +121,7 @@ class NukiRepository @Inject constructor(
      */
     suspend fun performLockAction(shouldLock: Boolean) {
         try {
-            val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
-            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
-            if (id.isEmpty() || token.isEmpty()) {
-                _uiState.update { it.copy(isLoading = false, error = NukiError.NoCredentials) }
-                return
-            }
-
-            val smartlockId = id.toLongOrNull()
-            if (smartlockId == null) {
-                _uiState.update { it.copy(isLoading = false, error = NukiError.InvalidSmartLockId) }
-                return
-            }
+            val smartlockId = validateAndGetSmartlockId() ?: return
 
             _uiState.update { it.copy(isLoading = true) }
 
@@ -206,6 +173,28 @@ class NukiRepository @Inject constructor(
                 it.copy(isLoading = false, error = mapException(e))
             }
         }
+    }
+
+    /**
+     * Read and validate credentials from encrypted prefs.
+     * Returns the parsed smartlock ID, or null if credentials are missing or invalid.
+     * If null is returned, the appropriate error has already been written to [uiState].
+     */
+    private fun validateAndGetSmartlockId(): Long? {
+        val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
+        val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
+        if (id.isEmpty() || token.isEmpty()) {
+            if (BuildConfig.DEBUG) Log.w(TAG, "No credentials configured")
+            _uiState.update { it.copy(isLoading = false, error = NukiError.NoCredentials) }
+            return null
+        }
+        val smartlockId = id.toLongOrNull()
+        if (smartlockId == null) {
+            if (BuildConfig.DEBUG) Log.w(TAG, "Invalid Smart Lock ID: '$id'")
+            _uiState.update { it.copy(isLoading = false, error = NukiError.InvalidSmartLockId) }
+            return null
+        }
+        return smartlockId
     }
 
     /**

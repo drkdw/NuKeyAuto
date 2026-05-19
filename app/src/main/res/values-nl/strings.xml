@@ -20,7 +20,6 @@
 
     <!-- Android Auto -->
     <string name="auto_row_title">Smart lock</string>
-    <string name="auto_status_format">Status: %1$s \u2022 %2$d%%</string>
     <string name="auto_battery_good">Goede conditie</string>
     <string name="auto_battery_medium">Overweeg op te laden</string>
     <string name="auto_battery_low">Batterij bijna leeg \u2014 laad op</string>
@@ -78,7 +77,6 @@
     <string name="confirm_open_title">Deur openen?</string>
     <string name="confirm_open_message">Weet je zeker dat je de deur wil openen?</string>
     <string name="confirm_close_title">Deur sluiten?</string>
-    <string name="confirm_close_message">Weet je zeker dat je de deur wil sluiten?</string>
     <string name="confirm_lock_title">Deur vergrendelen?</string>
     <string name="confirm_lock_message">Weet je zeker dat je de deur wil vergrendelen?</string>
     <string name="confirm_yes">Ja</string>

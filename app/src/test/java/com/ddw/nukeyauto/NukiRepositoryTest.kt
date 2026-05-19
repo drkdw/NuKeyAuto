@@ -289,4 +289,82 @@ class NukiRepositoryTest {
         verify(editor).putString(PrefKeys.NUKI_ID, "987654321")
         verify(editor).apply()
     }
+
+    // --- hasCredentials tests ---
+
+    @Test
+    fun `hasCredentials returns true when both id and token are present`() {
+        mockCredentials()
+
+        assertTrue(repository.hasCredentials())
+    }
+
+    @Test
+    fun `hasCredentials returns false when id is empty`() {
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn("")
+        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("test-token")
+
+        assertTrue(!repository.hasCredentials())
+    }
+
+    @Test
+    fun `hasCredentials returns false when token is empty`() {
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn("123456789")
+        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("")
+
+        assertTrue(!repository.hasCredentials())
+    }
+
+    @Test
+    fun `hasCredentials returns false on prefs exception`() {
+        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenThrow(SecurityException("KeyStore failure"))
+
+        assertTrue(!repository.hasCredentials())
+    }
+
+    // --- getOpenDelaySeconds tests ---
+
+    @Test
+    fun `getOpenDelaySeconds returns stored value`() {
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(5)
+
+        assertEquals(5, repository.getOpenDelaySeconds())
+    }
+
+    @Test
+    fun `getOpenDelaySeconds returns 0 when not set`() {
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(0)
+
+        assertEquals(0, repository.getOpenDelaySeconds())
+    }
+
+    @Test
+    fun `getOpenDelaySeconds returns 0 on prefs exception`() {
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenThrow(SecurityException("KeyStore failure"))
+
+        assertEquals(0, repository.getOpenDelaySeconds())
+    }
+
+    // --- isConfirmationEnabled tests ---
+
+    @Test
+    fun `isConfirmationEnabled returns true by default`() {
+        whenever(prefs.getBoolean(PrefKeys.CONFIRM_ACTION, true)).thenReturn(true)
+
+        assertTrue(repository.isConfirmationEnabled())
+    }
+
+    @Test
+    fun `isConfirmationEnabled returns false when disabled`() {
+        whenever(prefs.getBoolean(PrefKeys.CONFIRM_ACTION, true)).thenReturn(false)
+
+        assertTrue(!repository.isConfirmationEnabled())
+    }
+
+    @Test
+    fun `isConfirmationEnabled returns true on prefs exception`() {
+        whenever(prefs.getBoolean(PrefKeys.CONFIRM_ACTION, true)).thenThrow(SecurityException("KeyStore failure"))
+
+        assertTrue(repository.isConfirmationEnabled())
+    }
 }
