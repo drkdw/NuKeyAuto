@@ -3,6 +3,7 @@ package com.ddw.nukeyauto.billing
 import android.app.Activity
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.core.content.edit
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
@@ -134,10 +135,10 @@ class BillingHelper(
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d(TAG, "Purchase consumed successfully")
                     val count = prefs.getInt(PrefKeys.DONATION_COUNT, 0) + 1
-                    prefs.edit()
-                        .putBoolean(PrefKeys.IS_SUPPORTER, true)
-                        .putInt(PrefKeys.DONATION_COUNT, count)
-                        .apply()
+                    prefs.edit {
+                        putBoolean(PrefKeys.IS_SUPPORTER, true)
+                        putInt(PrefKeys.DONATION_COUNT, count)
+                    }
                     onPurchaseComplete(true)
                 } else {
                     Log.e(TAG, "Consume failed: ${billingResult.debugMessage}")

@@ -15,6 +15,7 @@ import android.view.ViewOutlineProvider
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
+import androidx.core.graphics.withClip
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.toPath
@@ -26,8 +27,8 @@ import androidx.graphics.shapes.toPath
  * Supports smooth morphing transitions between any two [RoundedPolygon] shapes
  * via the [androidx.graphics.shapes.Morph] class.
  *
- * An optional animated stroke ("wave loader") can be shown around the shape
- * perimeter via [startStrokeLoader] / [stopStrokeLoader].
+ * An optional animated stroke can be shown around the shape perimeter via
+ * [startStrokeAnimation] / [setStrokeProgress] / [stopStrokeLoader].
  */
 class ShapeMorphView @JvmOverloads constructor(
     context: Context,
@@ -68,26 +69,6 @@ class ShapeMorphView @JvmOverloads constructor(
         get() = shapePaint.color
         set(value) {
             shapePaint.color = value
-            invalidate()
-        }
-
-    /**
-     * Stroke color for the wave loader. Defaults to [strokePaint] color.
-     */
-    var strokeColor: Int
-        get() = strokePaint.color
-        set(value) {
-            strokePaint.color = value
-            invalidate()
-        }
-
-    /**
-     * Stroke width in pixels for the wave loader.
-     */
-    var strokeWidth: Float
-        get() = strokePaint.strokeWidth
-        set(value) {
-            strokePaint.strokeWidth = value
             invalidate()
         }
 
@@ -189,6 +170,19 @@ class ShapeMorphView @JvmOverloads constructor(
         rebuildPath()
     }
 
+    /**
+     * Cancel every running animation when the view leaves the window.
+     * The idle animation repeats indefinitely, so without this it would keep
+     * invalidating a detached view — and keep the hosting Activity alive.
+     */
+    override fun onDetachedFromWindow() {
+        morphAnimator?.cancel()
+        morphAnimator = null
+        stopIdleAnimation()
+        stopStrokeLoader()
+        super.onDetachedFromWindow()
+    }
+
     override fun onDraw(canvas: Canvas) {
         if (!shapePath.isEmpty) {
             canvas.drawPath(shapePath, shapePaint)
@@ -202,10 +196,9 @@ class ShapeMorphView @JvmOverloads constructor(
 
     override fun dispatchDraw(canvas: Canvas) {
         if (!shapePath.isEmpty) {
-            canvas.save()
-            canvas.clipPath(shapePath)
-            super.dispatchDraw(canvas)
-            canvas.restore()
+            canvas.withClip(shapePath) {
+                super.dispatchDraw(this)
+            }
         } else {
             super.dispatchDraw(canvas)
         }

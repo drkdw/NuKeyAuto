@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  Dropdown row for the exposed dropdown menus in Settings.
+  The platform's simple_dropdown_item_1line resolves its text colour against the
+  platform theme, which turns white-on-white in light mode; this one pins the
+  colour to the app theme so it is correct in both light and dark.
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="48dp"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="16dp"
+    android:textAppearance="?attr/textAppearanceBodyLarge"
+    android:textColor="?attr/colorOnSurface"
+    android:maxLines="1"
+    android:ellipsize="end" />

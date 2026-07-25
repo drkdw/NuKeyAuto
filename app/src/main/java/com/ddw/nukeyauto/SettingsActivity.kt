@@ -2,7 +2,6 @@ package com.ddw.nukeyauto
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -16,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -89,7 +90,7 @@ class SettingsActivity : AppCompatActivity() {
             getString(R.string.language_english),
             getString(R.string.language_dutch)
         )
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, langLabels)
+        val adapter = ArrayAdapter(this, R.layout.item_dropdown, langLabels)
         actvLanguage.setAdapter(adapter)
 
         // Select current language in dropdown
@@ -104,36 +105,27 @@ class SettingsActivity : AppCompatActivity() {
             getString(R.string.theme_light),
             getString(R.string.theme_dark)
         )
-        actvTheme.setAdapter(
-            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, themeLabels)
-        )
+        actvTheme.setAdapter(ArrayAdapter(this, R.layout.item_dropdown, themeLabels))
 
         // Select current theme in dropdown
-        val currentTheme = prefs.getString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM) ?: PrefKeys.THEME_SYSTEM
+        val currentTheme = safeGetString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM)
         val themeIndex = themeValues.indexOf(currentTheme).coerceAtLeast(0)
         actvTheme.setText(themeLabels[themeIndex], false)
 
-        // Apply theme immediately on selection (no Save needed)
-        actvTheme.setOnItemClickListener { _, _, position, _ ->
-            val newTheme = themeValues[position]
-            prefs.edit().putString(PrefKeys.THEME, newTheme).apply()
-            AppCompatDelegate.setDefaultNightMode(NukiApp.themeToNightMode(newTheme))
-        }
+        // The theme is applied on Save, together with the language — picking one in
+        // the dropdown only changes the selection.
 
-        // Dynamic colors switch — default ON
+        // Dynamic colors switch — default ON, stored on Save like every other setting
         val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
-        switchDynamicColors.isChecked = prefs.getBoolean(PrefKeys.DYNAMIC_COLORS, true)
-        switchDynamicColors.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean(PrefKeys.DYNAMIC_COLORS, isChecked).apply()
-        }
+        switchDynamicColors.isChecked = safeGetBoolean(PrefKeys.DYNAMIC_COLORS, true)
 
         // Confirmation switch — read from prefs, default ON
-        switchConfirm.isChecked = prefs.getBoolean(PrefKeys.CONFIRM_ACTION, true)
+        switchConfirm.isChecked = safeGetBoolean(PrefKeys.CONFIRM_ACTION, true)
 
         // Delay slider — read from prefs, default 0 (off)
         val sliderDelay = findViewById<Slider>(R.id.sliderDelay)
         val tvDelayValue = findViewById<TextView>(R.id.tvDelayValue)
-        val savedDelay = prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
+        val savedDelay = safeGetInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
         sliderDelay.value = savedDelay.toFloat()
         updateDelayLabel(tvDelayValue, savedDelay)
 
@@ -143,8 +135,9 @@ class SettingsActivity : AppCompatActivity() {
 
         // Rate on Play Store
         findViewById<MaterialButton>(R.id.btnRate).setOnClickListener {
-            val uri = Uri.parse("market://details?id=${BuildConfig.APPLICATION_ID}")
-            val fallback = Uri.parse("https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}")
+            val uri = "market://details?id=${BuildConfig.APPLICATION_ID}".toUri()
+            val fallback =
+                "https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}".toUri()
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, uri))
             } catch (e: Exception) {
@@ -155,14 +148,14 @@ class SettingsActivity : AppCompatActivity() {
         // Send feedback
         findViewById<MaterialButton>(R.id.btnFeedback).setOnClickListener {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:")
+                data = "mailto:".toUri()
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(FEEDBACK_EMAIL))
                 putExtra(Intent.EXTRA_SUBJECT, getString(R.string.version_label, BuildConfig.VERSION_NAME))
             }
             try {
                 startActivity(intent)
             } catch (e: Exception) {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("mailto:$FEEDBACK_EMAIL")))
+                startActivity(Intent(Intent.ACTION_VIEW, "mailto:$FEEDBACK_EMAIL".toUri()))
             }
         }
 
@@ -221,7 +214,7 @@ class SettingsActivity : AppCompatActivity() {
                                 null,
                                 com.google.android.material.R.attr.materialButtonOutlinedStyle
                             ).apply {
-                                text = "$label — $price"
+                                text = getString(R.string.support_button_label, label, price)
                                 layoutParams = LinearLayout.LayoutParams(
                                     LinearLayout.LayoutParams.MATCH_PARENT,
                                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -244,27 +237,80 @@ class SettingsActivity : AppCompatActivity() {
             val token = etToken.text.toString().replace("\\s".toRegex(), "")
             val id = etId.text.toString().replace("\\s".toRegex(), "")
 
-            if (token.isNotEmpty() && id.isNotEmpty()) {
-                viewModel.saveCredentials(token, id)
+            // Preferences do not depend on the credentials, so persist them either
+            // way — otherwise an empty token field would silently discard them.
+            persistPendingSettings()
 
-                // Save preferences
-                prefs.edit()
-                    .putBoolean(PrefKeys.CONFIRM_ACTION, switchConfirm.isChecked)
-                    .putInt(PrefKeys.OPEN_DELAY_SECONDS, sliderDelay.value.toInt())
-                    .apply()
+            applySelectedTheme(themeLabels, actvTheme.text.toString())
+            applySelectedLanguage(langLabels, actvLanguage.text.toString())
 
-                // Apply language selection on save
-                val langIndex = langLabels.indexOf(actvLanguage.text.toString())
-                val langTag = if (langIndex >= 0) langTags[langIndex] else "en"
-                val locales = LocaleListCompat.forLanguageTags(langTag)
-                AppCompatDelegate.setApplicationLocales(locales)
-
-                Toast.makeText(this, R.string.toast_saved, Toast.LENGTH_SHORT).show()
-                finish()
-            } else {
+            if (token.isEmpty() || id.isEmpty()) {
                 Toast.makeText(this, R.string.toast_fill_all_fields, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            viewModel.saveCredentials(token, id)
+            Toast.makeText(this, R.string.toast_saved, Toast.LENGTH_SHORT).show()
+            finish()
         }
+    }
+
+    /**
+     * Write the switches and the delay slider to prefs. Nothing on this screen is
+     * stored before Save is pressed, so this is the single place that persists them.
+     */
+    private fun persistPendingSettings() {
+        val switchConfirm = findViewById<MaterialSwitch>(R.id.switchConfirm)
+        val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
+        val sliderDelay = findViewById<Slider>(R.id.sliderDelay)
+        prefs.edit {
+            putBoolean(PrefKeys.CONFIRM_ACTION, switchConfirm.isChecked)
+            putBoolean(PrefKeys.DYNAMIC_COLORS, switchDynamicColors.isChecked)
+            putInt(PrefKeys.OPEN_DELAY_SECONDS, sliderDelay.value.toInt())
+        }
+    }
+
+    /**
+     * Store and apply the theme picked in the dropdown, but only when it differs
+     * from the stored one — applying it always would rebuild the screen on every save.
+     */
+    private fun applySelectedTheme(labels: Array<String>, selectedLabel: String) {
+        val themeIndex = labels.indexOf(selectedLabel).coerceAtLeast(0)
+        val newTheme = themeValues[themeIndex]
+        if (newTheme == safeGetString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM)) return
+        prefs.edit { putString(PrefKeys.THEME, newTheme) }
+        AppCompatDelegate.setDefaultNightMode(NukiApp.themeToNightMode(newTheme))
+    }
+
+    /**
+     * Apply the language picked in the dropdown, but only when it differs from
+     * the active one — setting it always would recreate the Activity on every save.
+     */
+    private fun applySelectedLanguage(labels: Array<String>, selectedLabel: String) {
+        val langIndex = labels.indexOf(selectedLabel)
+        val langTag = if (langIndex >= 0) langTags[langIndex] else "en"
+        val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        if (!current.startsWith(langTag)) {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(langTag))
+        }
+    }
+
+    private fun safeGetString(key: String, default: String): String = try {
+        prefs.getString(key, default) ?: default
+    } catch (e: Exception) {
+        default
+    }
+
+    private fun safeGetBoolean(key: String, default: Boolean): Boolean = try {
+        prefs.getBoolean(key, default)
+    } catch (e: Exception) {
+        default
+    }
+
+    private fun safeGetInt(key: String, default: Int): Int = try {
+        prefs.getInt(key, default)
+    } catch (e: Exception) {
+        default
     }
 
     override fun onDestroy() {
@@ -326,7 +372,7 @@ class SettingsActivity : AppCompatActivity() {
         view.text = if (seconds == 0) {
             getString(R.string.settings_delay_off)
         } else {
-            getString(R.string.settings_delay_value, seconds)
+            resources.getQuantityString(R.plurals.settings_delay_value, seconds, seconds)
         }
     }
 

@@ -7,11 +7,11 @@
         android:title="@string/supporter_badge_title"
         android:icon="@drawable/ic_star_shine"
         android:visible="false"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_settings"
         android:title="@string/settings_title"
         android:icon="@drawable/ic_settings"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 </menu>

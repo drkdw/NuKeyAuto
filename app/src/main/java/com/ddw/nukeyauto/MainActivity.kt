@@ -38,6 +38,15 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var prefs: SharedPreferences
     private val viewModel: MainViewModel by viewModels()
 
+    private lateinit var cardStatus: ShapeMorphView
+    private lateinit var cardAnimator: ExpressiveCardAnimator
+
+    /** Clears the countdown stroke and resumes ambient morphing shortly after the countdown ends. */
+    private val resumeAmbientRunnable = Runnable {
+        cardStatus.stopStrokeLoader()
+        cardAnimator.resumeAmbientCycle()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -59,10 +68,10 @@ class MainActivity : AppCompatActivity() {
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
-        val cardStatus = findViewById<ShapeMorphView>(R.id.cardStatus)
+        cardStatus = findViewById(R.id.cardStatus)
         val surfaceAttr = com.google.android.material.R.attr.colorSurfaceContainerHighest
         cardStatus.shapeColor = MaterialColors.getColor(cardStatus, surfaceAttr, 0)
-        val cardAnimator = ExpressiveCardAnimator(cardStatus)
+        cardAnimator = ExpressiveCardAnimator(cardStatus)
         var isFirstState = true
         var countdownMax = 0
 
@@ -118,10 +127,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         if (countdownMax > 0) {
                             // Brief pause at full, then clear and resume cycling
-                            cardStatus.postDelayed({
-                                cardStatus.stopStrokeLoader()
-                                cardAnimator.resumeAmbientCycle()
-                            }, 300)
+                            cardStatus.postDelayed(resumeAmbientRunnable, RESUME_AMBIENT_DELAY_MS)
                         }
                         countdownMax = 0
                         tvCountdown.visibility = View.GONE
@@ -200,6 +206,12 @@ class MainActivity : AppCompatActivity() {
                             ivIcon.setImageResource(R.drawable.ic_hourglass)
                             ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
                             tvStatus.text = getString(R.string.status_unlatching)
+                            btnAction.isEnabled = false
+                        }
+                        LockState.BootRun -> {
+                            ivIcon.setImageResource(R.drawable.ic_hourglass)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                            tvStatus.text = getString(R.string.status_boot_run)
                             btnAction.isEnabled = false
                         }
                         LockState.MotorBlocked -> {
@@ -304,6 +316,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (::cardAnimator.isInitialized) {
+            cardAnimator.resume()
+        }
+    }
+
+    override fun onStop() {
+        // Do not keep morphing shapes while the app is in the background.
+        if (::cardAnimator.isInitialized) {
+            cardAnimator.pause()
+        }
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        // Guarded: onCreate may have failed before the views were bound.
+        if (::cardStatus.isInitialized) {
+            cardStatus.removeCallbacks(resumeAmbientRunnable)
+            cardAnimator.pause()
+        }
+        super.onDestroy()
+    }
+
     override fun onResume() {
         super.onResume()
         if (BuildConfig.DEBUG) {
@@ -346,5 +382,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+
+        /** Pause at a full stroke ring before clearing it when the countdown ends. */
+        private const val RESUME_AMBIENT_DELAY_MS = 300L
     }
 }

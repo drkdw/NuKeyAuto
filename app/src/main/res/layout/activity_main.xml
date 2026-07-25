@@ -52,7 +52,7 @@
                     android:layout_height="112dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_lock"
-                    android:contentDescription="@string/status_locked" />
+                    android:importantForAccessibility="no" />
 
             </com.ddw.nukeyauto.ui.ShapeMorphView>
 

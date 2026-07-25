@@ -12,7 +12,13 @@ import androidx.car.app.model.PaneTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ddw.nukeyauto.R
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.repo.NukiRepository
@@ -24,7 +30,17 @@ class DoorControlScreen(
     private val repository: NukiRepository
 ) : Screen(carContext) {
 
-    private val viewModel = MainViewModel(repository)
+    /**
+     * Own [ViewModelStore] so the ViewModel — and with it its coroutine scope —
+     * is cleared when the car session ends. Without it, a running countdown or
+     * poll loop would keep going after the screen is gone.
+     */
+    private val viewModelStore = ViewModelStore()
+
+    private val viewModel = ViewModelProvider(
+        viewModelStore,
+        viewModelFactory { initializer { MainViewModel(repository) } }
+    )[MainViewModel::class.java]
 
     /**
      * Tracks which action awaits confirmation (two-tap pattern).
@@ -35,10 +51,22 @@ class DoorControlScreen(
     private enum class PendingAction { OPEN, LOCK, CLOSE }
 
     init {
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                viewModelStore.clear()
+            }
+        })
+
         lifecycleScope.launch {
+            var lastLockState = viewModel.uiState.value.lockState
+
             viewModel.uiState.collect { state ->
-                // Reset confirmation state when lock state changes
-                pendingAction = null
+                // Only drop a pending confirmation when the lock itself changed —
+                // not on every emission (loading flags, countdown ticks).
+                if (state.lockState != lastLockState) {
+                    pendingAction = null
+                    lastLockState = state.lockState
+                }
 
                 // Show toast when error occurs but UI still shows a valid lock state
                 if (state.error != null && state.lockState != LockState.Unknown) {
@@ -52,6 +80,8 @@ class DoorControlScreen(
                 invalidate()
             }
         }
+
+        viewModel.refresh()
     }
 
     override fun onGetTemplate(): Template {
@@ -103,6 +133,7 @@ class DoorControlScreen(
                 LockState.Unlocking -> carContext.getString(R.string.status_unlocking)
                 LockState.Unlatched -> carContext.getString(R.string.status_unlatched)
                 LockState.Unlatching -> carContext.getString(R.string.status_unlatching)
+                LockState.BootRun -> carContext.getString(R.string.status_boot_run)
                 LockState.MotorBlocked -> carContext.getString(R.string.status_motor_blocked)
                 LockState.Uncalibrated -> carContext.getString(R.string.status_uncalibrated)
                 LockState.Undefined -> carContext.getString(R.string.status_undefined)
@@ -159,7 +190,7 @@ class DoorControlScreen(
 
         // --- Action buttons (hidden during countdown and transitions) ---
         val isInTransition = state.lockState in listOf(
-            LockState.Locking, LockState.Unlocking, LockState.Unlatching
+            LockState.Locking, LockState.Unlocking, LockState.Unlatching, LockState.BootRun
         )
 
         if (!isInTransition && state.countdownSeconds == 0) {
@@ -270,7 +301,8 @@ class DoorControlScreen(
         LockState.Unlatched -> CarIcon.Builder(
             IconCompat.createWithResource(carContext, R.drawable.ic_door_open)
         ).setTint(CarColor.PRIMARY).build()
-        LockState.Locking, LockState.Unlocking, LockState.Unlatching -> CarIcon.Builder(
+        LockState.Locking, LockState.Unlocking, LockState.Unlatching,
+        LockState.BootRun -> CarIcon.Builder(
             IconCompat.createWithResource(carContext, R.drawable.ic_hourglass)
         ).setTint(CarColor.PRIMARY).build()
         LockState.MotorBlocked, LockState.Uncalibrated -> CarIcon.Builder(

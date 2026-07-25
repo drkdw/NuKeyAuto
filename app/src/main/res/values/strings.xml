@@ -11,6 +11,7 @@
     <string name="status_motor_blocked">Motor blocked!</string>
     <string name="status_uncalibrated">Not calibrated</string>
     <string name="status_undefined">Lock offline</string>
+    <string name="status_boot_run">Starting up…</string>
     <string name="status_unknown">Status unknown</string>
     <string name="status_loading">Loading…</string>
     <string name="status_countdown">Opening in %1$d…</string>
@@ -87,7 +88,10 @@
     <!-- Delay -->
     <string name="settings_delay_title">Door open delay</string>
     <string name="settings_delay_summary">Wait before opening the door, so you have time to walk from the car to the door.</string>
-    <string name="settings_delay_value">%d seconds</string>
+    <plurals name="settings_delay_value">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
     <string name="settings_delay_off">Off</string>
 
     <!-- About -->
@@ -124,7 +128,7 @@
     </plurals>
     <plurals name="supporter_dialog_message">
         <item quantity="one">Thank you so much! This app is built with love in my spare time, and your support means the world to me. It helps keep NuKey Auto free and ad-free for everyone, and motivates me to keep making it better.</item>
-        <item quantity="other">You have donated %d times now -- that is absolutely amazing! Your continued generosity means so much. It helps keep NuKey Auto free and ad-free for everyone, and keeps me motivated to keep improving the app.</item>
+        <item quantity="other">You have donated %d times now — that is absolutely amazing! Your continued generosity means so much. It helps keep NuKey Auto free and ad-free for everyone, and keeps me motivated to keep improving the app.</item>
     </plurals>
     <plurals name="supporter_donation_count">
         <item quantity="one">You donated %d time.</item>
@@ -136,4 +140,6 @@
     <string name="support_label_pizza">Pizza</string>
     <string name="support_label_dinner">Dinner</string>
     <string name="support_label_support">Support</string>
+    <!-- Label — price, e.g. "Coffee — € 2.99" -->
+    <string name="support_button_label" translatable="false">%1$s — %2$s</string>
 </resources>
