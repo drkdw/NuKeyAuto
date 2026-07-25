@@ -24,3 +24,7 @@ key.properties
 # OS
 Thumbs.db
 playstore/
+
+# Tooling scratch (contains a nested git worktree — must never be tracked)
+.claude/
+.kotlin/
