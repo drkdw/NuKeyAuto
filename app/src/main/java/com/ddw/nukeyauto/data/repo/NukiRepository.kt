@@ -2,6 +2,7 @@ package com.ddw.nukeyauto.data.repo
 
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.core.content.edit
 import com.ddw.nukeyauto.BuildConfig
 import com.ddw.nukeyauto.data.api.NukiApiService
 import com.ddw.nukeyauto.data.PrefKeys
@@ -35,22 +36,9 @@ class NukiRepository @Inject constructor(
      * Persist Nuki Web API credentials to encrypted storage.
      */
     fun saveCredentials(token: String, id: String) {
-        prefs.edit()
-            .putString(PrefKeys.NUKI_TOKEN, token)
-            .putString(PrefKeys.NUKI_ID, id)
-            .apply()
-    }
-
-    /**
-     * Check whether both API token and Smart Lock ID are configured.
-     */
-    fun hasCredentials(): Boolean {
-        return try {
-            val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
-            val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
-            id.isNotEmpty() && token.isNotEmpty()
-        } catch (e: Exception) {
-            false
+        prefs.edit {
+            putString(PrefKeys.NUKI_TOKEN, token)
+            putString(PrefKeys.NUKI_ID, id)
         }
     }
 
@@ -90,7 +78,9 @@ class NukiRepository @Inject constructor(
                 3 -> LockState.Unlocked
                 4 -> LockState.Locking
                 5 -> LockState.Unlatched
+                6 -> LockState.Unlocked // Lock 'n' Go leaves the lock unlocked
                 7 -> LockState.Unlatching
+                253 -> LockState.BootRun
                 254 -> LockState.MotorBlocked
                 255 -> LockState.Undefined
                 else -> LockState.Unknown
@@ -123,7 +113,9 @@ class NukiRepository @Inject constructor(
         try {
             val smartlockId = validateAndGetSmartlockId() ?: return
 
-            _uiState.update { it.copy(isLoading = true) }
+            // Clear any previous error so stale errors are not re-rendered by the
+            // countdown emissions below (would show one Snackbar/CarToast per tick).
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "performLockAction: shouldLock=$shouldLock")
@@ -201,7 +193,7 @@ class NukiRepository @Inject constructor(
      * Check whether the given lock state is a transition (in-progress) state.
      */
     private fun isTransitionState(state: LockState): Boolean {
-        return state in listOf(LockState.Locking, LockState.Unlocking, LockState.Unlatching)
+        return state in TRANSITION_STATES
     }
 
     /**
@@ -246,5 +238,13 @@ class NukiRepository @Inject constructor(
         private const val LOCK_MOVEMENT_DELAY_MS = 3500L
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 5
+
+        /** States the lock passes through while it is still moving or starting up. */
+        private val TRANSITION_STATES = listOf(
+            LockState.Locking,
+            LockState.Unlocking,
+            LockState.Unlatching,
+            LockState.BootRun
+        )
     }
 }

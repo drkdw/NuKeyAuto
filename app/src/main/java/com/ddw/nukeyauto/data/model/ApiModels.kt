@@ -25,10 +25,11 @@ enum class LockState {
     Uncalibrated, // State 0: not yet calibrated
     Locked,       // State 1: locked
     Unlocking,    // State 2: unlocking in progress
-    Unlocked,     // State 3: unlocked, door closed
+    Unlocked,     // State 3: unlocked, door closed (also state 6: lock 'n' go)
     Locking,      // State 4: locking in progress
     Unlatched,    // State 5: latch open, door physically open
     Unlatching,   // State 7: unlatching in progress
+    BootRun,      // State 253: lock is booting
     MotorBlocked, // State 254: motor blocked
     Undefined,    // State 255: lock offline / unavailable
     Unknown

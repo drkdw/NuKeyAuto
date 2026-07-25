@@ -10,6 +10,7 @@ import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.model.SmartLockResponse
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.HttpException
 import retrofit2.Response
@@ -22,6 +23,7 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -118,6 +120,31 @@ class NukiRepositoryTest {
         repository.fetchState()
 
         assertEquals(LockState.Unlatched, repository.uiState.value.lockState)
+    }
+
+    @Test
+    fun `fetchState with state 6 maps lock n go to Unlocked`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 6, battery = 55))
+
+        repository.fetchState()
+
+        val state = repository.uiState.value
+        assertEquals(LockState.Unlocked, state.lockState)
+        assertEquals(55, state.battery)
+        assertNull(state.error)
+    }
+
+    @Test
+    fun `fetchState with state 253 sets LockState BootRun without error`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 253))
+
+        repository.fetchState()
+
+        val state = repository.uiState.value
+        assertEquals(LockState.BootRun, state.lockState)
+        assertNull(state.error)
     }
 
     @Test
@@ -275,6 +302,74 @@ class NukiRepositoryTest {
         assertTrue(state.error is NukiError.ConnectionFailed)
     }
 
+    @Test
+    fun `performLockAction counts down before sending the action`() = runTest {
+        mockCredentials()
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(2)
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 3))
+
+        val countdowns = mutableListOf<Int>()
+        backgroundScope.launch {
+            repository.uiState.collect { countdowns.add(it.countdownSeconds) }
+        }
+
+        repository.performLockAction(shouldLock = false)
+
+        verify(api).performAction(123456789L, ActionRequest(3))
+        assertTrue(countdowns.contains(2))
+        assertEquals(0, repository.uiState.value.countdownSeconds)
+    }
+
+    @Test
+    fun `performLockAction clears a previous error before counting down`() = runTest {
+        mockCredentials()
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(3)
+        // First call fails (leaves an error in the state), every later call succeeds
+        whenever(api.getSmartLockState(123456789L))
+            .thenAnswer { throw java.io.IOException("Connection refused") }
+            .thenReturn(mockResponse(state = 3))
+
+        repository.fetchState()
+        assertTrue(repository.uiState.value.error is NukiError.ConnectionFailed)
+
+        // Every countdown tick emits a new state — none of them may carry the old error,
+        // otherwise the UI shows one Snackbar/CarToast per second.
+        val errorsDuringCountdown = mutableListOf<NukiError?>()
+        backgroundScope.launch {
+            repository.uiState.collect {
+                if (it.countdownSeconds > 0) errorsDuringCountdown.add(it.error)
+            }
+        }
+
+        repository.performLockAction(shouldLock = false)
+
+        assertTrue(errorsDuringCountdown.isNotEmpty())
+        assertTrue(errorsDuringCountdown.all { it == null })
+    }
+
+    @Test
+    fun `performLockAction keeps polling while the lock is still moving`() = runTest {
+        mockCredentials()
+        // Lock never leaves the "locking" transition state
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 4))
+
+        repository.performLockAction(shouldLock = true)
+
+        // One fetch after the movement delay + MAX_POLL_ATTEMPTS follow-up polls
+        verify(api, times(6)).getSmartLockState(123456789L)
+    }
+
+    @Test
+    fun `performLockAction stops polling once the lock settles`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+
+        repository.performLockAction(shouldLock = true)
+
+        verify(api, times(1)).getSmartLockState(123456789L)
+        assertEquals(LockState.Locked, repository.uiState.value.lockState)
+    }
+
     // --- saveCredentials tests ---
 
     @Test
@@ -288,38 +383,6 @@ class NukiRepositoryTest {
         verify(editor).putString(PrefKeys.NUKI_TOKEN, "my-token-123")
         verify(editor).putString(PrefKeys.NUKI_ID, "987654321")
         verify(editor).apply()
-    }
-
-    // --- hasCredentials tests ---
-
-    @Test
-    fun `hasCredentials returns true when both id and token are present`() {
-        mockCredentials()
-
-        assertTrue(repository.hasCredentials())
-    }
-
-    @Test
-    fun `hasCredentials returns false when id is empty`() {
-        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn("")
-        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("test-token")
-
-        assertTrue(!repository.hasCredentials())
-    }
-
-    @Test
-    fun `hasCredentials returns false when token is empty`() {
-        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenReturn("123456789")
-        whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("")
-
-        assertTrue(!repository.hasCredentials())
-    }
-
-    @Test
-    fun `hasCredentials returns false on prefs exception`() {
-        whenever(prefs.getString(PrefKeys.NUKI_ID, "")).thenThrow(SecurityException("KeyStore failure"))
-
-        assertTrue(!repository.hasCredentials())
     }
 
     // --- getOpenDelaySeconds tests ---

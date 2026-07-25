@@ -37,6 +37,11 @@ object AppModule {
      * If the encrypted file is corrupted (e.g. after reinstall with backup restore),
      * delete it and create a fresh instance. The user will need to re-enter credentials.
      */
+    // Suppressed: as of security-crypto 1.1.0 the whole Jetpack Security crypto API is
+    // deprecated in favour of using the Android Keystore directly. It still works and is
+    // now a stable release; migrating off it is a separate job (it touches how the stored
+    // token is encrypted, so it needs its own upgrade test).
+    @Suppress("DEPRECATION")
     @Provides
     @Singleton
     fun provideSharedPrefs(@ApplicationContext context: Context): SharedPreferences {
@@ -55,8 +60,6 @@ object AppModule {
         }
     }
 
-    // Suppressed: EncryptedSharedPreferences.create() is marked deprecated in security-crypto
-    // 1.1.0-alpha06 but no stable replacement exists yet. Safe to use until 1.1.0-stable ships.
     @Suppress("DEPRECATION")
     private fun createEncryptedPrefs(context: Context, masterKey: MasterKey): SharedPreferences {
         return EncryptedSharedPreferences.create(
@@ -87,7 +90,11 @@ object AppModule {
         } else {
             HttpLoggingInterceptor.Level.NONE
         }
-        val logger = HttpLoggingInterceptor().apply { level = logLevel }
+        val logger = HttpLoggingInterceptor().apply {
+            level = logLevel
+            // The bearer token unlocks the front door — never print it, not even in debug.
+            redactHeader("Authorization")
+        }
 
         val client = OkHttpClient.Builder()
             .connectTimeout(10.seconds)

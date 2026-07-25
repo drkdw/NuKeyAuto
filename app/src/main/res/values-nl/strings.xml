@@ -9,6 +9,7 @@
     <string name="status_motor_blocked">Motor geblokkeerd!</string>
     <string name="status_uncalibrated">Niet gekalibreerd</string>
     <string name="status_undefined">Slot offline</string>
+    <string name="status_boot_run">Aan het opstarten…</string>
     <string name="status_unknown">Status onbekend</string>
     <string name="status_loading">Laden…</string>
     <string name="status_countdown">Opent over %1$d…</string>
@@ -85,7 +86,10 @@
     <!-- Delay -->
     <string name="settings_delay_title">Vertraging deur openen</string>
     <string name="settings_delay_summary">Wacht even voor de deur opent, zodat je tijd hebt om van de auto naar de deur te wandelen.</string>
-    <string name="settings_delay_value">%d seconden</string>
+    <plurals name="settings_delay_value">
+        <item quantity="one">%d seconde</item>
+        <item quantity="other">%d seconden</item>
+    </plurals>
     <string name="settings_delay_off">Uit</string>
 
     <!-- About -->
@@ -122,7 +126,7 @@
     </plurals>
     <plurals name="supporter_dialog_message">
         <item quantity="one">Heel erg bedankt! Deze app is met liefde gebouwd in mijn vrije tijd, en je steun betekent ontzettend veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en motiveert me om de app te blijven verbeteren.</item>
-        <item quantity="other">Je hebt nu al %d keer gedoneerd -- dat is echt geweldig! Je blijvende steun betekent heel veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en houdt me gemotiveerd om de app te blijven verbeteren.</item>
+        <item quantity="other">Je hebt nu al %d keer gedoneerd — dat is echt geweldig! Je blijvende steun betekent heel veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en houdt me gemotiveerd om de app te blijven verbeteren.</item>
     </plurals>
     <plurals name="supporter_donation_count">
         <item quantity="one">Je hebt %d keer gedoneerd.</item>

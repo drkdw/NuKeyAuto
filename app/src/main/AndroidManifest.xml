@@ -24,7 +24,8 @@
         android:theme="@style/Theme.NuKeyAuto"
         android:localeConfig="@xml/locales_config"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        tools:targetApi="35">
+        tools:targetApi="36"
+        tools:ignore="DataExtractionRules"><!-- no fullBackupContent needed: allowBackup is false, so API 29-30 never backs up -->
 
         <activity
             android:name=".MainActivity"

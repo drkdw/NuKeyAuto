@@ -19,11 +19,11 @@ abstract class BaseViewModel(
 
     val uiState = repository.uiState
 
-    init {
-        refresh()
-    }
-
-    /** Refresh the lock state from the API. */
+    /**
+     * Refresh the lock state from the API.
+     * Each surface triggers this itself (MainActivity in onResume, the car screen
+     * when it is created) so the state is never fetched twice on startup.
+     */
     fun refresh() {
         if (BuildConfig.DEBUG) Log.d(tag, "refresh()")
         viewModelScope.launch { repository.fetchState() }

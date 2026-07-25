@@ -68,10 +68,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         }
 
         // Start continuous pulse for transitional states
-        if (state == LockState.Locking ||
-            state == LockState.Unlocking ||
-            state == LockState.Unlatching
-        ) {
+        if (state in TRANSITION_STATES) {
             startPulse()
         }
 
@@ -171,6 +168,33 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         startAmbientCycle(state, isWelcome = false)
     }
 
+    /**
+     * Stop every animation this class owns. Call from the host Activity's onStop
+     * and onDestroy — the pulse, ambient cycle and idle rotation all repeat
+     * indefinitely and would otherwise keep burning frames off-screen (and keep
+     * the Activity alive after teardown).
+     */
+    fun pause() {
+        currentAnimator?.cancel()
+        currentAnimator = null
+        stopPulse()
+        stopAmbientCycle()
+        shapeView.stopIdleAnimation()
+    }
+
+    /**
+     * Restart the continuous animations for the state we were last showing.
+     * Call from the host Activity's onStart; no-op before the first state arrives.
+     */
+    fun resume() {
+        val state = currentState ?: return
+        startAmbientCycle(state, isWelcome = false)
+        shapeView.startIdleAnimation()
+        if (state in TRANSITION_STATES) {
+            startPulse()
+        }
+    }
+
     companion object {
         private const val PULSE_DURATION = 800L
         private const val PULSE_SCALE = 0.97f
@@ -178,6 +202,14 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         private const val WELCOME_MORPH_DURATION = 1000L
         private const val AMBIENT_CYCLE_INTERVAL = 3500L
         private const val AMBIENT_MORPH_DURATION = 1200L
+
+        /** States that show the continuous pulse (lock is moving or starting up). */
+        private val TRANSITION_STATES = listOf(
+            LockState.Locking,
+            LockState.Unlocking,
+            LockState.Unlatching,
+            LockState.BootRun
+        )
 
         /** Shapes to cycle through on the welcome screen. */
         private val WELCOME_SHAPES: List<() -> RoundedPolygon> = listOf(
@@ -206,7 +238,8 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
                 LockState.Unlatched -> listOf(
                     ::diamondShape, ::cookie4Shape, ::cookie6Shape, ::burstShape
                 )
-                LockState.Locking, LockState.Unlocking, LockState.Unlatching -> listOf(
+                LockState.Locking, LockState.Unlocking, LockState.Unlatching,
+                LockState.BootRun -> listOf(
                     ::diamondShape, ::sunnyShape, ::cookie4Shape, ::burstShape
                 )
                 LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined -> listOf(
@@ -319,7 +352,8 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
                     LockState.Unlatched -> sunnyShape()
                     LockState.Locking,
                     LockState.Unlocking,
-                    LockState.Unlatching -> cookie6Shape()
+                    LockState.Unlatching,
+                    LockState.BootRun -> cookie6Shape()
                     LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined -> burstShape()
                     LockState.Unknown -> diamondShape()
                 }
