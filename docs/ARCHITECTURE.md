@@ -2,37 +2,27 @@
 
 ## High-Level Architecture
 
-NuKey Auto uses MVVM with a Repository pattern. A single `NukiRepository` instance owns all state and API logic. Two separate ViewModels (mobile and Auto) delegate to that repository. Both platforms observe the same `StateFlow<UiState>`, ensuring consistent state across phone and car displays.
+NuKey Auto uses MVVM with a Repository pattern. A single `NukiRepository` instance owns all state and API logic. The phone goes through a Hilt `MainViewModel` (survives rotation); the Auto screen calls the repository directly from its own `lifecycleScope`. Both platforms observe the same `StateFlow<UiState>`, ensuring consistent state across phone and car displays.
 
 ```
-┌──────────────┐    ┌──────────────┐
-│  Mobile UI   │    │ Android Auto │
-│ MainActivity │    │ DoorControl  │
-│ ShapeMorphView│   │   Screen     │
-└──────┬───────┘    └──────┬───────┘
-       │                   │
-       ▼                   ▼
-┌──────────────┐    ┌──────────────┐
-│   Mobile     │    │    Auto      │
-│ MainViewModel│    │ MainViewModel│
-│ (@HiltVM)    │    │ (manual)     │
-└──────┬───────┘    └──────┬───────┘
-       │                   │
-       └────────┬──────────┘
-                ▼
-       ┌────────────────┐
-       │ NukiRepository │  ← Singleton, holds StateFlow<UiState>
-       │  (Hilt @Singleton)│
-       └────────┬───────┘
-                ▼
-       ┌────────────────┐
-       │ NukiApiService │  ← Retrofit interface
-       └────────┬───────┘
-                ▼
-       ┌────────────────┐
-       │  Nuki Web API  │
-       │ api.nuki.io    │
-       └────────────────┘
+┌──────────────────┐      ┌──────────────────┐
+│ MainActivity     │      │ DoorControlScreen│
+│ + ShapeMorphView │      │ (Android Auto)   │
+└────────┬─────────┘      └────────┬─────────┘
+         ▼                         │ lifecycleScope
+┌──────────────────┐               │
+│ MainViewModel    │               │
+│ (@HiltViewModel) │               │
+└────────┬─────────┘               │
+         └────────────┬────────────┘
+                      ▼
+             ┌────────────────┐
+             │ NukiRepository │  ← @Singleton, StateFlow<UiState>
+             └────────┬───────┘
+                      ▼
+             ┌────────────────┐
+             │ NukiApiService │  ← Retrofit → api.nuki.io
+             └────────────────┘
 ```
 
 ## Package Structure
@@ -58,12 +48,10 @@ com.ddw.nukeyauto/
 │   ├── ExpressiveCardAnimator.kt       Shape transitions, emphasis animations, ambient cycling
 │   ├── auto/
 │   │   ├── DoorControlService.kt       CarAppService entry point for Android Auto
-│   │   ├── DoorControlScreen.kt        PaneTemplate, two-row layout, battery levels
-│   │   └── MainViewModel.kt            Manual instantiation, delegates to NukiRepository
-│   └── mobile/
-│       └── MainViewModel.kt            @HiltViewModel, delegates to NukiRepository
+│   │   └── DoorControlScreen.kt        PaneTemplate, two-row layout, battery levels
+│   └── MainViewModel.kt                @HiltViewModel for MainActivity, delegates to NukiRepository
 └── billing/
-    └── BillingHelper.kt                Google Play Billing 8, consumable donations
+    └── BillingHelper.kt                Google Play Billing 9, consumable donations
 ```
 
 ## State Management
@@ -162,7 +150,7 @@ Error types with `toLocalizedString()` for user-facing messages:
 3. **Retrofit** instance pointed at `https://api.nuki.io/` (`@Singleton`)
 4. **NukiApiService** from Retrofit (`@Singleton`)
 
-The mobile `MainViewModel` uses `@HiltViewModel` with `@Inject constructor`. The Android Auto `MainViewModel` is manually instantiated because Car App Library does not support Hilt injection directly.
+The phone `MainViewModel` uses `@HiltViewModel`. `DoorControlService` is an `@AndroidEntryPoint`; it injects the repository and hands it to `DoorControlScreen`, which launches work in the Screen's `lifecycleScope` (cancelled when the car session ends).
 
 ## Navigation
 
@@ -191,8 +179,7 @@ All preferences use EncryptedSharedPreferences. Key constants are in `PrefKeys.k
 | `OPEN_DELAY_SECONDS` | Int | 0 | Countdown before unlatch (0-10) |
 | `THEME` | String | "system" | Theme mode: system/light/dark |
 | `DYNAMIC_COLORS` | Boolean | true | Enable Material You colors |
-| `IS_SUPPORTER` | Boolean | false | Has donated at least once |
-| `DONATION_COUNT` | Int | 0 | Total donation count |
+| `DONATION_COUNT` | Int | 0 | Total donation count; supporter = count > 0 |
 
 ## Error Handling
 

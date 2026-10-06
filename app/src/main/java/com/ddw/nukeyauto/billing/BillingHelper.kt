@@ -16,6 +16,7 @@ import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.ddw.nukeyauto.data.PrefKeys
+import com.ddw.nukeyauto.data.safeInt
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -134,11 +135,8 @@ class BillingHelper(
             billingClient.consumeAsync(consumeParams) { billingResult, _ ->
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d(TAG, "Purchase consumed successfully")
-                    val count = prefs.getInt(PrefKeys.DONATION_COUNT, 0) + 1
-                    prefs.edit {
-                        putBoolean(PrefKeys.IS_SUPPORTER, true)
-                        putInt(PrefKeys.DONATION_COUNT, count)
-                    }
+                    val count = getDonationCount(prefs) + 1
+                    prefs.edit { putInt(PrefKeys.DONATION_COUNT, count) }
                     onPurchaseComplete(true)
                 } else {
                     Log.e(TAG, "Consume failed: ${billingResult.debugMessage}")
@@ -181,18 +179,11 @@ class BillingHelper(
         const val PRODUCT_LARGE = "support_large"
         val PRODUCT_IDS = listOf(PRODUCT_SMALL, PRODUCT_MEDIUM, PRODUCT_LARGE)
 
-        /**
-         * Check if the user has donated at least once.
-         */
-        fun isSupporter(prefs: SharedPreferences): Boolean {
-            return prefs.getBoolean(PrefKeys.IS_SUPPORTER, false)
-        }
+        /** Total number of donations. */
+        fun getDonationCount(prefs: SharedPreferences): Int =
+            prefs.safeInt(PrefKeys.DONATION_COUNT, 0)
 
-        /**
-         * Get the total number of donations.
-         */
-        fun getDonationCount(prefs: SharedPreferences): Int {
-            return prefs.getInt(PrefKeys.DONATION_COUNT, 0)
-        }
+        /** Whether the user has donated at least once. */
+        fun isSupporter(prefs: SharedPreferences): Boolean = getDonationCount(prefs) > 0
     }
 }

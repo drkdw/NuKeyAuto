@@ -12,15 +12,13 @@ import androidx.car.app.model.PaneTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ddw.nukeyauto.R
 import com.ddw.nukeyauto.data.model.LockState
+import com.ddw.nukeyauto.data.model.iconRes
+import com.ddw.nukeyauto.data.model.isFault
+import com.ddw.nukeyauto.data.model.isTransition
+import com.ddw.nukeyauto.data.model.statusRes
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import kotlinx.coroutines.launch
 
@@ -31,18 +29,6 @@ class DoorControlScreen(
 ) : Screen(carContext) {
 
     /**
-     * Own [ViewModelStore] so the ViewModel — and with it its coroutine scope —
-     * is cleared when the car session ends. Without it, a running countdown or
-     * poll loop would keep going after the screen is gone.
-     */
-    private val viewModelStore = ViewModelStore()
-
-    private val viewModel = ViewModelProvider(
-        viewModelStore,
-        viewModelFactory { initializer { MainViewModel(repository) } }
-    )[MainViewModel::class.java]
-
-    /**
      * Tracks which action awaits confirmation (two-tap pattern).
      * null = no confirmation pending.
      */
@@ -51,16 +37,11 @@ class DoorControlScreen(
     private enum class PendingAction { OPEN, LOCK, CLOSE }
 
     init {
-        lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onDestroy(owner: LifecycleOwner) {
-                viewModelStore.clear()
-            }
-        })
-
         lifecycleScope.launch {
-            var lastLockState = viewModel.uiState.value.lockState
+            var lastLockState = repository.uiState.value.lockState
+            var lastShownError = repository.uiState.value.error
 
-            viewModel.uiState.collect { state ->
+            repository.uiState.collect { state ->
                 // Only drop a pending confirmation when the lock itself changed —
                 // not on every emission (loading flags, countdown ticks).
                 if (state.lockState != lastLockState) {
@@ -68,8 +49,10 @@ class DoorControlScreen(
                     lastLockState = state.lockState
                 }
 
-                // Show toast when error occurs but UI still shows a valid lock state
-                if (state.error != null && state.lockState != LockState.Unknown) {
+                // Show toast when error occurs but UI still shows a valid lock state, once per error
+                val isNewError = state.error != lastShownError
+                lastShownError = state.error
+                if (isNewError && state.error != null && state.lockState != LockState.Unknown) {
                     CarToast.makeText(
                         carContext,
                         state.error.toLocalizedString(carContext),
@@ -81,11 +64,21 @@ class DoorControlScreen(
             }
         }
 
-        viewModel.refresh()
+        refresh()
+    }
+
+    // Launched in the Screen's own lifecycleScope: it is cancelled when the car session
+    // ends, so a running countdown or poll loop never outlives the screen.
+    private fun refresh() {
+        lifecycleScope.launch { repository.fetchState() }
+    }
+
+    private fun performLockAction(shouldLock: Boolean) {
+        lifecycleScope.launch { repository.performLockAction(shouldLock) }
     }
 
     override fun onGetTemplate(): Template {
-        val state = viewModel.uiState.value
+        val state = repository.uiState.value
 
         val header = Header.Builder()
             .setStartHeaderAction(Action.APP_ICON)
@@ -95,11 +88,11 @@ class DoorControlScreen(
                     .setIcon(
                         CarIcon.Builder(
                             IconCompat.createWithResource(carContext, R.drawable.ic_refresh)
-                        ).build()
+                        ).setTint(CarColor.DEFAULT).build()
                     )
                     .setOnClickListener {
                         pendingAction = null
-                        viewModel.refresh()
+                        refresh()
                     }
                     .build()
             )
@@ -120,25 +113,16 @@ class DoorControlScreen(
         if (state.countdownSeconds > 0) {
             statusRowIcon = CarIcon.Builder(
                 IconCompat.createWithResource(carContext, R.drawable.ic_hourglass)
-            ).setTint(CarColor.PRIMARY).build()
+            ).setTint(CarColor.DEFAULT).build()
             statusTitle = carContext.getString(R.string.auto_row_title)
             statusSubtitle = carContext.getString(R.string.status_countdown, state.countdownSeconds)
         } else {
             statusRowIcon = lockStateToCarIcon(state.lockState)
             statusTitle = carContext.getString(R.string.auto_row_title)
-            statusSubtitle = when (state.lockState) {
-                LockState.Locked -> carContext.getString(R.string.status_locked)
-                LockState.Locking -> carContext.getString(R.string.status_locking)
-                LockState.Unlocked -> carContext.getString(R.string.status_unlocked)
-                LockState.Unlocking -> carContext.getString(R.string.status_unlocking)
-                LockState.Unlatched -> carContext.getString(R.string.status_unlatched)
-                LockState.Unlatching -> carContext.getString(R.string.status_unlatching)
-                LockState.BootRun -> carContext.getString(R.string.status_boot_run)
-                LockState.MotorBlocked -> carContext.getString(R.string.status_motor_blocked)
-                LockState.Uncalibrated -> carContext.getString(R.string.status_uncalibrated)
-                LockState.Undefined -> carContext.getString(R.string.status_undefined)
-                LockState.Unknown -> state.error?.toLocalizedString(carContext)
-                    ?: carContext.getString(R.string.status_unknown)
+            statusSubtitle = if (state.lockState == LockState.Unknown && state.error != null) {
+                state.error.toLocalizedString(carContext)
+            } else {
+                carContext.getString(state.lockState.statusRes)
             }
         }
 
@@ -162,7 +146,7 @@ class DoorControlScreen(
         val batteryIcon = CarIcon.Builder(
             IconCompat.createWithResource(carContext, batteryIconRes)
         ).setTint(
-            if (state.battery < 20) CarColor.YELLOW else CarColor.PRIMARY
+            if (state.battery < 20) CarColor.YELLOW else CarColor.DEFAULT
         ).build()
 
         val batteryTitle = carContext.getString(R.string.battery_label, state.battery)
@@ -188,25 +172,28 @@ class DoorControlScreen(
             .addRow(batteryRow)
             .setImage(paneImage)
 
-        // --- Action buttons (hidden during countdown and transitions) ---
-        val isInTransition = state.lockState in listOf(
-            LockState.Locking, LockState.Unlocking, LockState.Unlatching, LockState.BootRun
-        )
-
-        if (!isInTransition && state.countdownSeconds == 0) {
+        // --- Action buttons (hidden during transitions; only Cancel during the countdown) ---
+        if (state.countdownSeconds > 0) {
+            paneBuilder.addAction(
+                Action.Builder()
+                    .setTitle(carContext.getString(R.string.btn_cancel))
+                    .setOnClickListener { repository.cancelOpen() }
+                    .build()
+            )
+        } else if (!state.lockState.isTransition) {
             when (state.lockState) {
                 LockState.Unlocked -> {
                     paneBuilder.addAction(buildAction(
                         label = R.string.btn_open_door,
                         confirmLabel = R.string.confirm_open_title,
                         pendingType = PendingAction.OPEN,
-                        execute = { viewModel.openDoor() }
+                        execute = { performLockAction(false) }
                     ))
                     paneBuilder.addAction(buildAction(
                         label = R.string.btn_lock_door,
                         confirmLabel = R.string.confirm_lock_title,
                         pendingType = PendingAction.LOCK,
-                        execute = { viewModel.lockDoor() }
+                        execute = { performLockAction(true) }
                     ))
                 }
                 LockState.Unlatched -> {
@@ -214,32 +201,21 @@ class DoorControlScreen(
                         label = R.string.btn_close_door,
                         confirmLabel = R.string.confirm_close_title,
                         pendingType = PendingAction.CLOSE,
-                        execute = { viewModel.lockDoor() }
+                        execute = { performLockAction(true) }
                     ))
                 }
-                LockState.Unknown -> {
-                    if (state.error != null && !state.error.isConfigError()) {
-                        paneBuilder.addAction(
-                            Action.Builder()
-                                .setTitle(carContext.getString(R.string.btn_retry))
-                                .setOnClickListener { viewModel.refresh() }
-                                .build()
-                        )
-                    } else {
-                        paneBuilder.addAction(buildAction(
-                            label = R.string.btn_open_door,
-                            confirmLabel = R.string.confirm_open_title,
-                            pendingType = PendingAction.OPEN,
-                            execute = { viewModel.openDoor() }
-                        ))
-                    }
+                // Config errors (no token, 401) can only be fixed on the phone: the status row
+                // already says so, and Retry or Open would just fail again.
+                LockState.Unknown -> if (state.error?.isConfigError() != true) {
+                    paneBuilder.addAction(retryAction())
                 }
+                LockState.Uncalibrated, LockState.Undefined -> paneBuilder.addAction(retryAction())
                 else -> {
                     paneBuilder.addAction(buildAction(
                         label = R.string.btn_open_door,
                         confirmLabel = R.string.confirm_open_title,
                         pendingType = PendingAction.OPEN,
-                        execute = { viewModel.openDoor() }
+                        execute = { performLockAction(false) }
                     ))
                 }
             }
@@ -249,6 +225,11 @@ class DoorControlScreen(
             .setHeader(header)
             .build()
     }
+
+    private fun retryAction(): Action = Action.Builder()
+        .setTitle(carContext.getString(R.string.btn_retry))
+        .setOnClickListener { refresh() }
+        .build()
 
     /**
      * Build an action with optional two-tap confirmation.
@@ -271,7 +252,7 @@ class DoorControlScreen(
                     execute()
                 }
                 .build()
-        } else if (viewModel.isConfirmationEnabled()) {
+        } else if (repository.isConfirmationEnabled()) {
             Action.Builder()
                 .setTitle(carContext.getString(label))
                 .setOnClickListener {
@@ -291,28 +272,8 @@ class DoorControlScreen(
      * Map a [LockState] to the corresponding [CarIcon] for display in rows and pane image.
      * Transition states and errors use warning icons; stable states use the matching lock icon.
      */
-    private fun lockStateToCarIcon(lockState: LockState): CarIcon = when (lockState) {
-        LockState.Locked -> CarIcon.Builder(
-            IconCompat.createWithResource(carContext, R.drawable.ic_lock)
-        ).setTint(CarColor.PRIMARY).build()
-        LockState.Unlocked -> CarIcon.Builder(
-            IconCompat.createWithResource(carContext, R.drawable.ic_lock_open)
-        ).setTint(CarColor.PRIMARY).build()
-        LockState.Unlatched -> CarIcon.Builder(
-            IconCompat.createWithResource(carContext, R.drawable.ic_door_open)
-        ).setTint(CarColor.PRIMARY).build()
-        LockState.Locking, LockState.Unlocking, LockState.Unlatching,
-        LockState.BootRun -> CarIcon.Builder(
-            IconCompat.createWithResource(carContext, R.drawable.ic_hourglass)
-        ).setTint(CarColor.PRIMARY).build()
-        LockState.MotorBlocked, LockState.Uncalibrated -> CarIcon.Builder(
-            IconCompat.createWithResource(carContext, R.drawable.ic_warning)
-        ).setTint(CarColor.YELLOW).build()
-        LockState.Undefined -> CarIcon.Builder(
-            IconCompat.createWithResource(carContext, R.drawable.ic_cloud_off)
-        ).setTint(CarColor.YELLOW).build()
-        LockState.Unknown -> CarIcon.Builder(
-            IconCompat.createWithResource(carContext, R.drawable.ic_warning)
-        ).setTint(CarColor.YELLOW).build()
-    }
+    private fun lockStateToCarIcon(lockState: LockState): CarIcon =
+        CarIcon.Builder(IconCompat.createWithResource(carContext, lockState.iconRes))
+            .setTint(if (lockState.isFault) CarColor.YELLOW else CarColor.DEFAULT)
+            .build()
 }

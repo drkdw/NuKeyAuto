@@ -109,6 +109,7 @@
     <string name="error_http_server">Nuki server niet bereikbaar. Probeer later opnieuw.</string>
     <string name="error_generic">Er ging iets mis. Probeer opnieuw.</string>
     <string name="btn_retry">OPNIEUW</string>
+    <string name="btn_cancel">ANNULEREN</string>
 
     <!-- Support the developer -->
     <string name="support_title">Steun de ontwikkelaar</string>

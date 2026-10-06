@@ -10,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -21,10 +20,12 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.ddw.nukeyauto.BuildConfig
 import com.ddw.nukeyauto.billing.BillingHelper
 import com.ddw.nukeyauto.data.PrefKeys
-import com.ddw.nukeyauto.ui.mobile.SettingsViewModel
+import com.ddw.nukeyauto.data.repo.NukiRepository
+import com.ddw.nukeyauto.data.safeBoolean
+import com.ddw.nukeyauto.data.safeInt
+import com.ddw.nukeyauto.data.safeString
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
@@ -40,7 +41,7 @@ import javax.inject.Inject
 class SettingsActivity : AppCompatActivity() {
 
     @Inject lateinit var prefs: SharedPreferences
-    private val viewModel: SettingsViewModel by viewModels()
+    @Inject lateinit var repository: NukiRepository
 
     private var billingHelper: BillingHelper? = null
 
@@ -108,7 +109,7 @@ class SettingsActivity : AppCompatActivity() {
         actvTheme.setAdapter(ArrayAdapter(this, R.layout.item_dropdown, themeLabels))
 
         // Select current theme in dropdown
-        val currentTheme = safeGetString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM)
+        val currentTheme = prefs.safeString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM)
         val themeIndex = themeValues.indexOf(currentTheme).coerceAtLeast(0)
         actvTheme.setText(themeLabels[themeIndex], false)
 
@@ -117,15 +118,15 @@ class SettingsActivity : AppCompatActivity() {
 
         // Dynamic colors switch — default ON, stored on Save like every other setting
         val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
-        switchDynamicColors.isChecked = safeGetBoolean(PrefKeys.DYNAMIC_COLORS, true)
+        switchDynamicColors.isChecked = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
 
         // Confirmation switch — read from prefs, default ON
-        switchConfirm.isChecked = safeGetBoolean(PrefKeys.CONFIRM_ACTION, true)
+        switchConfirm.isChecked = prefs.safeBoolean(PrefKeys.CONFIRM_ACTION, true)
 
         // Delay slider — read from prefs, default 0 (off)
         val sliderDelay = findViewById<Slider>(R.id.sliderDelay)
         val tvDelayValue = findViewById<TextView>(R.id.tvDelayValue)
-        val savedDelay = safeGetInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
+        val savedDelay = prefs.safeInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
         sliderDelay.value = savedDelay.toFloat()
         updateDelayLabel(tvDelayValue, savedDelay)
 
@@ -249,7 +250,7 @@ class SettingsActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            viewModel.saveCredentials(token, id)
+            repository.saveCredentials(token, id)
             Toast.makeText(this, R.string.toast_saved, Toast.LENGTH_SHORT).show()
             finish()
         }
@@ -277,7 +278,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun applySelectedTheme(labels: Array<String>, selectedLabel: String) {
         val themeIndex = labels.indexOf(selectedLabel).coerceAtLeast(0)
         val newTheme = themeValues[themeIndex]
-        if (newTheme == safeGetString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM)) return
+        if (newTheme == prefs.safeString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM)) return
         prefs.edit { putString(PrefKeys.THEME, newTheme) }
         AppCompatDelegate.setDefaultNightMode(NukiApp.themeToNightMode(newTheme))
     }
@@ -293,24 +294,6 @@ class SettingsActivity : AppCompatActivity() {
         if (!current.startsWith(langTag)) {
             AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(langTag))
         }
-    }
-
-    private fun safeGetString(key: String, default: String): String = try {
-        prefs.getString(key, default) ?: default
-    } catch (e: Exception) {
-        default
-    }
-
-    private fun safeGetBoolean(key: String, default: Boolean): Boolean = try {
-        prefs.getBoolean(key, default)
-    } catch (e: Exception) {
-        default
-    }
-
-    private fun safeGetInt(key: String, default: Int): Int = try {
-        prefs.getInt(key, default)
-    } catch (e: Exception) {
-        default
     }
 
     override fun onDestroy() {

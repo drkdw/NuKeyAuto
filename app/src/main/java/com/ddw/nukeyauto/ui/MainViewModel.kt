@@ -3,29 +3,28 @@ package com.ddw.nukeyauto.ui
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ddw.nukeyauto.BuildConfig
 import com.ddw.nukeyauto.data.repo.NukiRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 /**
- * Shared ViewModel logic for both mobile and Android Auto surfaces.
- * Subclasses supply their own [tag] for logging and the appropriate
- * DI mechanism (Hilt injection vs manual construction).
+ * Phone-side ViewModel; survives rotation so a running action keeps its scope.
+ * The Android Auto screen talks to the same singleton repository directly.
  */
-abstract class BaseViewModel(
-    protected val repository: NukiRepository,
-    private val tag: String
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val repository: NukiRepository
 ) : ViewModel() {
 
     val uiState = repository.uiState
 
     /**
      * Refresh the lock state from the API.
-     * Each surface triggers this itself (MainActivity in onResume, the car screen
-     * when it is created) so the state is never fetched twice on startup.
+     * Called from MainActivity.onResume; the car screen refreshes on its own.
      */
     fun refresh() {
-        if (BuildConfig.DEBUG) Log.d(tag, "refresh()")
+        Log.d(TAG, "refresh()")
         viewModelScope.launch { repository.fetchState() }
     }
 
@@ -34,6 +33,9 @@ abstract class BaseViewModel(
         viewModelScope.launch { repository.performLockAction(false) }
     }
 
+    /** Abort the open-delay countdown. */
+    fun cancelOpen() = repository.cancelOpen()
+
     /** Lock the door (action 2). */
     fun lockDoor() {
         viewModelScope.launch { repository.performLockAction(true) }
@@ -41,4 +43,8 @@ abstract class BaseViewModel(
 
     /** Whether the user wants a confirmation dialog before door actions. */
     fun isConfirmationEnabled(): Boolean = repository.isConfirmationEnabled()
+
+    private companion object {
+        const val TAG = "MainViewModel"
+    }
 }
