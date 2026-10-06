@@ -18,7 +18,7 @@ val localProps = Properties().apply {
 
 android {
     namespace = "com.ddw.nukeyauto"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.ddw.nukeyauto"

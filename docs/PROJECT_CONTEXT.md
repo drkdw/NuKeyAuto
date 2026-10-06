@@ -29,7 +29,7 @@ Nuki smart lock owners who want quick lock control from Android Auto while drivi
 
 | Platform | Min SDK | Target SDK | Library |
 |---|---|---|---|
-| Android phone | 29 (Android 10) | 36 | Standard Android |
+| Android phone | 29 (Android 10) | 36 (compileSdk 37) | Standard Android |
 | Android Auto | 29 | 36 | Car App Library 1.7.0 |
 
 Android Auto dashboard cards (IOT category) were investigated and confirmed not possible for this app type. The only supported surface is the full Car App Library screen.
@@ -45,7 +45,7 @@ Android Auto dashboard cards (IOT category) were investigated and confirmed not 
 | Design system | Material 3 (Material Components for Android) |
 | Local storage | EncryptedSharedPreferences (Jetpack Security) |
 | Billing | Google Play Billing Library 9 |
-| Build system | Gradle 9.6, Android Gradle Plugin 9.3 |
+| Build system | Gradle 9.8, Android Gradle Plugin 9.4 |
 | Architecture | MVVM + Repository pattern |
 
 ## Architecture Summary
