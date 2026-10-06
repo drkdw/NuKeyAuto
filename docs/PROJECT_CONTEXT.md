@@ -8,7 +8,7 @@ NuKey Auto is an Android application that controls Nuki smart locks from both an
 
 Provide a minimal, privacy-respecting way to operate a Nuki smart lock from a car (Android Auto) and from a phone, without analytics, tracking, or ads.
 
-## Features (shipped in v1.2.8)
+## Features
 
 - Lock, unlock, and unlatch a Nuki smart lock via the Nuki Web API
 - Android Auto integration using Car App Library PaneTemplate
@@ -29,8 +29,8 @@ Nuki smart lock owners who want quick lock control from Android Auto while drivi
 
 | Platform | Min SDK | Target SDK | Library |
 |---|---|---|---|
-| Android phone | 29 (Android 10) | 35 | Standard Android |
-| Android Auto | 29 | 35 | Car App Library 1.7.0 |
+| Android phone | 29 (Android 10) | 36 | Standard Android |
+| Android Auto | 29 | 36 | Car App Library 1.7.0 |
 
 Android Auto dashboard cards (IOT category) were investigated and confirmed not possible for this app type. The only supported surface is the full Car App Library screen.
 
@@ -38,14 +38,14 @@ Android Auto dashboard cards (IOT category) were investigated and confirmed not 
 
 | Layer | Technology |
 |---|---|
-| Language | Kotlin 2.2.10 |
+| Language | Kotlin 2.4 |
 | UI toolkit | View-based (XML layouts), NOT Jetpack Compose |
-| DI | Hilt 2.59.2 |
+| DI | Hilt 2.60 |
 | Networking | Retrofit 3 + OkHttp 5 |
 | Design system | Material 3 (Material Components for Android) |
 | Local storage | EncryptedSharedPreferences (Jetpack Security) |
-| Billing | Google Play Billing Library 8 |
-| Build system | Gradle 9.4.1, Android Gradle Plugin 9.2 |
+| Billing | Google Play Billing Library 9 |
+| Build system | Gradle 9.6, Android Gradle Plugin 9.3 |
 | Architecture | MVVM + Repository pattern |
 
 ## Architecture Summary
@@ -53,13 +53,13 @@ Android Auto dashboard cards (IOT category) were investigated and confirmed not 
 The app follows MVVM with a shared repository singleton:
 
 1. **NukiRepository** (singleton) holds a `MutableStateFlow<UiState>` that represents the current lock state, battery info, loading status, errors, and countdown.
-2. **Mobile MainViewModel** (`@HiltViewModel`) and **Auto MainViewModel** (manually instantiated) both delegate to the same repository instance.
+2. The phone uses a `@HiltViewModel` `MainViewModel`; the Auto screen calls the same repository directly from its `lifecycleScope`.
 3. The mobile UI observes the StateFlow and renders state via `ShapeMorphView` (custom animated view). Android Auto observes the same flow and renders via `PaneTemplate`.
 4. API calls go through a Retrofit interface (`NukiApiService`), authenticated with a Bearer token stored in EncryptedSharedPreferences.
 
 ## Current Status
 
-- Version 1.2.8, published on Google Play
+- Version 1.2.10, published on Google Play
 - Fully functional single-lock control on phone and Android Auto
 - All core features complete; remaining work is polish and new features
 
@@ -72,8 +72,8 @@ These decisions are final and should not be revisited:
 | View-based UI, not Compose | Deliberate choice for this project; do not migrate |
 | No analytics/tracking/ads | Privacy-first, non-negotiable |
 | EncryptedSharedPreferences for credentials | Simple, secure, sufficient for token + ID storage |
-| Hilt for DI | Already integrated; Hilt 2.59.2 legacy variant API warnings are from the Hilt plugin itself, not fixable in app code |
+| Hilt for DI | Already integrated; Hilt legacy variant API warnings are from the Hilt plugin itself, not fixable in app code |
 | Single lock support | Current scope; multi-lock is a future consideration |
 | `enableEdgeToEdge()` with WindowInsets | Already implemented; `fitsSystemWindows` removed from all layouts |
 | Google Play edge-to-edge warnings | Originate from Material/AppCompat libraries, not app code |
-| CarColor.PRIMARY renders white on Auto | Host-controlled behavior, not a bug |
+| Auto icons tinted CarColor.DEFAULT | PRIMARY rendered black on newer hosts; DEFAULT is host-picked and readable |

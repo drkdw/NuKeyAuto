@@ -42,9 +42,7 @@ class NukiRepositoryTest {
 
     /** Helper: create a standard SmartLockResponse. */
     private fun mockResponse(state: Int, battery: Int = 70) = SmartLockResponse(
-        smartlockId = 123456789L,
-        name = "Front Door",
-        state = LockStateResponse(mode = 2, state = state, batteryCharge = battery)
+        state = LockStateResponse(state = state, batteryCharge = battery)
     )
 
     @Before
@@ -183,7 +181,6 @@ class NukiRepositoryTest {
         val state = repository.uiState.value
         assertEquals(false, state.isLoading)
         assertTrue(state.error is NukiError.ApiException)
-        assertTrue((state.error as NukiError.ApiException).message.contains("Network timeout"))
     }
 
     @Test
@@ -234,7 +231,6 @@ class NukiRepositoryTest {
         val state = repository.uiState.value
         assertEquals(false, state.isLoading)
         assertTrue(state.error is NukiError.ApiException)
-        assertTrue((state.error as NukiError.ApiException).message.contains("KeyStore corrupted"))
     }
 
     // --- performLockAction tests ---
@@ -345,6 +341,37 @@ class NukiRepositoryTest {
 
         assertTrue(errorsDuringCountdown.isNotEmpty())
         assertTrue(errorsDuringCountdown.all { it == null })
+    }
+
+    @Test
+    fun `cancelOpen during the countdown never sends the action`() = runTest {
+        mockCredentials()
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(5)
+
+        val job = launch { repository.performLockAction(shouldLock = false) }
+        testScheduler.advanceTimeBy(1500)
+        repository.cancelOpen()
+        job.join()
+
+        verify(api, never()).performAction(any(), any())
+        assertEquals(0, repository.uiState.value.countdownSeconds)
+        assertEquals(false, repository.uiState.value.isLoading)
+        assertNull(repository.uiState.value.error)
+    }
+
+    @Test
+    fun `cancelling the scope mid-countdown clears the countdown without an error`() = runTest {
+        mockCredentials()
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(5)
+
+        val job = launch { repository.performLockAction(shouldLock = false) }
+        testScheduler.advanceTimeBy(1500)
+        job.cancel()
+        job.join()
+
+        verify(api, never()).performAction(any(), any())
+        assertEquals(0, repository.uiState.value.countdownSeconds)
+        assertNull(repository.uiState.value.error)
     }
 
     @Test

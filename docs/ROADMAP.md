@@ -1,6 +1,6 @@
 # Roadmap
 
-## Shipped (v1.2.8) - MVP Complete
+## Shipped - MVP Complete
 
 Everything listed here is implemented and published on Google Play:
 
@@ -90,7 +90,6 @@ These have been investigated and will not be pursued:
 
 Items that are not user-facing features but should be addressed:
 
-- **Hilt 2.59.2 warnings**: Legacy variant API warnings from Hilt plugin; not fixable in app code, will resolve when Hilt updates
+- **Hilt warnings**: Legacy variant API warnings from Hilt plugin; not fixable in app code, will resolve when Hilt updates
 - **Google Play edge-to-edge warnings**: Originate from Material/AppCompat libraries, not app code; will resolve with library updates
-- **Unit tests**: No test suite currently; adding tests for NukiRepository (state transitions, error mapping, polling logic) would improve maintainability
 - **UI tests**: No instrumented tests; ShapeMorphView animations are complex and could benefit from screenshot tests

@@ -1,16 +1,19 @@
 package com.ddw.nukeyauto.ui
 
+import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.Interpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.star
 import com.ddw.nukeyauto.data.model.LockState
+import com.ddw.nukeyauto.data.model.isTransition
 
 /**
  * Manages M3 Expressive shape morphing and emphasis animations for the main
@@ -23,7 +26,7 @@ import com.ddw.nukeyauto.data.model.LockState
  */
 class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
 
-    private var currentAnimator: AnimatorSet? = null
+    private var currentAnimator: Animator? = null
     private var currentState: LockState? = null
     private var pulseAnimator: ValueAnimator? = null
     private var ambientCycleRunnable: Runnable? = null
@@ -41,7 +44,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         // Skip if same state (avoid redundant animations)
         if (state == currentState && !isWelcome) return
 
-        val targetShape = if (isWelcome) welcomeShape() else shapeForState(state, isError)
+        val targetShape = if (isWelcome) diamondShape() else shapeForState(state, isError)
 
         // Cancel any running animations
         currentAnimator?.cancel()
@@ -54,26 +57,22 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         // Build emphasis animation based on state type
         val emphasisAnimator = when {
             isError || state in listOf(LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined) -> buildShakeAnimator(shapeView)
-            state == LockState.Unlatched -> buildBounceAnimator(shapeView)
-            state == LockState.Locked -> buildSettleAnimator(shapeView)
-            state == LockState.Unlocked -> buildPulseOnce(shapeView)
+            state == LockState.Unlatched -> scaleAnimator(shapeView, 600, OvershootInterpolator(2f), 1f, 1.06f, 0.96f, 1f)
+            state == LockState.Locked -> scaleAnimator(shapeView, 400, DecelerateInterpolator(), 1f, 0.97f, 1f)
+            state == LockState.Unlocked -> scaleAnimator(shapeView, 500, AccelerateDecelerateInterpolator(), 1f, 1.04f, 1f)
             else -> null
         }
 
-        if (emphasisAnimator != null) {
-            val set = AnimatorSet()
-            set.play(emphasisAnimator)
-            set.start()
-            currentAnimator = set
-        }
+        emphasisAnimator?.start()
+        currentAnimator = emphasisAnimator
 
         // Start continuous pulse for transitional states
-        if (state in TRANSITION_STATES) {
+        if (state.isTransition) {
             startPulse()
         }
 
         // Continuous ambient shape morphing for all states
-        startAmbientCycle(state, isWelcome)
+        startAmbientCycle(isWelcome)
 
         // Idle rotation for stable states
         shapeView.startIdleAnimation()
@@ -85,11 +84,11 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
      * Set the initial shape without animation (e.g. on first layout).
      */
     fun setInitialState(state: LockState, isWelcome: Boolean = false) {
-        val shape = if (isWelcome) welcomeShape() else shapeForState(state, isError = false)
+        val shape = if (isWelcome) diamondShape() else shapeForState(state)
         shapeView.setShape(shape)
         currentState = state
         shapeView.startIdleAnimation()
-        startAmbientCycle(state, isWelcome)
+        startAmbientCycle(isWelcome)
     }
 
     /** Start a gentle continuous pulse for loading/transitional states. */
@@ -117,18 +116,16 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
     }
 
     /**
-     * Cycle through ambient shapes for all states.
-     *
-     * Each state has a set of related shapes it gently morphs through,
-     * always returning to its home shape. Welcome uses a faster cycle;
-     * other states use a slower, more subtle cadence.
+     * Gently morph through a set of related shapes. Welcome uses a faster cycle,
+     * every other state the same slower, more subtle cadence. Also called after the
+     * countdown to resume cycling; no-op while already cycling.
      */
-    private fun startAmbientCycle(state: LockState, isWelcome: Boolean) {
+    fun startAmbientCycle(isWelcome: Boolean = false) {
         if (isAmbientCycling) return
         isAmbientCycling = true
         ambientCycleIndex = 0
 
-        val shapes = if (isWelcome) WELCOME_SHAPES else ambientShapesForState(state)
+        val shapes = if (isWelcome) WELCOME_SHAPES else AMBIENT_SHAPES
         val interval = if (isWelcome) WELCOME_CYCLE_INTERVAL else AMBIENT_CYCLE_INTERVAL
         val morphDuration = if (isWelcome) WELCOME_MORPH_DURATION else AMBIENT_MORPH_DURATION
 
@@ -152,20 +149,12 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
     }
 
     /**
-     * Hold a fixed shape during countdown (no ambient morphing).
-     * Morphs once to the countdown shape and stays there.
+     * Hold a fixed shape during countdown (no ambient morphing): the 7-sided cookie,
+     * used nowhere else, so the countdown reads as its own state.
      */
     fun holdCountdownShape() {
         stopAmbientCycle()
-        shapeView.morphTo(countdownShape())
-    }
-
-    /**
-     * Resume ambient shape cycling for the current state after countdown.
-     */
-    fun resumeAmbientCycle() {
-        val state = currentState ?: return
-        startAmbientCycle(state, isWelcome = false)
+        shapeView.morphTo(cookie7Shape())
     }
 
     /**
@@ -188,9 +177,9 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
      */
     fun resume() {
         val state = currentState ?: return
-        startAmbientCycle(state, isWelcome = false)
+        startAmbientCycle()
         shapeView.startIdleAnimation()
-        if (state in TRANSITION_STATES) {
+        if (state.isTransition) {
             startPulse()
         }
     }
@@ -203,14 +192,6 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         private const val AMBIENT_CYCLE_INTERVAL = 3500L
         private const val AMBIENT_MORPH_DURATION = 1200L
 
-        /** States that show the continuous pulse (lock is moving or starting up). */
-        private val TRANSITION_STATES = listOf(
-            LockState.Locking,
-            LockState.Unlocking,
-            LockState.Unlatching,
-            LockState.BootRun
-        )
-
         /** Shapes to cycle through on the welcome screen. */
         private val WELCOME_SHAPES: List<() -> RoundedPolygon> = listOf(
             ::diamondShape,
@@ -222,34 +203,16 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * Return an ambient shape cycle for a given [LockState].
-         *
-         * Each list starts with the home shape and includes 2-3 related
-         * shapes for gentle, continuous variation.
+         * Shapes every non-welcome state gently morphs through. The state's own home
+         * shape is set by [transitionTo] before the cycle starts.
          */
-        private fun ambientShapesForState(state: LockState): List<() -> RoundedPolygon> {
-            return when (state) {
-                LockState.Locked -> listOf(
-                    ::cookie6Shape, ::sunnyShape, ::cookie4Shape, ::burstShape
-                )
-                LockState.Unlocked -> listOf(
-                    ::sunnyShape, ::diamondShape, ::cookie6Shape, ::burstShape
-                )
-                LockState.Unlatched -> listOf(
-                    ::diamondShape, ::cookie4Shape, ::cookie6Shape, ::burstShape
-                )
-                LockState.Locking, LockState.Unlocking, LockState.Unlatching,
-                LockState.BootRun -> listOf(
-                    ::diamondShape, ::sunnyShape, ::cookie4Shape, ::burstShape
-                )
-                LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined -> listOf(
-                    ::diamondShape, ::cookie6Shape, ::sunnyShape, ::cookie4Shape
-                )
-                LockState.Unknown -> listOf(
-                    ::sunnyShape, ::cookie4Shape, ::cookie6Shape, ::burstShape
-                )
-            }
-        }
+        private val AMBIENT_SHAPES: List<() -> RoundedPolygon> = listOf(
+            ::diamondShape,
+            ::cookie4Shape,
+            ::cookie6Shape,
+            ::sunnyShape,
+            ::burstShape
+        )
 
         // -----------------------------------------------------------------
         // M3 Expressive shape definitions
@@ -330,33 +293,17 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * Countdown shape — fixed shape held during delay/countdown.
-         * Uses the 7-sided cookie for visual distinction.
-         */
-        fun countdownShape(): RoundedPolygon = cookie7Shape()
-
-        /**
-         * Welcome shape — reuses diamond for a clean starting point.
-         */
-        private fun welcomeShape(): RoundedPolygon = diamondShape()
-
-        /**
          * Map a [LockState] to its corresponding M3 Expressive [RoundedPolygon].
          */
-        fun shapeForState(state: LockState, isError: Boolean = false): RoundedPolygon {
-            return when {
-                isError -> burstShape()
-                else -> when (state) {
-                    LockState.Locked -> diamondShape()
-                    LockState.Unlocked -> cookie4Shape()
-                    LockState.Unlatched -> sunnyShape()
-                    LockState.Locking,
-                    LockState.Unlocking,
-                    LockState.Unlatching,
-                    LockState.BootRun -> cookie6Shape()
-                    LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined -> burstShape()
-                    LockState.Unknown -> diamondShape()
-                }
+        private fun shapeForState(state: LockState, isError: Boolean = false): RoundedPolygon {
+            if (isError) return burstShape()
+            return when (state) {
+                LockState.Locked, LockState.Unknown -> diamondShape()
+                LockState.Unlocked -> cookie4Shape()
+                LockState.Unlatched -> sunnyShape()
+                LockState.Locking, LockState.Unlocking, LockState.Unlatching,
+                LockState.BootRun -> cookie6Shape()
+                LockState.MotorBlocked, LockState.Uncalibrated, LockState.Undefined -> burstShape()
             }
         }
 
@@ -365,7 +312,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         // -----------------------------------------------------------------
 
         /** Quick horizontal shake for error states. */
-        fun buildShakeAnimator(view: View): ObjectAnimator {
+        private fun buildShakeAnimator(view: View): ObjectAnimator {
             return ObjectAnimator.ofFloat(
                 view, "translationX",
                 0f, -16f, 16f, -12f, 12f, -8f, 8f, 0f
@@ -375,41 +322,20 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
             }
         }
 
-        /** Bounce scale for success states (door opened). */
-        fun buildBounceAnimator(view: View): AnimatorSet {
-            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.06f, 0.96f, 1f).apply {
-                duration = 600
-                interpolator = OvershootInterpolator(2f)
+        /** Scale emphasis: the same scaleX/scaleY pair for bounce, settle and pulse. */
+        private fun scaleAnimator(
+            view: View,
+            durationMs: Long,
+            interpolator: Interpolator,
+            vararg values: Float
+        ): AnimatorSet {
+            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", *values).apply {
+                duration = durationMs
+                this.interpolator = interpolator
             }
-            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.06f, 0.96f, 1f).apply {
-                duration = 600
-                interpolator = OvershootInterpolator(2f)
-            }
-            return AnimatorSet().apply { playTogether(scaleX, scaleY) }
-        }
-
-        /** Subtle settle animation for locked state. */
-        fun buildSettleAnimator(view: View): AnimatorSet {
-            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.97f, 1f).apply {
-                duration = 400
-                interpolator = DecelerateInterpolator()
-            }
-            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.97f, 1f).apply {
-                duration = 400
-                interpolator = DecelerateInterpolator()
-            }
-            return AnimatorSet().apply { playTogether(scaleX, scaleY) }
-        }
-
-        /** Single pulse for unlocked state. */
-        fun buildPulseOnce(view: View): AnimatorSet {
-            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.04f, 1f).apply {
-                duration = 500
-                interpolator = AccelerateDecelerateInterpolator()
-            }
-            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.04f, 1f).apply {
-                duration = 500
-                interpolator = AccelerateDecelerateInterpolator()
+            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", *values).apply {
+                duration = durationMs
+                this.interpolator = interpolator
             }
             return AnimatorSet().apply { playTogether(scaleX, scaleY) }
         }

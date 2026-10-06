@@ -161,7 +161,7 @@ Android Auto has strict UI limitations imposed by the host (car head unit):
 
 ### Color
 
-- `CarColor.PRIMARY` renders as **white** on all tested head units. This is host-controlled behavior, not a bug.
+- Tint icons with `CarColor.DEFAULT`, not `CarColor.PRIMARY`. PRIMARY used to render white but shows black on newer hosts; DEFAULT lets the host pick a readable color.
 - Do NOT call `setBackgroundColor()` on Android Auto buttons; the host controls button styling.
 - Icon tinting is controlled by the host; provide white icons and let the system handle contrast.
 

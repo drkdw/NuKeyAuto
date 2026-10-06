@@ -3,15 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.android.vending.BILLING" />
 
-    <!-- Android Auto (phone projection) feature declarations -->
+    <!-- Android Auto (phone projection) feature declaration -->
     <uses-feature
         android:name="android.software.car.templates_host"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.wifi"
         android:required="false" />
 
     <application

@@ -111,6 +111,7 @@
     <string name="error_http_server">Nuki server unavailable. Try again later.</string>
     <string name="error_generic">Something went wrong. Try again.</string>
     <string name="btn_retry">RETRY</string>
+    <string name="btn_cancel">CANCEL</string>
 
     <!-- Support the developer -->
     <string name="support_title">Support the developer</string>

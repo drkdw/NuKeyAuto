@@ -17,7 +17,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
+import java.security.KeyStore
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
 
@@ -45,20 +45,24 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSharedPrefs(@ApplicationContext context: Context): SharedPreferences {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-
         return try {
-            createEncryptedPrefs(context, masterKey)
+            createEncryptedPrefs(context, buildMasterKey(context))
         } catch (e: Exception) {
-            // Corrupted prefs file (ClassCastException, SecurityException, etc.)
-            // Delete the corrupted files and retry
+            // Corrupted prefs file or an invalidated Keystore key. Wipe both: the file is
+            // unreadable either way, and retrying with the same broken key would crash the
+            // app on every launch (this runs during Application.onCreate injection).
             Log.e(TAG, "Encrypted prefs corrupted, resetting: ${e.message}")
-            deletePrefsFiles(context)
-            createEncryptedPrefs(context, masterKey)
+            context.deleteSharedPreferences(PREFS_FILE)
+            KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+                .deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+            createEncryptedPrefs(context, buildMasterKey(context))
         }
     }
+
+    @Suppress("DEPRECATION")
+    private fun buildMasterKey(context: Context): MasterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
 
     @Suppress("DEPRECATION")
     private fun createEncryptedPrefs(context: Context, masterKey: MasterKey): SharedPreferences {
@@ -71,32 +75,13 @@ object AppModule {
         )
     }
 
-    private fun deletePrefsFiles(context: Context) {
-        val prefsDir = File(context.filesDir.parent, "shared_prefs")
-        val prefsFile = File(prefsDir, "$PREFS_FILE.xml")
-        if (prefsFile.exists()) {
-            prefsFile.delete()
-        }
-    }
-
     /**
      * Provide the Nuki Web API Retrofit client with Bearer token auth interceptor.
      */
     @Provides
     @Singleton
     fun provideNukiApi(prefs: SharedPreferences): NukiApiService {
-        val logLevel = if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor.Level.BODY
-        } else {
-            HttpLoggingInterceptor.Level.NONE
-        }
-        val logger = HttpLoggingInterceptor().apply {
-            level = logLevel
-            // The bearer token unlocks the front door — never print it, not even in debug.
-            redactHeader("Authorization")
-        }
-
-        val client = OkHttpClient.Builder()
+        val builder = OkHttpClient.Builder()
             .connectTimeout(10.seconds)
             .readTimeout(15.seconds)
             .writeTimeout(15.seconds)
@@ -109,21 +94,28 @@ object AppModule {
                     if (token.isNotEmpty()) {
                         requestBuilder.addHeader("Authorization", "Bearer $token")
                         requestBuilder.header("Accept", "application/json")
-                    } else if (BuildConfig.DEBUG) {
-                        Log.w(TAG, "Token is empty — request sent without auth header")
-                    }
+                    } else Log.w(TAG, "Token is empty — request sent without auth header")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to read token: ${e.message}", e)
                 }
                 chain.proceed(requestBuilder.build())
             }
-            // Logger after auth so headers are visible in debug output
-            .addInterceptor(logger)
-            .build()
+
+        // Logger after auth so headers are visible in debug output. The constant branch
+        // lets R8 strip okhttp-logging from the release build entirely.
+        if (BuildConfig.DEBUG) {
+            builder.addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                    // The bearer token unlocks the front door — never print it.
+                    redactHeader("Authorization")
+                }
+            )
+        }
 
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(client)
+            .client(builder.build())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(NukiApiService::class.java)

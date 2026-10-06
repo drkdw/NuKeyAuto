@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import com.ddw.nukeyauto.data.PrefKeys
+import com.ddw.nukeyauto.data.safeBoolean
+import com.ddw.nukeyauto.data.safeString
 import com.google.android.material.color.DynamicColors
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -17,7 +19,7 @@ class NukiApp : Application() {
         super.onCreate()
         applyStoredTheme()
         // Android 12+ Material You dynamic color — no-op on older versions.
-        if (prefs.getBoolean(PrefKeys.DYNAMIC_COLORS, true)) {
+        if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)) {
             DynamicColors.applyToActivitiesIfAvailable(this)
         }
     }
@@ -27,11 +29,7 @@ class NukiApp : Application() {
      * Falls back to system default if the pref cannot be read.
      */
     private fun applyStoredTheme() {
-        val theme = try {
-            prefs.getString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM) ?: PrefKeys.THEME_SYSTEM
-        } catch (e: Exception) {
-            PrefKeys.THEME_SYSTEM
-        }
+        val theme = prefs.safeString(PrefKeys.THEME, PrefKeys.THEME_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(themeToNightMode(theme))
     }
 

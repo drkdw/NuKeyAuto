@@ -13,7 +13,7 @@ sealed class NukiError {
     data class UnknownLockState(val stateCode: Int) : NukiError()
     data object ConnectionFailed : NukiError()
     data class HttpError(val code: Int) : NukiError()
-    data class ApiException(val message: String) : NukiError()
+    data object ApiException : NukiError()
 
     /**
      * Whether this error is a configuration issue fixable via settings.

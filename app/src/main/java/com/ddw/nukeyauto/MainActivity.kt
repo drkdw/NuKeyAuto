@@ -20,7 +20,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.ddw.nukeyauto.billing.BillingHelper
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
-import com.ddw.nukeyauto.ui.mobile.MainViewModel
+import com.ddw.nukeyauto.data.model.iconRes
+import com.ddw.nukeyauto.data.model.isFault
+import com.ddw.nukeyauto.data.model.isTransition
+import com.ddw.nukeyauto.data.model.statusRes
+import com.ddw.nukeyauto.ui.MainViewModel
 import com.ddw.nukeyauto.ui.ExpressiveCardAnimator
 import com.ddw.nukeyauto.ui.ShapeMorphView
 import com.google.android.material.appbar.MaterialToolbar
@@ -44,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     /** Clears the countdown stroke and resumes ambient morphing shortly after the countdown ends. */
     private val resumeAmbientRunnable = Runnable {
         cardStatus.stopStrokeLoader()
-        cardAnimator.resumeAmbientCycle()
+        cardAnimator.startAmbientCycle()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         cardAnimator = ExpressiveCardAnimator(cardStatus)
         var isFirstState = true
         var countdownMax = 0
+        var lastShownError: NukiError? = null
 
         swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
@@ -101,9 +106,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "state=$state")
-                    }
+                    Log.d(TAG, "state=$state")
 
                     tvBattery.text = getString(R.string.battery_label, state.battery)
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
@@ -123,7 +126,6 @@ class MainActivity : AppCompatActivity() {
                         }
                         tvCountdown.text = getString(R.string.status_countdown, state.countdownSeconds)
                         tvCountdown.visibility = View.VISIBLE
-                        btnAction.isEnabled = false
                     } else {
                         if (countdownMax > 0) {
                             // Brief pause at full, then clear and resume cycling
@@ -162,104 +164,52 @@ class MainActivity : AppCompatActivity() {
                         return@collect
                     }
 
-                    when (state.lockState) {
-                        LockState.Locked -> {
-                            ivIcon.setImageResource(R.drawable.ic_lock)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                            tvStatus.text = getString(R.string.status_locked)
-                            btnAction.text = getString(R.string.btn_open_door)
-                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
-                            btnAction.isEnabled = !state.isLoading
+                    val lock = state.lockState
+                    if (lock != LockState.Unknown) {
+                        ivIcon.setImageResource(lock.iconRes)
+                        ivIcon.imageTintList =
+                            ColorStateList.valueOf(if (lock.isFault) colorError else colorPrimary)
+                        tvStatus.text = getString(lock.statusRes)
+                        val btnRes = when {
+                            lock == LockState.Unlatched -> R.string.btn_close_door
+                            lock in RETRY_STATES -> R.string.btn_retry
+                            lock.isTransition -> null
+                            else -> R.string.btn_open_door
                         }
-                        LockState.Unlocked -> {
-                            ivIcon.setImageResource(R.drawable.ic_lock_open)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                            tvStatus.text = getString(R.string.status_unlocked)
-                            btnAction.text = getString(R.string.btn_open_door)
+                        btnRes?.let {
+                            btnAction.text = getString(it)
                             btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
-                            btnAction.isEnabled = !state.isLoading
+                        }
+                        // Retry stays tappable while loading; door actions wait for the lock
+                        btnAction.isEnabled = btnRes != null && (lock in RETRY_STATES || !state.isLoading)
+                        if (lock == LockState.Unlocked) {
                             btnSecondary.text = getString(R.string.btn_lock_door)
                             btnSecondary.isEnabled = !state.isLoading
                             btnSecondary.visibility = View.VISIBLE
                         }
-                        LockState.Unlatched -> {
-                            ivIcon.setImageResource(R.drawable.ic_door_open)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                            tvStatus.text = getString(R.string.status_unlatched)
-                            btnAction.text = getString(R.string.btn_close_door)
-                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
-                            btnAction.isEnabled = !state.isLoading
-                        }
-                        LockState.Locking -> {
-                            ivIcon.setImageResource(R.drawable.ic_hourglass)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                            tvStatus.text = getString(R.string.status_locking)
-                            btnAction.isEnabled = false
-                        }
-                        LockState.Unlocking -> {
-                            ivIcon.setImageResource(R.drawable.ic_hourglass)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                            tvStatus.text = getString(R.string.status_unlocking)
-                            btnAction.isEnabled = false
-                        }
-                        LockState.Unlatching -> {
-                            ivIcon.setImageResource(R.drawable.ic_hourglass)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                            tvStatus.text = getString(R.string.status_unlatching)
-                            btnAction.isEnabled = false
-                        }
-                        LockState.BootRun -> {
-                            ivIcon.setImageResource(R.drawable.ic_hourglass)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                            tvStatus.text = getString(R.string.status_boot_run)
-                            btnAction.isEnabled = false
-                        }
-                        LockState.MotorBlocked -> {
-                            ivIcon.setImageResource(R.drawable.ic_warning)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorError)
-                            tvStatus.text = getString(R.string.status_motor_blocked)
+                        if (lock == LockState.MotorBlocked) {
                             val strokeWidthPx = 4f * resources.displayMetrics.density
                             cardStatus.setStrokeProgress(1f, colorError, strokeWidthPx)
-                            btnAction.text = getString(R.string.btn_open_door)
-                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
-                            btnAction.isEnabled = !state.isLoading
                         }
-                        LockState.Uncalibrated -> {
-                            ivIcon.setImageResource(R.drawable.ic_warning)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorError)
-                            tvStatus.text = getString(R.string.status_uncalibrated)
+                    } else if (state.error != null) {
+                        // Unknown lock state with an error to explain it
+                        ivIcon.setImageResource(R.drawable.ic_warning)
+                        ivIcon.imageTintList = ColorStateList.valueOf(colorError)
+                        tvStatus.text = state.error.toLocalizedString(this@MainActivity)
+                        if (state.error.isConfigError()) {
+                            btnAction.text = getString(R.string.btn_open_settings)
+                            btnAction.backgroundTintList = ColorStateList.valueOf(colorError)
+                        } else {
                             btnAction.text = getString(R.string.btn_retry)
                             btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
-                            btnAction.isEnabled = true
                         }
-                        LockState.Undefined -> {
-                            ivIcon.setImageResource(R.drawable.ic_cloud_off)
-                            ivIcon.imageTintList = ColorStateList.valueOf(colorError)
-                            tvStatus.text = getString(R.string.status_undefined)
-                            btnAction.text = getString(R.string.btn_retry)
-                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
-                            btnAction.isEnabled = true
-                        }
-                        LockState.Unknown -> {
-                            if (state.error != null) {
-                                ivIcon.setImageResource(R.drawable.ic_warning)
-                                ivIcon.imageTintList = ColorStateList.valueOf(colorError)
-                                tvStatus.text = state.error.toLocalizedString(this@MainActivity)
-                                if (state.error.isConfigError()) {
-                                    btnAction.text = getString(R.string.btn_open_settings)
-                                    btnAction.backgroundTintList = ColorStateList.valueOf(colorError)
-                                } else {
-                                    btnAction.text = getString(R.string.btn_retry)
-                                    btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
-                                }
-                                btnAction.isEnabled = true
-                            } else {
-                                ivIcon.setImageResource(R.drawable.ic_hourglass)
-                                ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
-                                tvStatus.text = getString(R.string.status_loading)
-                                btnAction.isEnabled = false
-                            }
-                        }
+                        btnAction.isEnabled = true
+                    } else {
+                        // Unknown lock state, no error yet: still loading
+                        ivIcon.setImageResource(R.drawable.ic_hourglass)
+                        ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
+                        tvStatus.text = getString(R.string.status_loading)
+                        btnAction.isEnabled = false
                     }
 
                     // Animate card shape based on state
@@ -271,16 +221,30 @@ class MainActivity : AppCompatActivity() {
                         cardAnimator.transitionTo(state.lockState, isError = isError)
                     }
 
-                    // Show Snackbar when an error occurs but the UI still shows a valid lock state
-                    if (state.error != null && state.lockState != LockState.Unknown) {
+                    // Show Snackbar when an error occurs but the UI still shows a valid lock state.
+                    // Once per error: later emissions (ticks, polls) carry the same error object.
+                    val isNewError = state.error != lastShownError
+                    lastShownError = state.error
+                    if (isNewError && state.error != null && state.lockState != LockState.Unknown) {
                         Snackbar.make(swipeRefresh, state.error.toLocalizedString(this@MainActivity), Snackbar.LENGTH_LONG)
                             .setAction(R.string.btn_retry) { viewModel.refresh() }
                             .show()
                     }
 
+                    // During the open delay the primary button is the way out
+                    if (state.countdownSeconds > 0) {
+                        btnAction.text = getString(R.string.btn_cancel)
+                        btnAction.backgroundTintList = ColorStateList.valueOf(colorError)
+                        btnAction.isEnabled = true
+                    }
+
                     // Primary button click
                     btnAction.setOnClickListener {
-                        if (state.lockState == LockState.Unknown && state.error != null) {
+                        if (state.countdownSeconds > 0) {
+                            viewModel.cancelOpen()
+                        } else if (state.lockState in RETRY_STATES) {
+                            viewModel.refresh()
+                        } else if (state.lockState == LockState.Unknown && state.error != null) {
                             if (state.error.isConfigError()) {
                                 startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
                             } else {
@@ -333,18 +297,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         // Guarded: onCreate may have failed before the views were bound.
+        // Animations are already stopped in onStop and by ShapeMorphView on detach.
         if (::cardStatus.isInitialized) {
             cardStatus.removeCallbacks(resumeAmbientRunnable)
-            cardAnimator.pause()
         }
         super.onDestroy()
     }
 
     override fun onResume() {
         super.onResume()
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onResume → refresh()")
-        }
+        Log.d(TAG, "onResume → refresh()")
         viewModel.refresh()
         updateSupporterBadge()
     }
@@ -387,3 +349,6 @@ class MainActivity : AppCompatActivity() {
         private const val RESUME_AMBIENT_DELAY_MS = 300L
     }
 }
+
+/** States whose primary button reads "Retry": it must refresh, never open the door. */
+private val RETRY_STATES = setOf(LockState.Uncalibrated, LockState.Undefined)

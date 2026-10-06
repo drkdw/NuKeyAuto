@@ -3,14 +3,17 @@ package com.ddw.nukeyauto.data.repo
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
-import com.ddw.nukeyauto.BuildConfig
 import com.ddw.nukeyauto.data.api.NukiApiService
 import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.model.ActionRequest
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.model.UiState
+import com.ddw.nukeyauto.data.model.isTransition
+import com.ddw.nukeyauto.data.safeBoolean
+import com.ddw.nukeyauto.data.safeInt
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.delay
 import retrofit2.HttpException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +35,9 @@ class NukiRepository @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    /** Set by [cancelOpen], read by the countdown in [performLockAction]. */
+    @Volatile private var openCancelled = false
+
     /**
      * Persist Nuki Web API credentials to encrypted storage.
      */
@@ -49,9 +55,7 @@ class NukiRepository @Inject constructor(
      */
     suspend fun fetchState() {
         try {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "fetchState() started")
-            }
+            Log.d(TAG, "fetchState() started")
 
             // Always signal loading first so StateFlow emits even when
             // the resulting state is identical (fixes stuck SwipeRefreshLayout).
@@ -59,17 +63,13 @@ class NukiRepository @Inject constructor(
 
             val smartlockId = validateAndGetSmartlockId() ?: return
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "API call for Smart Lock ID: $smartlockId")
-            }
+            Log.d(TAG, "API call for Smart Lock ID: $smartlockId")
 
             val response = api.getSmartLockState(smartlockId)
             val batteryLevel = response.state.batteryCharge
             val nukiStateInt = response.state.state
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "API response: state=$nukiStateInt, battery=$batteryLevel%")
-            }
+            Log.d(TAG, "API response: state=$nukiStateInt, battery=$batteryLevel%")
 
             val lockState = when (nukiStateInt) {
                 0 -> LockState.Uncalibrated
@@ -97,6 +97,9 @@ class NukiRepository @Inject constructor(
                 it.copy(lockState = lockState, battery = batteryLevel, isLoading = false, error = error)
             }
 
+        } catch (e: CancellationException) {
+            _uiState.update { it.copy(isLoading = false) }
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "fetchState() failed: ${e::class.simpleName} — ${e.message}", e)
             _uiState.update {
@@ -117,21 +120,22 @@ class NukiRepository @Inject constructor(
             // countdown emissions below (would show one Snackbar/CarToast per tick).
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "performLockAction: shouldLock=$shouldLock")
-            }
+            Log.d(TAG, "performLockAction: shouldLock=$shouldLock")
 
             // Apply user-configured delay before opening (not locking)
             if (!shouldLock) {
                 val delaySec = getOpenDelaySeconds()
                 if (delaySec > 0) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "Waiting ${delaySec}s before opening...")
-                    }
-                    _uiState.update { it.copy(countdownSeconds = delaySec) }
+                    Log.d(TAG, "Waiting ${delaySec}s before opening...")
+                    openCancelled = false
                     for (i in delaySec downTo 1) {
                         _uiState.update { it.copy(countdownSeconds = i) }
                         delay(1000L)
+                        // Checked after every tick, so the last check runs right before the action is sent
+                        if (openCancelled) {
+                            _uiState.update { it.copy(isLoading = false, countdownSeconds = 0) }
+                            return
+                        }
                     }
                     _uiState.update { it.copy(countdownSeconds = 0) }
                 }
@@ -140,9 +144,7 @@ class NukiRepository @Inject constructor(
             val action = if (shouldLock) 2 else 3
             api.performAction(smartlockId, ActionRequest(action))
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Action $action sent, waiting for physical movement...")
-            }
+            Log.d(TAG, "Action $action sent, waiting for physical movement...")
 
             // Initial wait for the physical movement to start
             delay(LOCK_MOVEMENT_DELAY_MS)
@@ -150,21 +152,31 @@ class NukiRepository @Inject constructor(
 
             // Poll until state is stable (not a transition state)
             var pollCount = 0
-            while (pollCount < MAX_POLL_ATTEMPTS && isTransitionState(_uiState.value.lockState)) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "State still transitioning (${_uiState.value.lockState}), polling... ($pollCount)")
-                }
+            while (pollCount < MAX_POLL_ATTEMPTS && _uiState.value.lockState.isTransition) {
+                Log.d(TAG, "State still transitioning (${_uiState.value.lockState}), polling... ($pollCount)")
                 delay(POLL_INTERVAL_MS)
                 fetchState()
                 pollCount++
             }
 
+        } catch (e: CancellationException) {
+            // Scope gone (car session ended, activity finished): don't leave a countdown on screen
+            _uiState.update { it.copy(isLoading = false, countdownSeconds = 0) }
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "performLockAction() failed: ${e.message}", e)
             _uiState.update {
                 it.copy(isLoading = false, error = mapException(e))
             }
         }
+    }
+
+    /**
+     * Abort a running open-delay countdown before the door is unlatched. Works from either
+     * surface, whichever one started the countdown. No-op once the action has been sent.
+     */
+    fun cancelOpen() {
+        openCancelled = true
     }
 
     /**
@@ -176,49 +188,24 @@ class NukiRepository @Inject constructor(
         val id = prefs.getString(PrefKeys.NUKI_ID, "").orEmpty()
         val token = prefs.getString(PrefKeys.NUKI_TOKEN, "").orEmpty()
         if (id.isEmpty() || token.isEmpty()) {
-            if (BuildConfig.DEBUG) Log.w(TAG, "No credentials configured")
+            Log.w(TAG, "No credentials configured")
             _uiState.update { it.copy(isLoading = false, error = NukiError.NoCredentials) }
             return null
         }
         val smartlockId = id.toLongOrNull()
         if (smartlockId == null) {
-            if (BuildConfig.DEBUG) Log.w(TAG, "Invalid Smart Lock ID: '$id'")
+            Log.w(TAG, "Invalid Smart Lock ID: '$id'")
             _uiState.update { it.copy(isLoading = false, error = NukiError.InvalidSmartLockId) }
             return null
         }
         return smartlockId
     }
 
-    /**
-     * Check whether the given lock state is a transition (in-progress) state.
-     */
-    private fun isTransitionState(state: LockState): Boolean {
-        return state in TRANSITION_STATES
-    }
+    /** Configured delay in seconds before opening the door. Defaults to 0 (no delay). */
+    fun getOpenDelaySeconds(): Int = prefs.safeInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
 
-    /**
-     * Get the configured delay in seconds before opening the door.
-     * Defaults to 0 (no delay).
-     */
-    fun getOpenDelaySeconds(): Int {
-        return try {
-            prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
-        } catch (e: Exception) {
-            0
-        }
-    }
-
-    /**
-     * Check whether the user wants a confirmation dialog before door actions.
-     * Defaults to true (confirmation enabled).
-     */
-    fun isConfirmationEnabled(): Boolean {
-        return try {
-            prefs.getBoolean(PrefKeys.CONFIRM_ACTION, true)
-        } catch (e: Exception) {
-            true
-        }
-    }
+    /** Whether the user wants a confirmation dialog before door actions. Defaults to true. */
+    fun isConfirmationEnabled(): Boolean = prefs.safeBoolean(PrefKeys.CONFIRM_ACTION, true)
 
     /**
      * Map a caught exception to the appropriate [NukiError] type.
@@ -229,7 +216,7 @@ class NukiRepository @Inject constructor(
         return when (e) {
             is IOException -> NukiError.ConnectionFailed
             is HttpException -> NukiError.HttpError(e.code())
-            else -> NukiError.ApiException("${e::class.simpleName}: ${e.message ?: "Unknown error"}")
+            else -> NukiError.ApiException // details are in the log line written by the caller
         }
     }
 
@@ -238,13 +225,5 @@ class NukiRepository @Inject constructor(
         private const val LOCK_MOVEMENT_DELAY_MS = 3500L
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 5
-
-        /** States the lock passes through while it is still moving or starting up. */
-        private val TRANSITION_STATES = listOf(
-            LockState.Locking,
-            LockState.Unlocking,
-            LockState.Unlatching,
-            LockState.BootRun
-        )
     }
 }

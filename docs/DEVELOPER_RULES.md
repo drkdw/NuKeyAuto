@@ -49,12 +49,12 @@ Rules and conventions for anyone (human or AI) contributing code to NuKey Auto.
 - Single source of truth: `NukiRepository.stateFlow`
 - State is immutable (copy-on-write via data class `copy()`)
 - Never mutate UiState fields directly; always emit a new instance
-- Both mobile and Auto ViewModels share the same repository instance
+- Phone and Auto share the same repository instance
 
 ### Dependency Injection
 
 - Use Hilt for all injectable dependencies on the mobile side
-- Android Auto ViewModels are manually instantiated (Car App Library limitation)
+- Android Auto has no ViewModel: `DoorControlScreen` calls the repository from its own `lifecycleScope`
 - All Hilt modules go in `di/` package
 - Scoping: repository, Retrofit, OkHttp, and SharedPreferences are `@Singleton`
 
@@ -82,7 +82,7 @@ This project uses View-based UI (XML layouts + View classes). Do NOT introduce J
 
 - Use only Car App Library templates (currently PaneTemplate)
 - Do NOT call `setBackgroundColor()` on buttons; the host controls button styling
-- `CarColor.PRIMARY` renders as white; this is expected host behavior
+- Tint icons with `CarColor.DEFAULT`: the host picks a readable color for day and night. `CarColor.PRIMARY` follows the app's primary color and showed black on newer hosts
 - Keep text extremely short (1-3 words for state labels)
 - Test on Desktop Head Unit (DHU) during development
 
@@ -96,7 +96,7 @@ This project uses View-based UI (XML layouts + View classes). Do NOT introduce J
 | API interfaces | `data/api/` |
 | Repository classes | `data/repo/` |
 | Hilt modules | `di/` |
-| Mobile UI (ViewModels) | `ui/mobile/` |
+| Phone ViewModel | `ui/` |
 | Mobile UI (Activities, custom views) | `ui/` or root package |
 | Android Auto UI | `ui/auto/` |
 | Billing | `billing/` |
@@ -153,14 +153,12 @@ Do NOT use the `flux_` prefix on any resource or identifier. This is a personal 
 
 ## Testing Rules
 
-- Currently no test suite exists (this is a known gap)
+- Unit tests live in `app/src/test` (`NukiRepositoryTest`); run `./gradlew testDebugUnitTest`
 - When adding tests, prioritize:
   1. `NukiRepository`: state transitions, error mapping, polling logic
   2. `NukiError.toLocalizedString()`: correct messages for each error type
   3. `LockState` enum: mapping from API codes to enum values
-- Use JUnit 5 for unit tests
-- Use MockK for mocking (Kotlin-native, works well with coroutines)
-- Use Turbine for testing StateFlow emissions
+- JUnit 4 + mockito-kotlin + kotlinx-coroutines-test (what the suite already uses)
 
 ## Libraries: Allowed and Disallowed
 
@@ -173,7 +171,7 @@ Do NOT use the `flux_` prefix on any resource or identifier. This is a personal 
 | OkHttp 5 | HTTP transport |
 | Material Components | UI components and theming |
 | Jetpack Security (EncryptedSharedPreferences) | Credential storage |
-| Google Play Billing 8 | Donations |
+| Google Play Billing 9 | Donations |
 | Car App Library 1.7.0 | Android Auto |
 
 ### Do NOT Add
@@ -194,8 +192,6 @@ Do NOT use the `flux_` prefix on any resource or identifier. This is a personal 
 | WorkManager | Background polling for notifications feature |
 | Coil / Glide | If image loading becomes necessary |
 | Timber | Structured logging (evaluate if logging needs grow) |
-| Turbine | StateFlow testing |
-| MockK | Mocking in tests |
 
 ## Git Conventions
 
