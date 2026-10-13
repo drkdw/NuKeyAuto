@@ -27,7 +27,7 @@ android {
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.11"
+        versionName = "1.2.12"
     }
 
     signingConfigs {
