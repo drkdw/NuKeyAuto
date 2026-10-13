@@ -34,7 +34,7 @@ class DoorControlScreen(
      */
     private var pendingAction: PendingAction? = null
 
-    private enum class PendingAction { OPEN, LOCK, CLOSE }
+    private enum class PendingAction { OPEN, LOCK }
 
     init {
         lifecycleScope.launch {
@@ -198,9 +198,9 @@ class DoorControlScreen(
                 }
                 LockState.Unlatched -> {
                     paneBuilder.addAction(buildAction(
-                        label = R.string.btn_close_door,
-                        confirmLabel = R.string.confirm_close_title,
-                        pendingType = PendingAction.CLOSE,
+                        label = R.string.btn_lock_door,
+                        confirmLabel = R.string.confirm_lock_title,
+                        pendingType = PendingAction.LOCK,
                         execute = { performLockAction(true) }
                     ))
                 }

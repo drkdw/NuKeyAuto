@@ -1,7 +1,7 @@
 <resources>
     <!-- Main screen -->
-    <string name="status_locked">Gesloten</string>
-    <string name="status_locking">Aan het sluiten…</string>
+    <string name="status_locked">Vergrendeld</string>
+    <string name="status_locking">Aan het vergrendelen…</string>
     <string name="status_unlocked">Ontgrendeld</string>
     <string name="status_unlocking">Aan het ontgrendelen…</string>
     <string name="status_unlatched">Deur open</string>
@@ -15,7 +15,6 @@
     <string name="status_countdown">Opent over %1$d…</string>
     <string name="battery_label">Batterij: %1$d%%</string>
     <string name="btn_open_door">DEUR OPENEN</string>
-    <string name="btn_close_door">DEUR SLUITEN</string>
     <string name="btn_lock_door">DEUR VERGRENDELEN</string>
     <string name="btn_open_settings">OPEN INSTELLINGEN</string>
 
@@ -74,10 +73,9 @@
 
     <!-- Confirmation -->
     <string name="settings_confirm_title">Acties bevestigen</string>
-    <string name="settings_confirm_summary">Vraag om bevestiging voor het openen of sluiten van de deur.</string>
+    <string name="settings_confirm_summary">Vraag om bevestiging voor je de deur opent of vergrendelt.</string>
     <string name="confirm_open_title">Deur openen?</string>
     <string name="confirm_open_message">Weet je zeker dat je de deur wil openen?</string>
-    <string name="confirm_close_title">Deur sluiten?</string>
     <string name="confirm_lock_title">Deur vergrendelen?</string>
     <string name="confirm_lock_message">Weet je zeker dat je de deur wil vergrendelen?</string>
     <string name="confirm_yes">Ja</string>
@@ -94,7 +92,7 @@
 
     <!-- About -->
     <string name="settings_about_title">Over</string>
-    <string name="settings_about_description">NuKey Auto brengt je Nuki slim slot naar Android Auto en je telefoon. Vergrendel, ontgrendel en open je deur met één tik.</string>
+    <string name="settings_about_description">NuKey Auto brengt je Nuki slim slot naar Android Auto en je telefoon. Open of vergrendel je deur met één tik.</string>
     <string name="settings_rate">Beoordeel op Google Play</string>
     <string name="settings_feedback">Feedback sturen</string>
 

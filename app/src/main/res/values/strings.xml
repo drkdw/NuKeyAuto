@@ -17,7 +17,6 @@
     <string name="status_countdown">Opening in %1$d…</string>
     <string name="battery_label">Battery: %1$d%%</string>
     <string name="btn_open_door">OPEN DOOR</string>
-    <string name="btn_close_door">CLOSE DOOR</string>
     <string name="btn_lock_door">LOCK DOOR</string>
     <string name="btn_open_settings">OPEN SETTINGS</string>
 
@@ -76,10 +75,9 @@
 
     <!-- Confirmation -->
     <string name="settings_confirm_title">Confirm actions</string>
-    <string name="settings_confirm_summary">Ask for confirmation before opening or closing the door.</string>
+    <string name="settings_confirm_summary">Ask for confirmation before opening the door or locking it.</string>
     <string name="confirm_open_title">Open door?</string>
     <string name="confirm_open_message">Are you sure you want to open the door?</string>
-    <string name="confirm_close_title">Close door?</string>
     <string name="confirm_lock_title">Lock door?</string>
     <string name="confirm_lock_message">Are you sure you want to lock the door?</string>
     <string name="confirm_yes">Yes</string>
@@ -96,7 +94,7 @@
 
     <!-- About -->
     <string name="settings_about_title">About</string>
-    <string name="settings_about_description">NuKey Auto brings your Nuki smart lock to Android Auto and your phone. Lock, unlock and open your door with a single tap.</string>
+    <string name="settings_about_description">NuKey Auto brings your Nuki smart lock to Android Auto and your phone. Open or lock your door with a single tap.</string>
     <string name="settings_rate">Rate on Google Play</string>
     <string name="settings_feedback">Send feedback</string>
 

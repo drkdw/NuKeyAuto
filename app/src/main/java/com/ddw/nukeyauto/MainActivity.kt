@@ -171,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                             ColorStateList.valueOf(if (lock.isFault) colorError else colorPrimary)
                         tvStatus.text = getString(lock.statusRes)
                         val btnRes = when {
-                            lock == LockState.Unlatched -> R.string.btn_close_door
+                            lock == LockState.Unlatched -> R.string.btn_lock_door
                             lock in RETRY_STATES -> R.string.btn_retry
                             lock.isTransition -> null
                             else -> R.string.btn_open_door
@@ -251,14 +251,15 @@ class MainActivity : AppCompatActivity() {
                                 viewModel.refresh()
                             }
                         } else {
-                            val isClose = state.lockState == LockState.Unlatched
-                            val action: () -> Unit = if (isClose) {
+                            // After unlatching, the only sensible next step is locking again
+                            val isLock = state.lockState == LockState.Unlatched
+                            val action: () -> Unit = if (isLock) {
                                 { viewModel.lockDoor() }
                             } else {
                                 { viewModel.openDoor() }
                             }
                             maybeConfirmThenExecute(
-                                isLock = isClose,
+                                isLock = isLock,
                                 action = action
                             )
                         }

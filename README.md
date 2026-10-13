@@ -1,6 +1,6 @@
 # NuKeyAuto
 
-Control your Nuki smart lock directly from Android Auto. Open, lock, or close your door from your car's dashboard.
+Control your Nuki smart lock directly from Android Auto. Open or lock your door from your car's dashboard.
 
 ## Features
 
