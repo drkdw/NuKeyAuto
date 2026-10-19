@@ -2,6 +2,8 @@
 
 Control your Nuki smart lock directly from Android Auto. Open or lock your door from your car's dashboard.
 
+[Google Play](https://play.google.com/store/apps/details?id=com.ddw.nukeyauto) · [Website](https://drkdw.github.io/NuKeyAuto/) · [Support](https://drkdw.github.io/NuKeyAuto/support.html) · [Privacy Policy](https://drkdw.github.io/NuKeyAuto/privacy-policy.html)
+
 ## Features
 
 - Android Auto integration: operate your smart lock from your car screen while driving
