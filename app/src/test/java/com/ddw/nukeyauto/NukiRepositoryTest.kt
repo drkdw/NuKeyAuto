@@ -360,6 +360,38 @@ class NukiRepositoryTest {
     }
 
     @Test
+    fun `a refresh during the countdown keeps the loading state`() = runTest {
+        mockCredentials()
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(5)
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 3))
+
+        val job = launch { repository.performLockAction(shouldLock = false) }
+        testScheduler.advanceTimeBy(1500)
+        repository.fetchState()
+
+        // Otherwise the phone re-enables "Lock door" while the open is still pending
+        assertTrue(repository.uiState.value.countdownSeconds > 0)
+        assertEquals(true, repository.uiState.value.isLoading)
+
+        repository.cancelOpen()
+        job.join()
+        assertEquals(false, repository.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `fetchState keeps battery null when the lock only reports batteryCritical`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(
+            SmartLockResponse(LockStateResponse(state = 1, batteryCharge = null, batteryCritical = true))
+        )
+
+        repository.fetchState()
+
+        assertNull(repository.uiState.value.battery)
+        assertEquals(true, repository.uiState.value.batteryCritical)
+    }
+
+    @Test
     fun `cancelling the scope mid-countdown clears the countdown without an error`() = runTest {
         mockCredentials()
         whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(5)

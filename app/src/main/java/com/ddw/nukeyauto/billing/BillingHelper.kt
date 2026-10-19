@@ -53,6 +53,8 @@ class BillingHelper(
                 .enableOneTimeProducts()
                 .build()
         )
+        // Reconnects on its own after the Play service drops (e.g. Play Store update)
+        .enableAutoServiceReconnection()
         .build()
 
     /**

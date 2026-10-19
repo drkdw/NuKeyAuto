@@ -173,7 +173,7 @@ class ShapeMorphView @JvmOverloads constructor(
     /**
      * Cancel every running animation when the view leaves the window.
      * The idle animation repeats indefinitely, so without this it would keep
-     * invalidating a detached view — and keep the hosting Activity alive.
+     * invalidating a detached view, and keep the hosting Activity alive.
      */
     override fun onDetachedFromWindow() {
         morphAnimator?.cancel()

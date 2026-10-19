@@ -79,12 +79,8 @@ class SettingsActivity : AppCompatActivity() {
         val switchConfirm = findViewById<MaterialSwitch>(R.id.switchConfirm)
 
         // Pre-fill stored credentials
-        try {
-            etToken.setText(prefs.getString(PrefKeys.NUKI_TOKEN, ""))
-            etId.setText(prefs.getString(PrefKeys.NUKI_ID, ""))
-        } catch (e: Exception) {
-            // EncryptedSharedPreferences can fail if the KeyStore is corrupted
-        }
+        etToken.setText(prefs.safeString(PrefKeys.NUKI_TOKEN, ""))
+        etId.setText(prefs.safeString(PrefKeys.NUKI_ID, ""))
 
         // Language dropdown adapter
         val langLabels = arrayOf(
@@ -113,17 +109,17 @@ class SettingsActivity : AppCompatActivity() {
         val themeIndex = themeValues.indexOf(currentTheme).coerceAtLeast(0)
         actvTheme.setText(themeLabels[themeIndex], false)
 
-        // The theme is applied on Save, together with the language — picking one in
+        // The theme is applied on Save, together with the language, picking one in
         // the dropdown only changes the selection.
 
-        // Dynamic colors switch — default ON, stored on Save like every other setting
+        // Dynamic colors switch, default ON, stored on Save like every other setting
         val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
         switchDynamicColors.isChecked = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
 
-        // Confirmation switch — read from prefs, default ON
+        // Confirmation switch, read from prefs, default ON
         switchConfirm.isChecked = prefs.safeBoolean(PrefKeys.CONFIRM_ACTION, true)
 
-        // Delay slider — read from prefs, default 0 (off)
+        // Delay slider, read from prefs, default 0 (off)
         val sliderDelay = findViewById<Slider>(R.id.sliderDelay)
         val tvDelayValue = findViewById<TextView>(R.id.tvDelayValue)
         val savedDelay = prefs.safeInt(PrefKeys.OPEN_DELAY_SECONDS, 0)
@@ -177,7 +173,7 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvVersion).text =
             getString(R.string.version_label, BuildConfig.VERSION_NAME)
 
-        // Support the developer — billing setup
+        // Support the developer, billing setup
         val cardSupporter = findViewById<MaterialCardView>(R.id.cardSupporter)
         val tvSupporterLabel = findViewById<TextView>(R.id.tvSupporterLabel)
         val tvDonationCount = findViewById<TextView>(R.id.tvDonationCount)
@@ -189,6 +185,8 @@ class SettingsActivity : AppCompatActivity() {
 
         billingHelper = BillingHelper(this, prefs) { success ->
             runOnUiThread {
+                // The consume callback can arrive after a rotation or language change
+                if (isFinishing || isDestroyed) return@runOnUiThread
                 if (success) {
                     updateSupporterCard(cardSupporter, tvSupporterLabel, tvDonationCount)
                     showThankYouDialog()
@@ -239,7 +237,7 @@ class SettingsActivity : AppCompatActivity() {
             val id = etId.text.toString().replace("\\s".toRegex(), "")
 
             // Preferences do not depend on the credentials, so persist them either
-            // way — otherwise an empty token field would silently discard them.
+            // way, otherwise an empty token field would silently discard them.
             persistPendingSettings()
 
             applySelectedTheme(themeLabels, actvTheme.text.toString())
@@ -273,7 +271,7 @@ class SettingsActivity : AppCompatActivity() {
 
     /**
      * Store and apply the theme picked in the dropdown, but only when it differs
-     * from the stored one — applying it always would rebuild the screen on every save.
+     * from the stored one, applying it always would rebuild the screen on every save.
      */
     private fun applySelectedTheme(labels: Array<String>, selectedLabel: String) {
         val themeIndex = labels.indexOf(selectedLabel).coerceAtLeast(0)
@@ -285,7 +283,7 @@ class SettingsActivity : AppCompatActivity() {
 
     /**
      * Apply the language picked in the dropdown, but only when it differs from
-     * the active one — setting it always would recreate the Activity on every save.
+     * the active one, setting it always would recreate the Activity on every save.
      */
     private fun applySelectedLanguage(labels: Array<String>, selectedLabel: String) {
         val langIndex = labels.indexOf(selectedLabel)

@@ -159,7 +159,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
 
     /**
      * Stop every animation this class owns. Call from the host Activity's onStop
-     * and onDestroy — the pulse, ambient cycle and idle rotation all repeat
+     * and onDestroy, the pulse, ambient cycle and idle rotation all repeat
      * indefinitely and would otherwise keep burning frames off-screen (and keep
      * the Activity alive after teardown).
      */
@@ -219,7 +219,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         // -----------------------------------------------------------------
 
         /**
-         * Diamond — solid and secure feel (Locked state).
+         * Diamond: solid and secure feel (Locked state).
          *
          * 4 vertices with generous rounding create a squircle-like diamond.
          */
@@ -232,7 +232,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * 4-sided cookie — soft, relaxed bumps (Unlocked state).
+         * 4-sided cookie: soft, relaxed bumps (Unlocked state).
          */
         private fun cookie4Shape(): RoundedPolygon = RoundedPolygon.star(
             numVerticesPerRadius = 4,
@@ -243,7 +243,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * Sunny — radiant, open feel (Unlatched / door open).
+         * Sunny: radiant, open feel (Unlatched / door open).
          *
          * 8-point soft star with gentle bumps.
          */
@@ -256,7 +256,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * 6-sided cookie — gentle transitional shape (Locking / Unlocking / Unlatching).
+         * 6-sided cookie: gentle transitional shape (Locking / Unlocking / Unlatching).
          */
         private fun cookie6Shape(): RoundedPolygon = RoundedPolygon.star(
             numVerticesPerRadius = 6,
@@ -267,7 +267,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * 7-sided cookie — held during countdown / delay transitions.
+         * 7-sided cookie: held during countdown / delay transitions.
          *
          * Slightly more complex than cookie6 for visual distinction.
          */
@@ -280,7 +280,7 @@ class ExpressiveCardAnimator(private val shapeView: ShapeMorphView) {
         )
 
         /**
-         * Burst — sharp, jagged alarm feel (MotorBlocked / error).
+         * Burst: sharp, jagged alarm feel (MotorBlocked / error).
          *
          * 8-point star with minimal rounding.
          */

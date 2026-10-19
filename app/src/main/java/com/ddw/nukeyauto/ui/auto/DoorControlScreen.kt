@@ -42,7 +42,7 @@ class DoorControlScreen(
             var lastShownError = repository.uiState.value.error
 
             repository.uiState.collect { state ->
-                // Only drop a pending confirmation when the lock itself changed —
+                // Only drop a pending confirmation when the lock itself changed,
                 // not on every emission (loading flags, countdown ticks).
                 if (state.lockState != lastLockState) {
                     pendingAction = null
@@ -98,7 +98,7 @@ class DoorControlScreen(
             )
             .build()
 
-        // Empty pane during loading — Car App Library forbids rows+actions with setLoading(true)
+        // Empty pane during loading, Car App Library forbids rows+actions with setLoading(true)
         if (state.isLoading && state.countdownSeconds == 0) {
             return PaneTemplate.Builder(
                 Pane.Builder().setLoading(true).build()
@@ -133,27 +133,37 @@ class DoorControlScreen(
             .build()
 
         // --- Row 2: Battery (icon matches level) ---
+        val battery = state.battery
+        val batteryLow = state.batteryCritical || (battery != null && battery < 20)
         val batteryIconRes = when {
-            state.battery < 15 -> R.drawable.ic_battery_0
-            state.battery < 30 -> R.drawable.ic_battery_1
-            state.battery < 45 -> R.drawable.ic_battery_2
-            state.battery < 55 -> R.drawable.ic_battery_3
-            state.battery < 70 -> R.drawable.ic_battery_4
-            state.battery < 85 -> R.drawable.ic_battery_5
-            state.battery < 95 -> R.drawable.ic_battery_6
+            battery == null -> if (state.batteryCritical) R.drawable.ic_battery_0 else R.drawable.ic_battery
+            battery < 15 -> R.drawable.ic_battery_0
+            battery < 30 -> R.drawable.ic_battery_1
+            battery < 45 -> R.drawable.ic_battery_2
+            battery < 55 -> R.drawable.ic_battery_3
+            battery < 70 -> R.drawable.ic_battery_4
+            battery < 85 -> R.drawable.ic_battery_5
+            battery < 95 -> R.drawable.ic_battery_6
             else -> R.drawable.ic_battery
         }
         val batteryIcon = CarIcon.Builder(
             IconCompat.createWithResource(carContext, batteryIconRes)
         ).setTint(
-            if (state.battery < 20) CarColor.YELLOW else CarColor.DEFAULT
+            if (batteryLow) CarColor.YELLOW else CarColor.DEFAULT
         ).build()
 
-        val batteryTitle = carContext.getString(R.string.battery_label, state.battery)
+        // No lock data yet: don't claim a charge level
+        val noData = state.lockState == LockState.Unknown
+        val batteryTitle = when {
+            noData -> carContext.getString(R.string.battery_title)
+            battery != null -> carContext.getString(R.string.battery_label, battery)
+            state.batteryCritical -> carContext.getString(R.string.battery_critical)
+            else -> carContext.getString(R.string.battery_ok)
+        }
         val batterySubtitle = when {
-            state.battery <= 0 -> carContext.getString(R.string.auto_battery_unknown)
-            state.battery < 20 -> carContext.getString(R.string.auto_battery_low)
-            state.battery < 50 -> carContext.getString(R.string.auto_battery_medium)
+            noData -> carContext.getString(R.string.auto_battery_unknown)
+            batteryLow -> carContext.getString(R.string.auto_battery_low)
+            battery != null && battery < 50 -> carContext.getString(R.string.auto_battery_medium)
             else -> carContext.getString(R.string.auto_battery_good)
         }
 
@@ -165,6 +175,8 @@ class DoorControlScreen(
 
         // --- Large image on the right side (padded pane versions) ---
         val paneImage = lockStateToCarIcon(state.lockState)
+
+        val confirmationEnabled = repository.isConfirmationEnabled()
 
         // --- Build pane ---
         val paneBuilder = Pane.Builder()
@@ -187,12 +199,14 @@ class DoorControlScreen(
                         label = R.string.btn_open_door,
                         confirmLabel = R.string.confirm_open_title,
                         pendingType = PendingAction.OPEN,
+                        confirmationEnabled = confirmationEnabled,
                         execute = { performLockAction(false) }
                     ))
                     paneBuilder.addAction(buildAction(
                         label = R.string.btn_lock_door,
                         confirmLabel = R.string.confirm_lock_title,
                         pendingType = PendingAction.LOCK,
+                        confirmationEnabled = confirmationEnabled,
                         execute = { performLockAction(true) }
                     ))
                 }
@@ -201,6 +215,7 @@ class DoorControlScreen(
                         label = R.string.btn_lock_door,
                         confirmLabel = R.string.confirm_lock_title,
                         pendingType = PendingAction.LOCK,
+                        confirmationEnabled = confirmationEnabled,
                         execute = { performLockAction(true) }
                     ))
                 }
@@ -215,6 +230,7 @@ class DoorControlScreen(
                         label = R.string.btn_open_door,
                         confirmLabel = R.string.confirm_open_title,
                         pendingType = PendingAction.OPEN,
+                        confirmationEnabled = confirmationEnabled,
                         execute = { performLockAction(false) }
                     ))
                 }
@@ -239,6 +255,7 @@ class DoorControlScreen(
         label: Int,
         confirmLabel: Int,
         pendingType: PendingAction,
+        confirmationEnabled: Boolean,
         execute: () -> Unit
     ): Action {
         val isConfirming = pendingAction == pendingType
@@ -252,7 +269,7 @@ class DoorControlScreen(
                     execute()
                 }
                 .build()
-        } else if (repository.isConfirmationEnabled()) {
+        } else if (confirmationEnabled) {
             Action.Builder()
                 .setTitle(carContext.getString(label))
                 .setOnClickListener {

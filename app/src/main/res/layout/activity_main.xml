@@ -32,7 +32,7 @@
             android:layout_height="match_parent"
             android:padding="24dp">
 
-            <!-- Shape with icon only — text lives outside so it never clips -->
+            <!-- Shape with icon only, text lives outside so it never clips -->
             <com.ddw.nukeyauto.ui.ShapeMorphView
                 android:id="@+id/cardStatus"
                 android:layout_width="0dp"

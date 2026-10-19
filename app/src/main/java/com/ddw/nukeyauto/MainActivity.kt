@@ -108,7 +108,8 @@ class MainActivity : AppCompatActivity() {
                 viewModel.uiState.collect { state ->
                     Log.d(TAG, "state=$state")
 
-                    tvBattery.text = getString(R.string.battery_label, state.battery)
+                    tvBattery.text = state.battery?.let { getString(R.string.battery_label, it) }
+                        ?: getString(if (state.batteryCritical) R.string.battery_critical else R.string.battery_ok)
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
                     val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
@@ -118,6 +119,8 @@ class MainActivity : AppCompatActivity() {
                     if (state.countdownSeconds > 0) {
                         if (countdownMax == 0) {
                             countdownMax = state.countdownSeconds
+                            // A resume queued by a just-cancelled countdown would clear this new stroke
+                            cardStatus.removeCallbacks(resumeAmbientRunnable)
                             cardAnimator.holdCountdownShape()
                             // Start one smooth animation from 0→1 over the full duration
                             val strokeWidthPx = 4f * resources.displayMetrics.density
@@ -265,7 +268,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    // Secondary button click (lock — only visible in Unlocked state)
+                    // Secondary button click (lock, only visible in Unlocked state)
                     btnSecondary.setOnClickListener {
                         maybeConfirmThenExecute(
                             isLock = true,
@@ -274,7 +277,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     tvBattery.visibility = if (
-                        state.lockState != LockState.Unknown || state.battery > 0
+                        state.lockState != LockState.Unknown || state.battery != null
                     ) View.VISIBLE else View.INVISIBLE
                 }
             }

@@ -47,16 +47,28 @@ object AppModule {
     fun provideSharedPrefs(@ApplicationContext context: Context): SharedPreferences {
         return try {
             createEncryptedPrefs(context, buildMasterKey(context))
-        } catch (e: Exception) {
-            // Corrupted prefs file or an invalidated Keystore key. Wipe both: the file is
-            // unreadable either way, and retrying with the same broken key would crash the
-            // app on every launch (this runs during Application.onCreate injection).
-            Log.e(TAG, "Encrypted prefs corrupted, resetting: ${e.message}")
-            context.deleteSharedPreferences(PREFS_FILE)
-            KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-                .deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
-            createEncryptedPrefs(context, buildMasterKey(context))
+        } catch (first: Exception) {
+            // KeyStore errors can be transient (seen on some devices right after an OS update):
+            // retry once before treating the file as corrupt and wiping the stored token.
+            Log.w(TAG, "Encrypted prefs failed, retrying once: ${first.message}")
+            try {
+                createEncryptedPrefs(context, buildMasterKey(context))
+            } catch (e: Exception) {
+                resetEncryptedPrefs(context, e)
+            }
         }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun resetEncryptedPrefs(context: Context, e: Exception): SharedPreferences {
+        // Corrupted prefs file or an invalidated Keystore key. Wipe both: the file is
+        // unreadable either way, and retrying with the same broken key would crash the
+        // app on every launch (this runs during Application.onCreate injection).
+        Log.e(TAG, "Encrypted prefs corrupted, resetting: ${e.message}")
+        context.deleteSharedPreferences(PREFS_FILE)
+        KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+            .deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+        return createEncryptedPrefs(context, buildMasterKey(context))
     }
 
     @Suppress("DEPRECATION")
@@ -94,7 +106,7 @@ object AppModule {
                     if (token.isNotEmpty()) {
                         requestBuilder.addHeader("Authorization", "Bearer $token")
                         requestBuilder.header("Accept", "application/json")
-                    } else Log.w(TAG, "Token is empty — request sent without auth header")
+                    } else Log.w(TAG, "Token is empty, request sent without auth header")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to read token: ${e.message}", e)
                 }
@@ -107,7 +119,7 @@ object AppModule {
             builder.addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY
-                    // The bearer token unlocks the front door — never print it.
+                    // The bearer token unlocks the front door, never print it.
                     redactHeader("Authorization")
                 }
             )

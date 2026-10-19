@@ -28,7 +28,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch { repository.fetchState() }
     }
 
-    /** Unlatch the door (action 3 — physically open). */
+    /** Unlatch the door (action 3, physically open). */
     fun openDoor() {
         viewModelScope.launch { repository.performLockAction(false) }
     }

@@ -16,6 +16,10 @@
     <string name="status_loading">Loading…</string>
     <string name="status_countdown">Opening in %1$d…</string>
     <string name="battery_label">Battery: %1$d%%</string>
+    <!-- Locks that report no charge percentage, only whether the battery is critical -->
+    <string name="battery_ok">Battery OK</string>
+    <string name="battery_critical">Battery low</string>
+    <string name="battery_title">Battery</string>
     <string name="btn_open_door">OPEN DOOR</string>
     <string name="btn_lock_door">LOCK DOOR</string>
     <string name="btn_open_settings">OPEN SETTINGS</string>
@@ -24,7 +28,7 @@
     <string name="auto_row_title">Smart lock</string>
     <string name="auto_battery_good">Good condition</string>
     <string name="auto_battery_medium">Consider charging</string>
-    <string name="auto_battery_low">Low battery \u2014 charge soon</string>
+    <string name="auto_battery_low">Low battery, charge soon</string>
     <string name="auto_battery_unknown">Status unavailable</string>
 
 
@@ -67,7 +71,7 @@
     <!-- Share -->
     <string name="settings_share">Share app</string>
     <string name="share_subject">NuKey Auto</string>
-    <string name="share_text">Check out NuKey Auto — a free Nuki smart lock app with Android Auto support! https://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="share_text">Check out NuKey Auto, a free Nuki smart lock app with Android Auto support! https://play.google.com/store/apps/details?id=%1$s</string>
     <string name="share_chooser_title">Share NuKey Auto</string>
 
     <!-- Behavior -->
@@ -127,7 +131,7 @@
     </plurals>
     <plurals name="supporter_dialog_message">
         <item quantity="one">Thank you so much! This app is built with love in my spare time, and your support means the world to me. It helps keep NuKey Auto free and ad-free for everyone, and motivates me to keep making it better.</item>
-        <item quantity="other">You have donated %d times now — that is absolutely amazing! Your continued generosity means so much. It helps keep NuKey Auto free and ad-free for everyone, and keeps me motivated to keep improving the app.</item>
+        <item quantity="other">You have donated %d times now, that is absolutely amazing! Your continued generosity means so much. It helps keep NuKey Auto free and ad-free for everyone, and keeps me motivated to keep improving the app.</item>
     </plurals>
     <plurals name="supporter_donation_count">
         <item quantity="one">You donated %d time.</item>
@@ -139,6 +143,6 @@
     <string name="support_label_pizza">Pizza</string>
     <string name="support_label_dinner">Dinner</string>
     <string name="support_label_support">Support</string>
-    <!-- Label — price, e.g. "Coffee — € 2.99" -->
-    <string name="support_button_label" translatable="false">%1$s — %2$s</string>
+    <!-- Label, price, e.g. "Coffee: € 2.99" -->
+    <string name="support_button_label" translatable="false">%1$s: %2$s</string>
 </resources>

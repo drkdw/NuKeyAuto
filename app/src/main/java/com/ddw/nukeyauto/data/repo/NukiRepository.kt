@@ -69,7 +69,7 @@ class NukiRepository @Inject constructor(
             val batteryLevel = response.state.batteryCharge
             val nukiStateInt = response.state.state
 
-            Log.d(TAG, "API response: state=$nukiStateInt, battery=$batteryLevel%")
+            Log.d(TAG, "API response: state=$nukiStateInt, battery=$batteryLevel")
 
             val lockState = when (nukiStateInt) {
                 0 -> LockState.Uncalibrated
@@ -93,24 +93,32 @@ class NukiRepository @Inject constructor(
                 null
             }
 
+            // A refresh during an open countdown must not end the loading state: the
+            // countdown still owns it, and the phone would re-enable the Lock button.
             _uiState.update {
-                it.copy(lockState = lockState, battery = batteryLevel, isLoading = false, error = error)
+                it.copy(
+                    lockState = lockState,
+                    battery = batteryLevel,
+                    batteryCritical = response.state.batteryCritical,
+                    isLoading = it.countdownSeconds > 0,
+                    error = error
+                )
             }
 
         } catch (e: CancellationException) {
-            _uiState.update { it.copy(isLoading = false) }
+            _uiState.update { it.copy(isLoading = it.countdownSeconds > 0) }
             throw e
         } catch (e: Exception) {
-            Log.e(TAG, "fetchState() failed: ${e::class.simpleName} — ${e.message}", e)
+            Log.e(TAG, "fetchState() failed: ${e::class.simpleName}: ${e.message}", e)
             _uiState.update {
-                it.copy(isLoading = false, error = mapException(e))
+                it.copy(isLoading = it.countdownSeconds > 0, error = mapException(e))
             }
         }
     }
 
     /**
      * Execute a lock action and poll until the state stabilizes.
-     * Action 2 = lock, Action 3 = unlatch (physically open — NOT action 1 unlock).
+     * Action 2 = lock, Action 3 = unlatch (physically open, NOT action 1 unlock).
      */
     suspend fun performLockAction(shouldLock: Boolean) {
         try {

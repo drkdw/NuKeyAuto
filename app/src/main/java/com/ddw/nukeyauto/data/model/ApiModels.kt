@@ -10,7 +10,8 @@ data class SmartLockResponse(
 
 data class LockStateResponse(
     @SerializedName("state") val state: Int,
-    @SerializedName("batteryCharge") val batteryCharge: Int = 0,
+    // Missing on locks that only report batteryCritical (Smart Lock 1.0 / 2.0)
+    @SerializedName("batteryCharge") val batteryCharge: Int? = null,
     @SerializedName("batteryCritical") val batteryCritical: Boolean = false
 )
 

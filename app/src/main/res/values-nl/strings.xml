@@ -14,6 +14,9 @@
     <string name="status_loading">Laden…</string>
     <string name="status_countdown">Opent over %1$d…</string>
     <string name="battery_label">Batterij: %1$d%%</string>
+    <string name="battery_ok">Batterij OK</string>
+    <string name="battery_critical">Batterij bijna leeg</string>
+    <string name="battery_title">Batterij</string>
     <string name="btn_open_door">DEUR OPENEN</string>
     <string name="btn_lock_door">DEUR VERGRENDELEN</string>
     <string name="btn_open_settings">OPEN INSTELLINGEN</string>
@@ -22,7 +25,7 @@
     <string name="auto_row_title">Smart lock</string>
     <string name="auto_battery_good">Goede conditie</string>
     <string name="auto_battery_medium">Overweeg op te laden</string>
-    <string name="auto_battery_low">Batterij bijna leeg \u2014 laad op</string>
+    <string name="auto_battery_low">Batterij bijna leeg, laad op</string>
     <string name="auto_battery_unknown">Status onbekend</string>
 
 
@@ -65,7 +68,7 @@
     <!-- Delen -->
     <string name="settings_share">Deel de app</string>
     <string name="share_subject">NuKey Auto</string>
-    <string name="share_text">Bekijk eens NuKey Auto — een gratis Nuki slimme-slot app met Android Auto ondersteuning! https://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="share_text">Bekijk eens NuKey Auto, een gratis Nuki slimme-slot app met Android Auto ondersteuning! https://play.google.com/store/apps/details?id=%1$s</string>
     <string name="share_chooser_title">Deel NuKey Auto</string>
 
     <!-- Behavior -->
@@ -125,7 +128,7 @@
     </plurals>
     <plurals name="supporter_dialog_message">
         <item quantity="one">Heel erg bedankt! Deze app is met liefde gebouwd in mijn vrije tijd, en je steun betekent ontzettend veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en motiveert me om de app te blijven verbeteren.</item>
-        <item quantity="other">Je hebt nu al %d keer gedoneerd — dat is echt geweldig! Je blijvende steun betekent heel veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en houdt me gemotiveerd om de app te blijven verbeteren.</item>
+        <item quantity="other">Je hebt nu al %d keer gedoneerd, dat is echt geweldig! Je blijvende steun betekent heel veel. Het helpt om NuKey Auto gratis en advertentievrij te houden voor iedereen, en houdt me gemotiveerd om de app te blijven verbeteren.</item>
     </plurals>
     <plurals name="supporter_donation_count">
         <item quantity="one">Je hebt %d keer gedoneerd.</item>

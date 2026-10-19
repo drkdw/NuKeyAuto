@@ -6,7 +6,9 @@ package com.ddw.nukeyauto.data.model
  */
 data class UiState(
     val lockState: LockState = LockState.Unknown,
-    val battery: Int = 0,
+    /** Charge in percent, or null when the lock only reports [batteryCritical]. */
+    val battery: Int? = null,
+    val batteryCritical: Boolean = false,
     val isLoading: Boolean = false,
     val error: NukiError? = null,
     val countdownSeconds: Int = 0

@@ -18,7 +18,7 @@ class NukiApp : Application() {
     override fun onCreate() {
         super.onCreate()
         applyStoredTheme()
-        // Android 12+ Material You dynamic color — no-op on older versions.
+        // Android 12+ Material You dynamic color, no-op on older versions.
         if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)) {
             DynamicColors.applyToActivitiesIfAvailable(this)
         }
