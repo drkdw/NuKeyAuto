@@ -12,314 +12,152 @@
     <meta property="og:description" content="Control your Nuki smart lock directly from your car's Android Auto dashboard. Open or lock your door without touching your phone. Free, no ads, no tracking.">
     <meta property="og:url" content="https://drkdw.github.io/NuKeyAuto/">
     <meta name="twitter:card" content="summary">
+    <meta property="og:image" content="https://drkdw.github.io/NuKeyAuto/assets/img/social-preview.png">
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "MobileApplication", "name": "NuKey Auto", "operatingSystem": "Android 10+", "applicationCategory": "UtilitiesApplication", "description": "Control your Nuki smart lock directly from your car's Android Auto dashboard. Open or lock your door without touching your phone. Free, no ads, no tracking.", "url": "https://drkdw.github.io/NuKeyAuto/", "installUrl": "https://play.google.com/store/apps/details?id=com.ddw.nukeyauto", "author": {"@type": "Person", "name": "Dirk De Wever"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}}</script>
+    <link rel="icon" type="image/png" href="assets/img/icon.png">
+    <link rel="apple-touch-icon" href="assets/img/icon.png">
+    <meta name="theme-color" content="#16121F">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.6; }
-
-        /* Hero */
-        .hero {
-            background: linear-gradient(135deg, #6750A4 0%, #4A3580 50%, #2D1B5E 100%);
-            color: #fff;
-            padding: 80px 24px 100px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: #fff;
-            border-radius: 60px 60px 0 0;
-        }
-        .hero h1 {
-            font-size: 3em;
-            font-weight: 700;
-            margin-bottom: 16px;
-            letter-spacing: -0.02em;
-        }
-        .hero p {
-            font-size: 1.25em;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto 40px;
-            font-weight: 400;
-        }
-        .badge-row {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(8px);
-            padding: 8px 16px;
-            border-radius: 24px;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-        .cta-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: #fff;
-            color: #6750A4;
-            padding: 16px 32px;
-            border-radius: 28px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1em;
-            margin-top: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .cta-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        }
-        .cta-btn svg { width: 24px; height: 24px; }
-        .cta-btn.ghost { background: transparent; color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6); margin-left: 8px; }
-
-        /* Sections */
-        .section {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 80px 24px;
-        }
-        .section h2 {
-            font-size: 2em;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 12px;
-            letter-spacing: -0.01em;
-        }
-        .section .subtitle {
-            text-align: center;
-            color: #666;
-            font-size: 1.1em;
-            margin-bottom: 48px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* Features grid */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
-        }
-        .feature-card {
-            background: #f8f6fc;
-            border-radius: 20px;
-            padding: 32px;
-            text-align: center;
-        }
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            background: #6750A4;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-        }
-        .feature-icon svg { width: 28px; height: 28px; fill: #fff; }
-        .feature-card h3 {
-            font-size: 1.15em;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .feature-card p {
-            color: #555;
-            font-size: 0.95em;
-        }
-
-        /* How it works */
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 32px;
-            counter-reset: step;
-        }
-        .step {
-            text-align: center;
-            position: relative;
-        }
-        .step::before {
-            counter-increment: step;
-            content: counter(step);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            background: #6750A4;
-            color: #fff;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 1.2em;
-            margin: 0 auto 16px;
-        }
-        .step h3 {
-            font-size: 1.05em;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-        .step p { color: #555; font-size: 0.9em; }
-
-        /* Highlights */
-        .highlights {
-            background: linear-gradient(135deg, #6750A4, #4A3580);
-            color: #fff;
-            border-radius: 24px;
-            padding: 48px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 32px;
-            text-align: center;
-        }
-        .highlight-item h3 {
-            font-size: 2em;
-            font-weight: 700;
-        }
-        .highlight-item p {
-            opacity: 0.85;
-            font-size: 0.95em;
-            margin-top: 4px;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 40px 24px;
-            color: #888;
-            font-size: 0.85em;
-            border-top: 1px solid #eee;
-        }
-        .footer a { color: #6750A4; text-decoration: none; }
-
-        /* Responsive */
-        @media (max-width: 640px) {
-            .hero h1 { font-size: 2em; }
-            .hero p { font-size: 1.05em; }
-            .section h2 { font-size: 1.5em; }
-            .highlights { padding: 32px 24px; }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
+<header class="nav">
+    <div class="wrap">
+        <a class="brand" href="index.html"><img src="assets/img/icon.png" alt="" width="32" height="32">NuKey Auto</a>
+        <ul class="nav-links">
+            <li><a href="index.html#features">Features</a></li>
+            <li><a href="support.html">Support</a></li>
+            <li><a href="privacy-policy.html">Privacy</a></li>
+            <li><a class="btn btn-outline btn-small" href="https://github.com/drkdw/NuKeyAuto"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a></li>
+        </ul>
+    </div>
+</header>
+
+<main>
 <section class="hero">
-    <div class="badge-row">
-        <span class="badge">&#x1f697; Android Auto</span>
-        <span class="badge">&#x1f512; Nuki Smart Lock</span>
-        <span class="badge">&#x2728; Material 3</span>
+    <div class="wrap">
+        <div>
+            <h1>Your Nuki smart lock, on your car screen</h1>
+            <p class="lede">Open or lock your front door from Android Auto, without picking up your phone.</p>
+            <div class="btn-row">
+                <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.ddw.nukeyauto"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.61 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/></svg>Get it on Google Play</a>
+                <a class="btn btn-outline" href="https://github.com/drkdw/NuKeyAuto"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>View on GitHub</a>
+            </div>
+        </div>
+        <div class="dash">
+            <div class="dash-screen">
+                <img id="dash-img" src="assets/img/auto-locked.png" width="800" height="500" alt="NuKey Auto in Android Auto showing the smart lock as locked, battery 92%, with an Open door button">
+            </div>
+            <div class="states" role="group" aria-label="Show lock state">
+                <button type="button" aria-pressed="true" data-src="assets/img/auto-locked.png" data-alt="NuKey Auto in Android Auto showing the smart lock as locked, battery 92%, with an Open door button">Locked</button>
+                <button type="button" aria-pressed="false" data-src="assets/img/auto-opening.png" data-alt="NuKey Auto in Android Auto while the lock is opening">Opening</button>
+                <button type="button" aria-pressed="false" data-src="assets/img/auto-door-open.png" data-alt="NuKey Auto in Android Auto showing the door open, with a Close door button">Door open</button>
+            </div>
+        </div>
     </div>
-    <h1>NuKey Auto</h1>
-    <p>Control your Nuki smart lock directly from your car's Android Auto dashboard. Open or lock your door without touching your phone.</p>
-    <a href="https://play.google.com/store/apps/details?id=com.ddw.nukeyauto" class="cta-btn">
-        <svg viewBox="0 0 24 24"><path fill="#6750A4" d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.61 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/></svg>
-        Get it on Google Play
-    </a>
-    <a href="https://github.com/drkdw/NuKeyAuto" class="cta-btn ghost">
-        <svg viewBox="0 0 16 16" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        View on GitHub
-    </a>
 </section>
 
-<section class="section">
-    <h2>Why NuKey Auto?</h2>
-    <p class="subtitle">The simplest way to control your Nuki smart lock while driving. Designed for Android Auto, built with care.</p>
-    <div class="features">
-        <div class="feature-card">
-            <div class="feature-icon">
-                <svg viewBox="0 0 24 24"><path d="M5 11h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm0 10h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm10 0h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm0-18a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4z"/></svg>
-            </div>
-            <h3>Android Auto first</h3>
-            <p>Operate your smart lock from your car screen. Tap to open or lock your door while keeping your eyes on the road.</p>
+<section class="section" id="features">
+    <div class="wrap">
+        <div class="section-head">
+            <h2>Built for the moment you pull up</h2>
+            <p>Lock status, battery and one clear action. Nothing to dig through while you drive.</p>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 1C8.676 1 6 3.676 6 7v3H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v3H8V7c0-2.276 1.724-4 4-4zm0 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
-            </div>
-            <h3>Safe by design</h3>
-            <p>Configurable confirmation dialogs and a cancellable countdown delay prevent accidental door openings. You stay in control.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-            </div>
-            <h3>Simple and fast</h3>
-            <p>See your lock status and battery at a glance. One tap to act. No clutter, no accounts, no subscriptions.</p>
+        <div class="features">
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 11h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm0 10h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm10 0h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm0-18a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4z"/></svg><h3>Android Auto first</h3><p>Operate your smart lock from your car screen. Tap to open or lock your door while keeping your eyes on the road.</p></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1C8.676 1 6 3.676 6 7v3H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v3H8V7c0-2.276 1.724-4 4-4zm0 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg><h3>Safe by design</h3><p>Configurable confirmation dialogs and a cancellable countdown delay prevent accidental door openings. You stay in control.</p></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><h3>Simple and fast</h3><p>See your lock status and battery at a glance. One tap to act. No clutter, no accounts, no subscriptions.</p></div>
         </div>
     </div>
 </section>
 
 <section class="section" style="padding-top: 0;">
-    <h2>How it works</h2>
-    <p class="subtitle">Get started in under a minute.</p>
-    <div class="steps">
-        <div class="step">
-            <h3>Get your API token</h3>
-            <p>Create a token at web.nuki.io and copy your Smart Lock ID.</p>
+    <div class="wrap">
+        <div class="section-head">
+            <h2>Also on your phone</h2>
+            <p>The same controls work as a standalone phone app, with Material 3 and dynamic colors.</p>
         </div>
-        <div class="step">
-            <h3>Enter in Settings</h3>
-            <p>Open NuKey Auto, go to Settings, and paste your credentials.</p>
-        </div>
-        <div class="step">
-            <h3>Connect to your car</h3>
-            <p>Plug in your phone and NuKey Auto appears in Android Auto.</p>
-        </div>
-        <div class="step">
-            <h3>Tap to control</h3>
-            <p>Open or lock your door from your car screen.</p>
+        <div class="phones">
+            <figure><img src="assets/img/phone-unlocked.png" width="478" height="1024" loading="lazy" alt="Phone app showing the lock unlocked with Open door and Lock door buttons"><figcaption>Lock state and battery at a glance</figcaption></figure>
+            <figure><img src="assets/img/phone-countdown.png" width="478" height="1024" loading="lazy" alt="Phone app counting down before opening the door"><figcaption>Cancellable countdown before opening</figcaption></figure>
+            <figure><img src="assets/img/phone-confirm.png" width="478" height="1024" loading="lazy" alt="Phone app asking to confirm opening the door"><figcaption>Optional confirmation</figcaption></figure>
+            <figure><img src="assets/img/phone-welcome.png" width="478" height="1024" loading="lazy" alt="Phone app welcome screen with a Get started button"><figcaption>Set up in a minute</figcaption></figure>
         </div>
     </div>
 </section>
 
 <section class="section" style="padding-top: 0;">
-    <div class="highlights">
-        <div class="highlight-item">
-            <h3>Free</h3>
-            <p>No cost, no ads, no subscriptions</p>
+    <div class="wrap">
+        <div class="section-head">
+            <h2>How it works</h2>
+            <p>Get started in under a minute.</p>
         </div>
-        <div class="highlight-item">
+        <ol class="steps">
+            <li><h3>Get your API token</h3><p>Create a token at web.nuki.io and copy your Smart Lock ID.</p></li>
+            <li><h3>Enter in Settings</h3><p>Open NuKey Auto, go to Settings, and paste your credentials.</p></li>
+            <li><h3>Connect to your car</h3><p>Plug in your phone and NuKey Auto appears in Android Auto.</p></li>
+            <li><h3>Tap to control</h3><p>Open or lock your door from your car screen.</p></li>
+        </ol>
+        <p class="more"><a href="support.html">Read the full setup guide</a></p>
+    </div>
+</section>
+
+<section class="section band">
+    <div class="wrap">
+        <div>
             <h3>Private</h3>
-            <p>No analytics, no tracking, no data collection</p>
+            <p>No analytics, no tracking, no ads. Your Nuki credentials stay encrypted on your device and only go to the official Nuki Web API.</p>
+            <a href="privacy-policy.html">Read the privacy policy</a>
         </div>
-        <div class="highlight-item">
-            <h3>Open</h3>
-            <p>Works with any Nuki smart lock with Web API access</p>
+        <div>
+            <h3>Open source</h3>
+            <p>The full Kotlin source is on GitHub. Read how it works, report a bug or suggest a feature.</p>
+            <a class="btn btn-primary" href="https://github.com/drkdw/NuKeyAuto"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Browse the source</a>
         </div>
     </div>
 </section>
-
-<section class="section" style="text-align: center; padding-top: 0;">
-    <h2>Ready to try?</h2>
-    <p class="subtitle">Available now on Google Play. Free, ad-free, and private.</p>
-    <a href="https://play.google.com/store/apps/details?id=com.ddw.nukeyauto" class="cta-btn" style="background: #6750A4; color: #fff;">
-        <svg viewBox="0 0 24 24"><path fill="#fff" d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.61 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/></svg>
-        Download on Google Play
-    </a>
-</section>
+</main>
 
 <footer class="footer">
-    <p>NuKey Auto is not affiliated with Nuki Home Solutions GmbH. Nuki is a registered trademark of Nuki Home Solutions GmbH.</p>
-    <p style="margin-top: 8px;"><a href="support.html">Support & FAQ</a> &middot; <a href="privacy-policy.html">Privacy Policy</a> &middot; <a href="https://github.com/drkdw/NuKeyAuto">Source on GitHub</a></p>
+    <div class="wrap">
+        <div class="cols">
+            <div>
+                <h2>NuKey Auto</h2>
+                <p>Control your Nuki smart lock from Android Auto and your phone. Free, open source, no tracking.</p>
+            </div>
+            <div>
+                <h2>App</h2>
+                <ul>
+                    <li><a href="https://play.google.com/store/apps/details?id=com.ddw.nukeyauto">Google Play</a></li>
+                    <li><a href="support.html">Support and FAQ</a></li>
+                    <li><a href="privacy-policy.html">Privacy policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h2>Source</h2>
+                <ul>
+                    <li><a href="https://github.com/drkdw/NuKeyAuto">GitHub repository</a></li>
+                    <li><a href="https://github.com/drkdw/NuKeyAuto/issues">Report an issue</a></li>
+                    <li><a href="https://github.com/drkdw/NuKeyAuto/releases">Releases</a></li>
+                </ul>
+            </div>
+        </div>
+        <p class="legal">NuKey Auto is not affiliated with Nuki Home Solutions GmbH. Nuki is a registered trademark of Nuki Home Solutions GmbH.</p>
+    </div>
 </footer>
 
+<script>
+document.querySelectorAll('.states button').forEach(function (b, _, all) {
+    b.addEventListener('click', function () {
+        var img = document.getElementById('dash-img');
+        img.src = b.dataset.src;
+        img.alt = b.dataset.alt;
+        all.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+});
+</script>
 </body>
 </html>
