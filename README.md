@@ -57,6 +57,12 @@ Developer documentation lives in [`docs/`](docs): [architecture](docs/ARCHITECTU
 - Found a bug or have an idea: [open an issue](https://github.com/drkdw/NuKeyAuto/issues)
 - [Privacy policy](https://drkdw.github.io/NuKeyAuto/privacy-policy.html)
 
+## License
+
+The source code is licensed under the [GNU General Public License v3.0](LICENSE). You may use, study, change and share it; anything you distribute that is based on it must be released under the same license, with its source code.
+
+The name "NuKey Auto", the app icon and the Google Play listing are not covered by this license. A fork that is published must use its own name and icon.
+
 ---
 
 NuKey Auto is not affiliated with Nuki Home Solutions GmbH. Nuki is a registered trademark of Nuki Home Solutions GmbH.
