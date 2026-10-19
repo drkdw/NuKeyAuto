@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://drkdw.github.io/NuKeyAuto/sitemap.xml
