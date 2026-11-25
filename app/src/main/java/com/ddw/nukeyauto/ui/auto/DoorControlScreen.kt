@@ -106,8 +106,9 @@ class DoorControlScreen(
             )
             .build()
 
-        // Empty pane during loading, Car App Library forbids rows+actions with setLoading(true)
-        if (state.isLoading && state.countdownSeconds == 0) {
+        // Empty pane only while nothing is known yet (Car App Library forbids rows+actions with
+        // setLoading). During an action the rows stay, so the driver sees "Opening…".
+        if (state.isLoading && state.countdownSeconds == 0 && state.lockState == LockState.Unknown) {
             return PaneTemplate.Builder(
                 Pane.Builder().setLoading(true).build()
             ).setHeader(header).build()
@@ -200,7 +201,7 @@ class DoorControlScreen(
                     .setOnClickListener { repository.cancelOpen() }
                     .build()
             )
-        } else if (!state.lockState.isTransition) {
+        } else if (!state.lockState.isTransition && !state.isLoading) {
             when (state.lockState) {
                 LockState.Unlocked -> {
                     paneBuilder.addAction(buildAction(

@@ -55,6 +55,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Installs next to the Play version, so testing never touches its settings
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
