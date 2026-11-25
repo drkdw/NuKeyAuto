@@ -160,6 +160,18 @@ class DoorControlScreen(
         val statusRow = Row.Builder()
             .setTitle(statusTitle)
             .addText(statusSubtitle)
+            .apply {
+                // Door sensor as a second line in this row: a small car screen fits two rows
+                // plus the action, and a third row would need scrolling while driving
+                val doorLine = when {
+                    state.countdownSeconds > 0 -> null
+                    state.doorState == DoorState.Open -> carContext.getString(R.string.door_close_first)
+                    else -> state.doorState.doorLabelRes?.let {
+                        carContext.getString(R.string.door_label, carContext.getString(it))
+                    }
+                }
+                doorLine?.let { addText(it) }
+            }
             .setImage(statusRowIcon)
             .build()
 
@@ -194,6 +206,7 @@ class DoorControlScreen(
         val batterySubtitle = when {
             noData -> carContext.getString(R.string.auto_battery_unknown)
             batteryLow -> carContext.getString(R.string.auto_battery_low)
+            state.doorSensorBatteryCritical -> carContext.getString(R.string.door_sensor_battery_low)
             battery != null && battery < 50 -> carContext.getString(R.string.auto_battery_medium)
             else -> carContext.getString(R.string.auto_battery_good)
         }
@@ -215,23 +228,6 @@ class DoorControlScreen(
             .addRow(batteryRow)
             .setImage(paneImage)
 
-        // --- Row 3: Door, only with a Nuki Door Sensor in use ---
-        state.doorState.doorLabelRes?.let { labelRes ->
-            val doorRow = Row.Builder()
-                .setTitle(carContext.getString(R.string.door_title))
-                .addText(carContext.getString(labelRes).replaceFirstChar { it.uppercase() })
-                .setImage(
-                    CarIcon.Builder(IconCompat.createWithResource(
-                        carContext,
-                        if (state.doorState == DoorState.Open) R.drawable.ic_door_open else R.drawable.ic_door_closed
-                    )).setTint(if (state.lockedButDoorOpen) CarColor.YELLOW else CarColor.DEFAULT).build()
-                )
-            when {
-                state.doorState == DoorState.Open -> doorRow.addText(carContext.getString(R.string.door_close_first))
-                state.doorSensorBatteryCritical -> doorRow.addText(carContext.getString(R.string.door_sensor_battery_low))
-            }
-            paneBuilder.addRow(doorRow.build())
-        }
 
         // --- Action buttons (hidden during transitions; only Cancel during the countdown) ---
         if (state.countdownSeconds > 0) {
