@@ -167,6 +167,7 @@ class MainActivity : AppCompatActivity() {
                     // Defaults: hide secondary button, welcome message, stroke (normal states)
                     btnSecondary.visibility = View.GONE
                     tvWelcome.visibility = View.GONE
+                    btnAction.visibility = View.VISIBLE
                     if (state.countdownSeconds == 0 && state.lockState != LockState.MotorBlocked) {
                         cardStatus.stopStrokeLoader()
                     }
@@ -233,11 +234,15 @@ class MainActivity : AppCompatActivity() {
                             tvStatus.text = getString(R.string.door_open_while_locked)
                         }
                         // Locking or opening a door that stands open does nothing useful
-                        if (state.doorState == DoorState.Open && btnRes != null && lock !in RETRY_STATES) {
-                            btnAction.text = getString(R.string.door_close_first)
-                            btnAction.isEnabled = false
+                        // A disabled button would show this instruction at 38% opacity; say it as text
+                        val doorBlocksActions = state.doorState == DoorState.Open && btnRes != null &&
+                            lock !in RETRY_STATES && state.countdownSeconds == 0
+                        if (doorBlocksActions) {
+                            tvCountdown.text = getString(R.string.door_close_first)
+                            tvCountdown.visibility = View.VISIBLE
                             btnSecondary.visibility = View.GONE
                         }
+                        btnAction.visibility = if (doorBlocksActions) View.INVISIBLE else View.VISIBLE
                         if (lock == LockState.MotorBlocked) {
                             val strokeWidthPx = 4f * resources.displayMetrics.density
                             cardStatus.setStrokeProgress(1f, colorError, strokeWidthPx)
