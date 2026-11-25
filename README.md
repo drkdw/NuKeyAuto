@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.ddw.nukeyauto"><img src="https://img.shields.io/badge/Google_Play-Download-414141?logo=googleplay&logoColor=white" alt="Get it on Google Play"></a>
-  <a href="https://drkdw.github.io/NuKeyAuto/"><img src="https://img.shields.io/badge/Website-drkdw.github.io-62539A" alt="Website"></a>
+  <a href="https://drkdw.github.io/NuKeyAuto/"><img src="https://img.shields.io/badge/Website-drkdw.github.io-3A4AB8" alt="Website"></a>
   <img src="https://img.shields.io/badge/Android-10%2B-3DDC84?logo=android&logoColor=white" alt="Android 10+">
   <img src="https://img.shields.io/badge/Kotlin-View--based_M3-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin">
 </p>

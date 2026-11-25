@@ -2,13 +2,13 @@
 
 ## Design System
 
-NuKey Auto uses Material 3 with the baseline palette (seed color `#6750A4`). Dynamic colors (Material You) are supported on Android 12+ and enabled by default, but can be toggled off by the user.
+NuKey Auto uses Material 3 with its own brand palette: indigo `#3A4AB8` as seed (Material fidelity scheme, so `primaryContainer` is the exact brand color) and amber `#F2A93B` as tertiary, the headlight accent. New installs start in these brand colors; dynamic colors (Material You, Android 12+) are an opt-in switch in Settings.
 
 ## Color Palette
 
 ### Baseline (non-dynamic)
 
-Seed color: `#6750A4` (Material 3 default purple). The palette is defined as `md_light_*` / `md_dark_*` colors in `res/values/colors.xml` and `res/values-night/colors.xml`, and `themes.xml` / `values-night/themes.xml` override the M3 color roles with them (primary, secondary, tertiary, error, background, surface and surface containers, outline, scrim). Views still never use those values directly; they reference the theme attributes.
+Seed color: `#3A4AB8` (brand indigo), generated with Google's material-color-utilities for light and dark. The palette is defined as `md_light_*` / `md_dark_*` colors in `res/values/colors.xml` and `res/values-night/colors.xml`, and `themes.xml` / `values-night/themes.xml` override the M3 color roles with them (primary, secondary, tertiary, error, background, surface and surface containers, outline, scrim). Views still never use those values directly; they reference the theme attributes.
 
 ### Dynamic Colors
 

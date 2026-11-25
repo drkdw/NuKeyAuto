@@ -16,7 +16,7 @@
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "MobileApplication", "name": "NuKey Auto", "operatingSystem": "Android 10+", "applicationCategory": "UtilitiesApplication", "description": "Control your Nuki smart lock directly from your car's Android Auto dashboard. Open or lock your door without touching your phone. Free, no ads, no tracking.", "url": "https://drkdw.github.io/NuKeyAuto/", "installUrl": "https://play.google.com/store/apps/details?id=com.ddw.nukeyauto", "author": {"@type": "Person", "name": "Dirk De Wever"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}}</script>
     <link rel="icon" type="image/png" href="assets/img/icon.png">
     <link rel="apple-touch-icon" href="assets/img/icon.png">
-    <meta name="theme-color" content="#16121F">
+    <meta name="theme-color" content="#12131A">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Poppins:wght@600&display=swap" rel="stylesheet">
@@ -49,12 +49,12 @@
         </div>
         <div class="dash">
             <div class="dash-screen">
-                <img id="dash-img" src="assets/img/auto-locked.png" width="800" height="500" alt="NuKey Auto in Android Auto showing the smart lock as locked, battery 92%, with an Open door button">
+                <img id="dash-img" src="assets/img/auto-locked.png" width="800" height="480" alt="NuKey Auto in Android Auto: smart lock locked at 82% battery, door closed, with an Open door button">
             </div>
             <div class="states" role="group" aria-label="Show lock state">
-                <button type="button" aria-pressed="true" data-src="assets/img/auto-locked.png" data-alt="NuKey Auto in Android Auto showing the smart lock as locked, battery 92%, with an Open door button">Locked</button>
+                <button type="button" aria-pressed="true" data-src="assets/img/auto-locked.png" data-alt="NuKey Auto in Android Auto: smart lock locked at 82% battery, door closed, with an Open door button">Locked</button>
                 <button type="button" aria-pressed="false" data-src="assets/img/auto-opening.png" data-alt="NuKey Auto in Android Auto while the lock is opening">Opening</button>
-                <button type="button" aria-pressed="false" data-src="assets/img/auto-door-open.png" data-alt="NuKey Auto in Android Auto showing the door open, with a Close door button">Door open</button>
+                <button type="button" aria-pressed="false" data-src="assets/img/auto-door-open.png" data-alt="NuKey Auto in Android Auto: lock unlocked, door open, with the hint to close the door before locking">Door open</button>
             </div>
         </div>
     </div>
@@ -68,8 +68,8 @@
         </div>
         <div class="features">
             <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 11h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm0 10h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm10 0h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm0-18a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4z"/></svg><h3>Android Auto first</h3><p>Operate your smart lock from your car screen. Tap to open or lock your door while keeping your eyes on the road.</p></div>
-            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1C8.676 1 6 3.676 6 7v3H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v3H8V7c0-2.276 1.724-4 4-4zm0 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg><h3>Safe by design</h3><p>Configurable confirmation dialogs and a cancellable countdown delay prevent accidental door openings. You stay in control.</p></div>
-            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><h3>Simple and fast</h3><p>See your lock status and battery at a glance. One tap to act. No clutter, no accounts, no subscriptions.</p></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1C8.676 1 6 3.676 6 7v3H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v3H8V7c0-2.276 1.724-4 4-4zm0 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg><h3>Safe by design</h3><p>Configurable confirmation dialogs and a cancellable countdown delay prevent accidental door openings. With a Nuki Door Sensor it tells you when the door is still open. You stay in control.</p></div>
+            <div><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><h3>Simple and fast</h3><p>See your lock, door and battery at a glance. One tap to act. No clutter, no accounts, no subscriptions.</p></div>
         </div>
     </div>
 </section>
@@ -78,13 +78,13 @@
     <div class="wrap">
         <div class="section-head">
             <h2>Also on your phone</h2>
-            <p>The same controls work as a standalone phone app, with Material 3 and dynamic colors.</p>
+            <p>The same controls work as a standalone phone app, in light and dark, with your wallpaper colors if you like.</p>
         </div>
         <div class="phones">
-            <figure><img src="assets/img/phone-unlocked.png" width="478" height="1024" loading="lazy" alt="Phone app showing the lock unlocked with Open door and Lock door buttons"><figcaption>Lock state and battery at a glance</figcaption></figure>
-            <figure><img src="assets/img/phone-countdown.png" width="478" height="1024" loading="lazy" alt="Phone app counting down before opening the door"><figcaption>Cancellable countdown before opening</figcaption></figure>
-            <figure><img src="assets/img/phone-confirm.png" width="478" height="1024" loading="lazy" alt="Phone app asking to confirm opening the door"><figcaption>Optional confirmation</figcaption></figure>
-            <figure><img src="assets/img/phone-welcome.png" width="478" height="1024" loading="lazy" alt="Phone app welcome screen with a Get started button"><figcaption>Set up in a minute</figcaption></figure>
+            <figure><img src="assets/img/phone-unlocked.png" width="478" height="1062" loading="lazy" alt="Phone app showing the lock unlocked and the door closed, with Open door and Lock door buttons"><figcaption>Lock, door and battery at a glance</figcaption></figure>
+            <figure><img src="assets/img/phone-door-open.png" width="478" height="1062" loading="lazy" alt="Phone app with the door open and a hint to close the door before locking"><figcaption>Knows when the door is open (Nuki Door Sensor)</figcaption></figure>
+            <figure><img src="assets/img/phone-confirm.png" width="478" height="1062" loading="lazy" alt="Phone app asking to confirm opening the door"><figcaption>Optional confirmation</figcaption></figure>
+            <figure><img src="assets/img/phone-welcome.png" width="478" height="1062" loading="lazy" alt="Phone app welcome screen with a Get started button"><figcaption>Set up in a minute</figcaption></figure>
         </div>
     </div>
 </section>
@@ -97,7 +97,7 @@
         </div>
         <ol class="steps">
             <li><h3>Get your API token</h3><p>Create a token at web.nuki.io and copy your Smart Lock ID.</p></li>
-            <li><h3>Enter in Settings</h3><p>Open NuKey Auto, go to Settings, and paste your credentials.</p></li>
+            <li><h3>Enter in Settings</h3><p>Open NuKey Auto, go to Settings, and paste your credentials. Curious first? Tap "Try the demo" for a simulated lock.</p></li>
             <li><h3>Connect to your car</h3><p>Plug in your phone and NuKey Auto appears in Android Auto.</p></li>
             <li><h3>Tap to control</h3><p>Open or lock your door from your car screen.</p></li>
         </ol>

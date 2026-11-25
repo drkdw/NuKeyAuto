@@ -62,7 +62,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_subtitle"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginBottom="16dp" />
 
@@ -127,7 +127,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_demo_summary"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp" />
 
@@ -231,7 +231,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_dynamic_colors_summary"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp" />
 
@@ -300,7 +300,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_confirm_summary"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="2dp" />
 
@@ -325,7 +325,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_delay_summary"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="2dp"
                         android:layout_marginBottom="8dp" />
@@ -485,7 +485,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/support_subtitle"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginBottom="16dp" />
 
@@ -530,7 +530,7 @@
                                     android:id="@+id/tvDonationCount"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textAppearance="?attr/textAppearanceBodySmall"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
                                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                             </LinearLayout>
@@ -550,7 +550,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/support_unavailable"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:gravity="center"
                         android:visibility="gone" />

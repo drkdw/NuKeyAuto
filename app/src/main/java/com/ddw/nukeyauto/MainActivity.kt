@@ -163,8 +163,8 @@ class MainActivity : AppCompatActivity() {
                     }
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
-                    val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
-                    val colorError = MaterialColors.getColor(btnAction, android.R.attr.colorError)
+                    val colorPrimary = MaterialColors.getColor(btnAction, androidx.appcompat.R.attr.colorPrimary)
+                    val colorError = MaterialColors.getColor(btnAction, androidx.appcompat.R.attr.colorError)
 
                     // Countdown: fixed shape + smooth progress stroke
                     if (state.countdownSeconds > 0) {
