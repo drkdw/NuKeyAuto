@@ -153,21 +153,26 @@ class DoorControlScreen(
             } else if (state.lockedButDoorOpen) {
                 carContext.getString(R.string.door_open_while_locked)
             } else {
-                carContext.getString(state.lockState.statusRes)
+                carContext.getString(state.lockStatusRes)
             }
         }
 
+        val battery = state.battery
+        val titleWithBattery = if (battery != null && state.countdownSeconds == 0 && state.lockState != LockState.Unknown) {
+            carContext.getString(R.string.auto_row_title_battery, statusTitle, battery)
+        } else {
+            statusTitle
+        }
         val statusRow = Row.Builder()
-            .setTitle(statusTitle)
+            .setTitle(titleWithBattery)
             .addText(statusSubtitle)
             .apply {
-                // Quiet battery line under the lock status; a low battery says so
+                // Battery percentage sits in the title ("Smart lock (82%)"); only a low battery
+                // gets its own line
                 if (state.countdownSeconds == 0 && state.lockState != LockState.Unknown) {
                     val battery = state.battery
-                    val low = state.batteryCritical || (battery != null && battery < 20)
-                    when {
-                        low -> addText(carContext.getString(R.string.auto_battery_low))
-                        battery != null -> addText(carContext.getString(R.string.battery_label, battery))
+                    if (state.batteryCritical || (battery != null && battery < 20)) {
+                        addText(carContext.getString(R.string.auto_battery_low))
                     }
                 }
             }

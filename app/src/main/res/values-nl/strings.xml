@@ -29,6 +29,7 @@
 
     <!-- Android Auto -->
     <string name="auto_row_title">Smart lock</string>
+    <string name="auto_row_title_battery">%1$s (%2$d%%)</string>
     <string name="auto_battery_low">Batterij bijna leeg, laad op</string>
 
 
