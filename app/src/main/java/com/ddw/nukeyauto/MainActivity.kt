@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.style.ForegroundColorSpan
-import android.text.TextUtils
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.SpannableString
 import android.util.Log
@@ -150,11 +150,14 @@ class MainActivity : AppCompatActivity() {
                     } else batteryWords
                     // Door sensor info only when a sensor is in use; nothing changes without one
                     // Door first: whether the house is closed matters more than the battery
-                    tvBattery.text = TextUtils.join(" · ", listOfNotNull<CharSequence>(
-                        state.doorState.doorLabelRes?.let { getString(R.string.door_label, getString(it)) },
-                        batteryText,
-                        if (state.doorSensorBatteryCritical) getString(R.string.door_sensor_battery_low) else null
-                    ))
+                    // SpannableStringBuilder keeps the error color; TextUtils.join would drop it
+                    tvBattery.text = SpannableStringBuilder().apply {
+                        listOfNotNull<CharSequence>(
+                            state.doorState.doorLabelRes?.let { getString(R.string.door_label, getString(it)) },
+                            batteryText,
+                            if (state.doorSensorBatteryCritical) getString(R.string.door_sensor_battery_low) else null
+                        ).forEachIndexed { i, part -> if (i > 0) append(" · "); append(part) }
+                    }
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
                     val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
