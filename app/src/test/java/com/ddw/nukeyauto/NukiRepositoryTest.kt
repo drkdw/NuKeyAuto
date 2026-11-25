@@ -580,7 +580,51 @@ class NukiRepositoryTest {
         assertEquals(LockState.Locked, repository.uiState.value.lockState)
     }
 
+    @Test
+    fun `a failing fetch right after the action never leaves the screen on Opening`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenAnswer { throw java.io.IOException("offline") }
+
+        repository.performLockAction(shouldLock = false)
+
+        val state = repository.uiState.value
+        assertEquals(LockState.Unknown, state.lockState)
+        assertTrue(state.error is NukiError.ActionNotConfirmed)
+        assertEquals(false, state.isLoading)
+    }
+
+    @Test
+    fun `cancelling the scope after sending marks the action unconfirmed`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+
+        val job = launch { repository.performLockAction(shouldLock = true) }
+        testScheduler.advanceTimeBy(1000) // sent, waiting for the lock to move
+        job.cancel()
+        job.join()
+
+        val state = repository.uiState.value
+        assertEquals(LockState.Unknown, state.lockState)
+        assertTrue(state.error is NukiError.ActionNotConfirmed)
+    }
+
     // --- demo mode ---
+
+    @Test
+    fun `turning demo off during a demo countdown never opens the real door`() = runTest {
+        whenever(prefs.getBoolean(PrefKeys.DEMO_MODE, false)).thenReturn(true)
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(3)
+        whenever(prefs.edit()).thenReturn(mock())
+        mockCredentials()
+
+        val job = launch { repository.performLockAction(shouldLock = false) }
+        testScheduler.advanceTimeBy(1500)
+        whenever(prefs.getBoolean(PrefKeys.DEMO_MODE, false)).thenReturn(false)
+        repository.setDemoMode(false)
+        job.join()
+
+        verify(api, never()).performAction(any(), any())
+    }
 
     @Test
     fun `demo mode needs no credentials and never calls the real API`() = runTest {

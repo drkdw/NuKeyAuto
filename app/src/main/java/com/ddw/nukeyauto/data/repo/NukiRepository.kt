@@ -10,6 +10,7 @@ import com.ddw.nukeyauto.data.model.ActionRequest
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.model.UiState
+import com.ddw.nukeyauto.data.model.isTransition
 import com.ddw.nukeyauto.data.safeBoolean
 import com.ddw.nukeyauto.data.safeInt
 import java.io.IOException
@@ -40,6 +41,8 @@ class NukiRepository @Inject constructor(
     fun isDemoMode(): Boolean = prefs.safeBoolean(PrefKeys.DEMO_MODE, false)
 
     fun setDemoMode(enabled: Boolean) {
+        // A countdown started in one mode must never fire in the other (demo open -> real door)
+        cancelOpen()
         prefs.edit { putBoolean(PrefKeys.DEMO_MODE, enabled) }
         // Never show the real lock's state as if it were the demo's, or the other way round
         _uiState.update { UiState() }
@@ -156,6 +159,8 @@ class NukiRepository @Inject constructor(
             return
         }
         var actionSent = false
+        // Fixed for the whole action: switching demo mode mid-countdown must not redirect it
+        val actionApi = api
         try {
             val smartlockId = validateAndGetSmartlockId() ?: return
 
@@ -186,7 +191,7 @@ class NukiRepository @Inject constructor(
 
             val action = if (shouldLock) 2 else 3
             actionSent = true
-            api.performAction(smartlockId, ActionRequest(action))
+            actionApi.performAction(smartlockId, ActionRequest(action))
             // Show "Locking…" / "Opening…" right away instead of the old state during the
             // movement delay; the polls below replace it with what the lock reports.
             _uiState.update { it.copy(lockState = if (shouldLock) LockState.Locking else LockState.Unlatching) }
@@ -207,13 +212,15 @@ class NukiRepository @Inject constructor(
                 fetchState()
                 pollCount++
             }
-            if (needsAnotherPoll(expected)) {
-                _uiState.update { it.copy(error = NukiError.ActionNotConfirmed) }
+            val end = _uiState.value
+            if (end.lockState !in expected && end.lockState !in STOP_STATES && end.error?.isConfigError() != true) {
+                markUnconfirmed()
             }
 
         } catch (e: CancellationException) {
             // Scope gone (car session ended, activity finished): don't leave a countdown on screen
             _uiState.update { it.copy(isLoading = false, countdownSeconds = 0) }
+            if (actionSent) markUnconfirmed()
             throw e
         } catch (e: IOException) {
             // Timeout or dropped connection after sending: the request may have reached Nuki
@@ -223,7 +230,7 @@ class NukiRepository @Inject constructor(
             val neverArrived = e is ConnectException || e is UnknownHostException
             if (actionSent && !neverArrived) {
                 fetchState()
-                _uiState.update { it.copy(error = NukiError.ActionNotConfirmed) }
+                markUnconfirmed()
             } else {
                 _uiState.update { it.copy(error = NukiError.ConnectionFailed) }
             }
@@ -233,6 +240,20 @@ class NukiRepository @Inject constructor(
         } finally {
             actionMutex.unlock()
             _uiState.update { it.copy(isLoading = it.countdownSeconds > 0) }
+        }
+    }
+
+    /**
+     * The action may or may not have happened. Never leave our own "Locking…"/"Opening…"
+     * on screen then: it disables the buttons with no way out. Unknown shows a warning
+     * with Retry instead.
+     */
+    private fun markUnconfirmed() {
+        _uiState.update {
+            it.copy(
+                lockState = if (it.lockState.isTransition) LockState.Unknown else it.lockState,
+                error = NukiError.ActionNotConfirmed
+            )
         }
     }
 
