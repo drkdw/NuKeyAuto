@@ -27,7 +27,10 @@ android {
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.13"
+        versionName = "1.2.13" // x-release-please-version
+        // Internal-testing builds: ./gradlew bundleRelease -PversionSuffix=-it.1 -> "1.3.0-it.1".
+        // The version itself is only ever changed by release-please.
+        (project.findProperty("versionSuffix") as String?)?.let { versionNameSuffix = it }
     }
 
     signingConfigs {
@@ -50,9 +53,15 @@ android {
         // Android framework classes (Log, etc.) return default values instead of throwing
         // RuntimeException when called from JVM unit tests.
         unitTests.isReturnDefaultValues = true
+        // Robolectric (Android Auto screen tests) needs the merged resources
+        unitTests.isIncludeAndroidResources = true
     }
 
     buildTypes {
+        debug {
+            // Installs next to the Play version, so testing never touches its settings
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -116,6 +125,9 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.app.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.robolectric)
 
 }
 

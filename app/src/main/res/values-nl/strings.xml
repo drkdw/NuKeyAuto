@@ -17,9 +17,9 @@
     <string name="battery_ok">Batterij OK</string>
     <string name="battery_critical">Batterij bijna leeg</string>
     <string name="battery_title">Batterij</string>
-    <string name="btn_open_door">DEUR OPENEN</string>
-    <string name="btn_lock_door">DEUR VERGRENDELEN</string>
-    <string name="btn_open_settings">OPEN INSTELLINGEN</string>
+    <string name="btn_open_door">Deur openen</string>
+    <string name="btn_lock_door">Deur vergrendelen</string>
+    <string name="btn_open_settings">Instellingen openen</string>
 
     <!-- Android Auto -->
     <string name="auto_row_title">Smart lock</string>
@@ -58,12 +58,17 @@
 
     <!-- Dynamic colors -->
     <string name="settings_dynamic_colors_title">Dynamische kleuren</string>
-    <string name="settings_dynamic_colors_summary">Pas de app kleuren aan op je achtergrond (Android 12+). Vereist dat \"Kleurenpalet\" of \"App-iconen met thema\" is ingeschakeld in je beeldscherminstellingen. Uitgeschakeld wordt het standaard paarse thema gebruikt. Herstart de app na het wijzigen van deze instelling.</string>
+    <string name="settings_dynamic_colors_summary">Pas de app kleuren aan op je achtergrond (Android 12+). Vereist dat \"Kleurenpalet\" of \"App-iconen met thema\" is ingeschakeld in je beeldscherminstellingen. Uitgeschakeld wordt het standaard paarse thema gebruikt.</string>
 
     <!-- Welcome (eerste setup) -->
     <string name="welcome_title">Welkom bij NuKey Auto!</string>
     <string name="welcome_message">Bedien je Nuki slim slot vanaf je telefoon en Android Auto. Om te beginnen, voeg je Nuki Web API token en Smart Lock ID toe in de instellingen.</string>
     <string name="btn_get_started">Aan de slag</string>
+    <string name="btn_try_demo">Probeer de demo</string>
+    <string name="settings_demo_title">Demomodus</string>
+    <string name="settings_demo_summary">Probeer de app met een gesimuleerd slot. Je echte slot en opgeslagen gegevens worden niet gebruikt.</string>
+    <string name="demo_badge">Demo, gesimuleerd slot</string>
+    <string name="auto_title_demo">NuKey Auto demo</string>
 
     <!-- Delen -->
     <string name="settings_share">Deel de app</string>
@@ -106,11 +111,12 @@
     <string name="error_connection_failed">Geen verbinding. Controleer je internet.</string>
     <string name="error_http_unauthorized">Ongeldige API token. Controleer je instellingen.</string>
     <string name="error_http_not_found">Smart Lock niet gevonden. Controleer je ID.</string>
+    <string name="error_action_not_confirmed">Het slot heeft de actie niet bevestigd. Controleer de status van het slot voor je opnieuw probeert.</string>
     <string name="error_http_rate_limit">Te veel verzoeken. Probeer later opnieuw.</string>
     <string name="error_http_server">Nuki server niet bereikbaar. Probeer later opnieuw.</string>
     <string name="error_generic">Er ging iets mis. Probeer opnieuw.</string>
-    <string name="btn_retry">OPNIEUW</string>
-    <string name="btn_cancel">ANNULEREN</string>
+    <string name="btn_retry">Opnieuw</string>
+    <string name="btn_cancel">Annuleren</string>
 
     <!-- Support the developer -->
     <string name="support_title">Steun de ontwikkelaar</string>

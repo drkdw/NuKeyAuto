@@ -62,8 +62,12 @@ class SettingsActivity : AppCompatActivity() {
 
         // Handle window insets for edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            // Include the keyboard, or it covers the lower half of the form and the Save button
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or
+                    WindowInsetsCompat.Type.ime()
+            )
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
 
@@ -116,6 +120,9 @@ class SettingsActivity : AppCompatActivity() {
         val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
         switchDynamicColors.isChecked = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
 
+        val switchDemo = findViewById<MaterialSwitch>(R.id.switchDemo)
+        switchDemo.isChecked = repository.isDemoMode()
+
         // Confirmation switch, read from prefs, default ON
         switchConfirm.isChecked = prefs.safeBoolean(PrefKeys.CONFIRM_ACTION, true)
 
@@ -132,9 +139,9 @@ class SettingsActivity : AppCompatActivity() {
 
         // Rate on Play Store
         findViewById<MaterialButton>(R.id.btnRate).setOnClickListener {
-            val uri = "market://details?id=${BuildConfig.APPLICATION_ID}".toUri()
+            val uri = "market://details?id=${PLAY_PACKAGE}".toUri()
             val fallback =
-                "https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}".toUri()
+                "https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}".toUri()
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, uri))
             } catch (e: Exception) {
@@ -163,7 +170,7 @@ class SettingsActivity : AppCompatActivity() {
                 putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject))
                 putExtra(
                     Intent.EXTRA_TEXT,
-                    getString(R.string.share_text, BuildConfig.APPLICATION_ID)
+                    getString(R.string.share_text, PLAY_PACKAGE)
                 )
             }
             startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)))
@@ -242,6 +249,15 @@ class SettingsActivity : AppCompatActivity() {
 
             applySelectedTheme(themeLabels, actvTheme.text.toString())
             applySelectedLanguage(langLabels, actvLanguage.text.toString())
+
+            if (switchDemo.isChecked != repository.isDemoMode()) {
+                repository.setDemoMode(switchDemo.isChecked)
+            }
+            // The demo needs no credentials; whatever is stored stays for later
+            if (switchDemo.isChecked && (token.isEmpty() || id.isEmpty())) {
+                finish()
+                return@setOnClickListener
+            }
 
             if (token.isEmpty() || id.isEmpty()) {
                 Toast.makeText(this, R.string.toast_fill_all_fields, Toast.LENGTH_SHORT).show()
@@ -363,6 +379,9 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     companion object {
+        /** Store listing, also from debug builds (which carry a ".debug" suffix). */
+        private const val PLAY_PACKAGE = "com.ddw.nukeyauto"
+
         private const val FEEDBACK_EMAIL = "hoolite+nukey@gmail.com"
     }
 }

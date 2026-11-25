@@ -18,6 +18,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.ddw.nukeyauto.billing.BillingHelper
+import com.ddw.nukeyauto.data.PrefKeys
+import com.ddw.nukeyauto.data.safeBoolean
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.model.iconRes
@@ -51,9 +53,14 @@ class MainActivity : AppCompatActivity() {
         cardAnimator.startAmbientCycle()
     }
 
+    /** Dynamic-colors setting this activity was themed with; a change recreates it. */
+    private var dynamicColorsAtCreate = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // After super.onCreate: Hilt injects prefs there
+        dynamicColorsAtCreate = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
         setContentView(R.layout.activity_main)
 
         // Handle window insets for edge-to-edge display
@@ -107,6 +114,7 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     Log.d(TAG, "state=$state")
+                    toolbar.subtitle = if (viewModel.isDemoMode()) getString(R.string.demo_badge) else null
 
                     tvBattery.text = state.battery?.let { getString(R.string.battery_label, it) }
                         ?: getString(if (state.batteryCritical) R.string.battery_critical else R.string.battery_ok)
@@ -153,11 +161,16 @@ class MainActivity : AppCompatActivity() {
                         tvBattery.visibility = View.GONE
                         tvWelcome.visibility = View.VISIBLE
                         btnAction.text = getString(R.string.btn_get_started)
-                        btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                        btnAction.backgroundTintList = buttonTint(btnAction, colorPrimary)
                         btnAction.isEnabled = true
                         btnAction.setOnClickListener {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
                         }
+                        btnSecondary.text = getString(R.string.btn_try_demo)
+                        btnSecondary.isEnabled = true
+                        btnSecondary.visibility = View.VISIBLE
+                        btnSecondary.setOnClickListener { viewModel.startDemo() }
+                        cardStatus.contentDescription = tvStatus.text
                         if (isFirstState) {
                             cardAnimator.setInitialState(LockState.Unknown, isWelcome = true)
                             isFirstState = false
@@ -181,7 +194,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         btnRes?.let {
                             btnAction.text = getString(it)
-                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.backgroundTintList = buttonTint(btnAction, colorPrimary)
                         }
                         // Retry stays tappable while loading; door actions wait for the lock
                         btnAction.isEnabled = btnRes != null && (lock in RETRY_STATES || !state.isLoading)
@@ -201,10 +214,10 @@ class MainActivity : AppCompatActivity() {
                         tvStatus.text = state.error.toLocalizedString(this@MainActivity)
                         if (state.error.isConfigError()) {
                             btnAction.text = getString(R.string.btn_open_settings)
-                            btnAction.backgroundTintList = ColorStateList.valueOf(colorError)
+                            btnAction.backgroundTintList = buttonTint(btnAction, colorError)
                         } else {
                             btnAction.text = getString(R.string.btn_retry)
-                            btnAction.backgroundTintList = ColorStateList.valueOf(colorPrimary)
+                            btnAction.backgroundTintList = buttonTint(btnAction, colorPrimary)
                         }
                         btnAction.isEnabled = true
                     } else {
@@ -214,6 +227,9 @@ class MainActivity : AppCompatActivity() {
                         tvStatus.text = getString(R.string.status_loading)
                         btnAction.isEnabled = false
                     }
+
+                    // The shape and icon carry the state visually; give TalkBack the same text
+                    cardStatus.contentDescription = tvStatus.text
 
                     // Animate card shape based on state
                     val isError = state.error != null && state.lockState == LockState.Unknown
@@ -229,7 +245,13 @@ class MainActivity : AppCompatActivity() {
                     val isNewError = state.error != lastShownError
                     lastShownError = state.error
                     if (isNewError && state.error != null && state.lockState != LockState.Unknown) {
-                        Snackbar.make(swipeRefresh, state.error.toLocalizedString(this@MainActivity), Snackbar.LENGTH_LONG)
+                        // "Did the door move?" must not vanish before it is read
+                        val duration = if (state.error is NukiError.ActionNotConfirmed) {
+                            UNCONFIRMED_SNACKBAR_MS
+                        } else {
+                            Snackbar.LENGTH_LONG
+                        }
+                        Snackbar.make(swipeRefresh, state.error.toLocalizedString(this@MainActivity), duration)
                             .setAction(R.string.btn_retry) { viewModel.refresh() }
                             .show()
                     }
@@ -237,7 +259,7 @@ class MainActivity : AppCompatActivity() {
                     // During the open delay the primary button is the way out
                     if (state.countdownSeconds > 0) {
                         btnAction.text = getString(R.string.btn_cancel)
-                        btnAction.backgroundTintList = ColorStateList.valueOf(colorError)
+                        btnAction.backgroundTintList = buttonTint(btnAction, colorError)
                         btnAction.isEnabled = true
                     }
 
@@ -310,6 +332,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true) != dynamicColorsAtCreate) {
+            recreate()
+            return
+        }
         Log.d(TAG, "onResume → refresh()")
         viewModel.refresh()
         updateSupporterBadge()
@@ -346,8 +372,26 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    /**
+     * Button background with a proper disabled look. A plain valueOf() tint keeps the full
+     * color when disabled, so a disabled button looked enabled with unreadable text.
+     */
+    private fun buttonTint(button: View, enabledColor: Int): ColorStateList {
+        val onSurface = MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnSurface)
+        val disabled = MaterialColors.compositeARGBWithAlpha(onSurface, DISABLED_CONTAINER_ALPHA)
+        return ColorStateList(
+            arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
+            intArrayOf(disabled, enabledColor)
+        )
+    }
+
     companion object {
         private const val TAG = "MainActivity"
+
+        /** Material 3 disabled container: onSurface at 12% opacity. */
+        private const val DISABLED_CONTAINER_ALPHA = 31
+
+        private const val UNCONFIRMED_SNACKBAR_MS = 10_000
 
         /** Pause at a full stroke ring before clearing it when the countdown ends. */
         private const val RESUME_AMBIENT_DELAY_MS = 300L

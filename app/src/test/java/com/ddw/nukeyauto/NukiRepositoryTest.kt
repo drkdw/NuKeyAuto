@@ -3,6 +3,7 @@ package com.ddw.nukeyauto
 import android.content.SharedPreferences
 import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.api.NukiApiService
+import com.ddw.nukeyauto.data.demo.DemoLock
 import com.ddw.nukeyauto.data.model.ActionRequest
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.LockStateResponse
@@ -49,7 +50,7 @@ class NukiRepositoryTest {
     fun setup() {
         api = mock()
         prefs = mock()
-        repository = NukiRepository(api, prefs)
+        repository = NukiRepository(api, prefs, DemoLock())
     }
 
     // --- fetchState tests ---
@@ -289,7 +290,7 @@ class NukiRepositoryTest {
     @Test
     fun `performLockAction on IOException sets ConnectionFailed error`() = runTest {
         mockCredentials()
-        whenever(api.performAction(any(), any())).thenAnswer { throw java.io.IOException("Connection refused") }
+        whenever(api.performAction(any(), any())).thenAnswer { throw java.net.ConnectException("Connection refused") }
 
         repository.performLockAction(shouldLock = false)
 
@@ -427,6 +428,216 @@ class NukiRepositoryTest {
 
         verify(api, times(1)).getSmartLockState(123456789L)
         assertEquals(LockState.Locked, repository.uiState.value.lockState)
+    }
+
+    // --- reliability: single action, expected result, timeouts, revoked token ---
+
+    @Test
+    fun `a second action while one is running is ignored`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+
+        val first = launch { repository.performLockAction(shouldLock = true) }
+        testScheduler.advanceTimeBy(500) // first action is waiting for the lock to move
+        repository.performLockAction(shouldLock = true)
+        first.join()
+
+        verify(api, times(1)).performAction(any(), any())
+    }
+
+    @Test
+    fun `a refresh during a lock action keeps the loading state`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 3))
+
+        val job = launch { repository.performLockAction(shouldLock = true) }
+        testScheduler.advanceTimeBy(500)
+        repository.fetchState()
+
+        assertEquals(true, repository.uiState.value.isLoading)
+        job.join()
+        assertEquals(false, repository.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `lock keeps polling while the cloud still reports the old state`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L))
+            .thenReturn(mockResponse(state = 3), mockResponse(state = 3), mockResponse(state = 1))
+
+        repository.performLockAction(shouldLock = true)
+
+        verify(api, times(3)).getSmartLockState(123456789L)
+        assertEquals(LockState.Locked, repository.uiState.value.lockState)
+        assertNull(repository.uiState.value.error)
+    }
+
+    @Test
+    fun `lock that never reports Locked ends with ActionNotConfirmed`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 3))
+
+        repository.performLockAction(shouldLock = true)
+
+        verify(api, times(6)).getSmartLockState(123456789L)
+        assertTrue(repository.uiState.value.error is NukiError.ActionNotConfirmed)
+        assertEquals(false, repository.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `polling stops on a motor blocked lock without an extra error`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 254))
+
+        repository.performLockAction(shouldLock = true)
+
+        verify(api, times(1)).getSmartLockState(123456789L)
+        assertNull(repository.uiState.value.error)
+    }
+
+    @Test
+    fun `open accepts Unlocked as the settled result`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 3))
+
+        repository.performLockAction(shouldLock = false)
+
+        verify(api, times(1)).getSmartLockState(123456789L)
+        assertNull(repository.uiState.value.error)
+    }
+
+    @Test
+    fun `timeout after sending refetches the state and asks the user to check`() = runTest {
+        mockCredentials()
+        whenever(api.performAction(any(), any())).thenAnswer { throw java.net.SocketTimeoutException("timeout") }
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 5))
+
+        repository.performLockAction(shouldLock = false)
+
+        verify(api, times(1)).getSmartLockState(123456789L)
+        val state = repository.uiState.value
+        assertEquals(LockState.Unlatched, state.lockState)
+        assertTrue(state.error is NukiError.ActionNotConfirmed)
+        assertEquals(false, state.isLoading)
+    }
+
+    @Test
+    fun `a failed action releases the lock for the next action`() = runTest {
+        mockCredentials()
+        whenever(api.performAction(any(), any()))
+            .thenAnswer { throw java.net.ConnectException("refused") }
+            .thenReturn(Unit)
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+
+        repository.performLockAction(shouldLock = true)
+        repository.performLockAction(shouldLock = true)
+
+        verify(api, times(2)).performAction(any(), any())
+        assertNull(repository.uiState.value.error)
+    }
+
+    @Test
+    fun `a cancelled countdown releases the lock for the next action`() = runTest {
+        mockCredentials()
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(3)
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+
+        val job = launch { repository.performLockAction(shouldLock = false) }
+        testScheduler.advanceTimeBy(1500)
+        repository.cancelOpen()
+        job.join()
+        repository.performLockAction(shouldLock = true)
+
+        verify(api, times(1)).performAction(123456789L, ActionRequest(2))
+    }
+
+    @Test
+    fun `revoked token clears the last known lock state`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+        repository.fetchState()
+
+        val response = Response.error<SmartLockResponse>(401, "Unauthorized".toResponseBody())
+        whenever(api.getSmartLockState(any())).thenThrow(HttpException(response))
+        repository.fetchState()
+
+        val state = repository.uiState.value
+        assertEquals(LockState.Unknown, state.lockState)
+        assertNull(state.battery)
+        assertTrue(state.error is NukiError.HttpError)
+    }
+
+    @Test
+    fun `server error keeps the last known lock state`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+        repository.fetchState()
+
+        val response = Response.error<SmartLockResponse>(503, "Down".toResponseBody())
+        whenever(api.getSmartLockState(any())).thenThrow(HttpException(response))
+        repository.fetchState()
+
+        assertEquals(LockState.Locked, repository.uiState.value.lockState)
+    }
+
+    @Test
+    fun `a failing fetch right after the action never leaves the screen on Opening`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenAnswer { throw java.io.IOException("offline") }
+
+        repository.performLockAction(shouldLock = false)
+
+        val state = repository.uiState.value
+        assertEquals(LockState.Unknown, state.lockState)
+        assertTrue(state.error is NukiError.ActionNotConfirmed)
+        assertEquals(false, state.isLoading)
+    }
+
+    @Test
+    fun `cancelling the scope after sending marks the action unconfirmed`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(mockResponse(state = 1))
+
+        val job = launch { repository.performLockAction(shouldLock = true) }
+        testScheduler.advanceTimeBy(1000) // sent, waiting for the lock to move
+        job.cancel()
+        job.join()
+
+        val state = repository.uiState.value
+        assertEquals(LockState.Unknown, state.lockState)
+        assertTrue(state.error is NukiError.ActionNotConfirmed)
+    }
+
+    // --- demo mode ---
+
+    @Test
+    fun `turning demo off during a demo countdown never opens the real door`() = runTest {
+        whenever(prefs.getBoolean(PrefKeys.DEMO_MODE, false)).thenReturn(true)
+        whenever(prefs.getInt(PrefKeys.OPEN_DELAY_SECONDS, 0)).thenReturn(3)
+        whenever(prefs.edit()).thenReturn(mock())
+        mockCredentials()
+
+        val job = launch { repository.performLockAction(shouldLock = false) }
+        testScheduler.advanceTimeBy(1500)
+        whenever(prefs.getBoolean(PrefKeys.DEMO_MODE, false)).thenReturn(false)
+        repository.setDemoMode(false)
+        job.join()
+
+        verify(api, never()).performAction(any(), any())
+    }
+
+    @Test
+    fun `demo mode needs no credentials and never calls the real API`() = runTest {
+        whenever(prefs.getBoolean(PrefKeys.DEMO_MODE, false)).thenReturn(true)
+
+        repository.fetchState()
+        repository.performLockAction(shouldLock = false)
+
+        verify(api, never()).getSmartLockState(any())
+        verify(api, never()).performAction(any(), any())
+        val state = repository.uiState.value
+        assertTrue(state.lockState == LockState.Unlatched || state.lockState == LockState.Unlocked)
+        assertNull(state.error)
     }
 
     // --- saveCredentials tests ---
