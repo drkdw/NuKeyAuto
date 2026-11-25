@@ -100,6 +100,33 @@ class DoorControlScreenTest {
     }
 
     @Test
+    fun `without a door sensor the car shows no door row`() {
+        val (screen, _) = startScreen()
+        assertEquals(2, screen.pane().rows.size)
+    }
+
+    @Test
+    fun `an open door shows the door row and hides Open and Lock`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 3, batteryCharge = 70, doorState = 3)))
+        val (screen, _) = startScreen()
+
+        val pane = screen.pane()
+        assertEquals(3, pane.rows.size)
+        assertEquals("Door", pane.rows[2].title.toString())
+        assertTrue(pane.actions.isEmpty())
+    }
+
+    @Test
+    fun `a closed door keeps the normal actions`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 3, batteryCharge = 70, doorState = 2)))
+        val (screen, _) = startScreen()
+
+        assertEquals(listOf("Open door", "Lock door"), screen.pane().actionTitles())
+    }
+
+    @Test
     fun `demo mode is named in the car title and works without credentials`() {
         whenever(prefs.getBoolean(PrefKeys.DEMO_MODE, false)).thenReturn(true)
         whenever(prefs.getString(PrefKeys.NUKI_TOKEN, "")).thenReturn("")

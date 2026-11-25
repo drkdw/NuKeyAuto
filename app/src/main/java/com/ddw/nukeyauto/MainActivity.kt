@@ -20,7 +20,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.ddw.nukeyauto.billing.BillingHelper
 import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.safeBoolean
+import com.ddw.nukeyauto.data.model.DoorState
 import com.ddw.nukeyauto.data.model.LockState
+import com.ddw.nukeyauto.data.model.doorLabelRes
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.model.iconRes
 import com.ddw.nukeyauto.data.model.isFault
@@ -35,6 +37,9 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -110,14 +115,28 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Door left open: watch it while this screen is visible
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.map { it.doorState == DoorState.Open }.distinctUntilChanged()
+                    .collectLatest { open -> if (open) viewModel.refreshWhileDoorOpen() }
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     Log.d(TAG, "state=$state")
                     toolbar.subtitle = if (viewModel.isDemoMode()) getString(R.string.demo_badge) else null
 
-                    tvBattery.text = state.battery?.let { getString(R.string.battery_label, it) }
+                    val batteryText = state.battery?.let { getString(R.string.battery_label, it) }
                         ?: getString(if (state.batteryCritical) R.string.battery_critical else R.string.battery_ok)
+                    // Door sensor info only when a sensor is in use; nothing changes without one
+                    tvBattery.text = listOfNotNull(
+                        batteryText,
+                        state.doorState.doorLabelRes?.let { getString(R.string.door_label, getString(it)) },
+                        if (state.doorSensorBatteryCritical) getString(R.string.door_sensor_battery_low) else null
+                    ).joinToString(" · ")
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
                     val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
@@ -155,7 +174,11 @@ class MainActivity : AppCompatActivity() {
 
                     // First setup: no credentials yet → friendly welcome screen
                     if (state.error is NukiError.NoCredentials) {
-                        ivIcon.setImageResource(R.drawable.ic_lock)
+                        // Our own car-and-key mark welcomes people, not a generic lock
+                        ivIcon.setImageResource(R.drawable.ic_launcher_monochrome)
+                        // The launcher artwork keeps adaptive-icon padding; enlarge it to fill
+                        ivIcon.scaleX = BRAND_ICON_SCALE
+                        ivIcon.scaleY = BRAND_ICON_SCALE
                         ivIcon.imageTintList = ColorStateList.valueOf(colorPrimary)
                         tvStatus.text = getString(R.string.welcome_title)
                         tvBattery.visibility = View.GONE
@@ -180,6 +203,8 @@ class MainActivity : AppCompatActivity() {
                         return@collect
                     }
 
+                    ivIcon.scaleX = 1f
+                    ivIcon.scaleY = 1f
                     val lock = state.lockState
                     if (lock != LockState.Unknown) {
                         ivIcon.setImageResource(lock.iconRes)
@@ -202,6 +227,17 @@ class MainActivity : AppCompatActivity() {
                             btnSecondary.text = getString(R.string.btn_lock_door)
                             btnSecondary.isEnabled = !state.isLoading
                             btnSecondary.visibility = View.VISIBLE
+                        }
+                        if (state.lockedButDoorOpen) {
+                            ivIcon.setImageResource(R.drawable.ic_warning)
+                            ivIcon.imageTintList = ColorStateList.valueOf(colorError)
+                            tvStatus.text = getString(R.string.door_open_while_locked)
+                        }
+                        // Locking or opening a door that stands open does nothing useful
+                        if (state.doorState == DoorState.Open && btnRes != null && lock !in RETRY_STATES) {
+                            btnAction.text = getString(R.string.door_close_first)
+                            btnAction.isEnabled = false
+                            btnSecondary.visibility = View.GONE
                         }
                         if (lock == LockState.MotorBlocked) {
                             val strokeWidthPx = 4f * resources.displayMetrics.density
@@ -392,6 +428,8 @@ class MainActivity : AppCompatActivity() {
         private const val DISABLED_CONTAINER_ALPHA = 31
 
         private const val UNCONFIRMED_SNACKBAR_MS = 10_000
+
+        private const val BRAND_ICON_SCALE = 1.7f
 
         /** Pause at a full stroke ring before clearing it when the countdown ends. */
         private const val RESUME_AMBIENT_DELAY_MS = 300L

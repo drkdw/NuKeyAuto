@@ -12,7 +12,10 @@ data class LockStateResponse(
     @SerializedName("state") val state: Int,
     // Missing on locks that only report batteryCritical (Smart Lock 1.0 / 2.0)
     @SerializedName("batteryCharge") val batteryCharge: Int? = null,
-    @SerializedName("batteryCritical") val batteryCritical: Boolean = false
+    @SerializedName("batteryCritical") val batteryCritical: Boolean = false,
+    // Nuki Door Sensor; 0/1/240 (or missing) when no sensor is in use
+    @SerializedName("doorState") val doorState: Int? = null,
+    @SerializedName("doorsensorBatteryCritical") val doorSensorBatteryCritical: Boolean = false
 )
 
 /** Request body for lock/unlock actions. */
@@ -34,6 +37,29 @@ enum class LockState {
     Undefined,    // State 255: lock offline / unavailable
     Unknown
 }
+
+/**
+ * Door as reported by the Nuki Door Sensor. [None] hides everything door-related, so
+ * people without a sensor see no difference: no setting needed.
+ */
+enum class DoorState { None, Closed, Open, Unknown }
+
+/** Nuki Web API doorState: 2 closed, 3 open; 4/5/16/255 sensor present but unsure. */
+fun doorStateFrom(code: Int?): DoorState = when (code) {
+    2 -> DoorState.Closed
+    3 -> DoorState.Open
+    4, 5, 16, 255 -> DoorState.Unknown
+    else -> DoorState.None // missing, 0 not paired, 1 deactivated, 240 removed
+}
+
+/** "closed" / "open" / "unknown" for the door line, or null without a sensor. */
+val DoorState.doorLabelRes: Int?
+    get() = when (this) {
+        DoorState.Closed -> R.string.door_closed
+        DoorState.Open -> R.string.door_open
+        DoorState.Unknown -> R.string.door_unknown
+        DoorState.None -> null
+    }
 
 /** True while the lock is still moving or booting, so no action should be offered. */
 val LockState.isTransition: Boolean

@@ -16,12 +16,19 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.ddw.nukeyauto.R
+import com.ddw.nukeyauto.data.model.DoorState
 import com.ddw.nukeyauto.data.model.LockState
+import com.ddw.nukeyauto.data.model.doorLabelRes
 import com.ddw.nukeyauto.data.model.iconRes
 import com.ddw.nukeyauto.data.model.isFault
 import com.ddw.nukeyauto.data.model.isTransition
 import com.ddw.nukeyauto.data.model.statusRes
 import com.ddw.nukeyauto.data.repo.NukiRepository
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /** Android Auto screen showing lock status and action buttons. */
@@ -71,6 +78,14 @@ class DoorControlScreen(
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) = refresh()
         })
+
+        // Door left open: watch it while the car screen is visible
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                repository.uiState.map { it.doorState == DoorState.Open }.distinctUntilChanged()
+                    .collectLatest { open -> if (open) repository.refreshWhileDoorOpen() }
+            }
+        }
     }
 
     // Launched in the Screen's own lifecycleScope: it is cancelled when the car session
@@ -126,10 +141,17 @@ class DoorControlScreen(
             statusTitle = carContext.getString(R.string.auto_row_title)
             statusSubtitle = carContext.getString(R.string.status_countdown, state.countdownSeconds)
         } else {
-            statusRowIcon = lockStateToCarIcon(state.lockState)
+            statusRowIcon = if (state.lockedButDoorOpen) {
+                CarIcon.Builder(IconCompat.createWithResource(carContext, R.drawable.ic_warning))
+                    .setTint(CarColor.YELLOW).build()
+            } else {
+                lockStateToCarIcon(state.lockState)
+            }
             statusTitle = carContext.getString(R.string.auto_row_title)
             statusSubtitle = if (state.lockState == LockState.Unknown && state.error != null) {
                 state.error.toLocalizedString(carContext)
+            } else if (state.lockedButDoorOpen) {
+                carContext.getString(R.string.door_open_while_locked)
             } else {
                 carContext.getString(state.lockState.statusRes)
             }
@@ -183,7 +205,7 @@ class DoorControlScreen(
             .build()
 
         // --- Large image on the right side (padded pane versions) ---
-        val paneImage = lockStateToCarIcon(state.lockState)
+        val paneImage = if (state.lockedButDoorOpen) statusRowIcon else lockStateToCarIcon(state.lockState)
 
         val confirmationEnabled = repository.isConfirmationEnabled()
 
@@ -193,6 +215,24 @@ class DoorControlScreen(
             .addRow(batteryRow)
             .setImage(paneImage)
 
+        // --- Row 3: Door, only with a Nuki Door Sensor in use ---
+        state.doorState.doorLabelRes?.let { labelRes ->
+            val doorRow = Row.Builder()
+                .setTitle(carContext.getString(R.string.door_title))
+                .addText(carContext.getString(labelRes).replaceFirstChar { it.uppercase() })
+                .setImage(
+                    CarIcon.Builder(IconCompat.createWithResource(
+                        carContext,
+                        if (state.doorState == DoorState.Open) R.drawable.ic_door_open else R.drawable.ic_door_closed
+                    )).setTint(if (state.lockedButDoorOpen) CarColor.YELLOW else CarColor.DEFAULT).build()
+                )
+            when {
+                state.doorState == DoorState.Open -> doorRow.addText(carContext.getString(R.string.door_close_first))
+                state.doorSensorBatteryCritical -> doorRow.addText(carContext.getString(R.string.door_sensor_battery_low))
+            }
+            paneBuilder.addRow(doorRow.build())
+        }
+
         // --- Action buttons (hidden during transitions; only Cancel during the countdown) ---
         if (state.countdownSeconds > 0) {
             paneBuilder.addAction(
@@ -201,7 +241,10 @@ class DoorControlScreen(
                     .setOnClickListener { repository.cancelOpen() }
                     .build()
             )
-        } else if (!state.lockState.isTransition && !state.isLoading) {
+        } else if (!state.lockState.isTransition && !state.isLoading &&
+            (state.doorState != DoorState.Open || state.lockState in RETRY_LOCK_STATES)
+        ) {
+            // An open door hides Open/Lock: the door row says to close it first
             when (state.lockState) {
                 LockState.Unlocked -> {
                     paneBuilder.addAction(buildAction(
@@ -303,3 +346,6 @@ class DoorControlScreen(
             .setTint(if (lockState.isFault) CarColor.YELLOW else CarColor.DEFAULT)
             .build()
 }
+
+/** Lock states that offer Retry; they stay available whatever the door does. */
+private val RETRY_LOCK_STATES = setOf(LockState.Uncalibrated, LockState.Undefined, LockState.Unknown)
