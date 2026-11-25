@@ -17,20 +17,22 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/img/auto-locked.png" width="600" alt="NuKey Auto in Android Auto showing the lock status and an Open door button">
+  <img src="docs/assets/img/auto-locked.png" width="600" alt="NuKey Auto in Android Auto: smart lock locked at 82% battery, door closed, with an Open door button">
 </p>
 
 <p align="center">
-  <img src="docs/assets/img/phone-unlocked.png" width="180" alt="Phone app, unlocked">
-  <img src="docs/assets/img/phone-countdown.png" width="180" alt="Phone app, countdown before opening">
+  <img src="docs/assets/img/phone-unlocked.png" width="180" alt="Phone app, unlocked with the door closed">
+  <img src="docs/assets/img/phone-door-open.png" width="180" alt="Phone app, door open with the hint to close it before locking">
   <img src="docs/assets/img/phone-confirm.png" width="180" alt="Phone app, confirmation dialog">
 </p>
 
 ## Features
 
-- **Android Auto first**: lock status, battery and one clear action on your car screen
+- **Android Auto first**: lock status, door and battery with one clear action on your car screen, readable at a glance
 - **Safe by design**: optional confirmation and a cancellable countdown before the door opens
-- **Phone app**: the same controls as a standalone app, with Material 3, dynamic color and dark mode
+- **Nuki Door Sensor**: shows whether the door is open and will not offer to lock an open door; nothing changes without a sensor
+- **Phone app**: the same controls as a standalone app, in the NuKey Auto colors or your wallpaper colors, light and dark
+- **Demo mode**: try every screen with a simulated lock before you set up your Nuki
 - **Private**: no analytics, no tracking; credentials are stored encrypted on the device and only sent to the official Nuki Web API
 - **English and Dutch**
 - Optional support-the-developer donations via Google Play
