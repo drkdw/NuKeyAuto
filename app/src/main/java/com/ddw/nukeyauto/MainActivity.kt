@@ -4,6 +4,10 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.text.style.ForegroundColorSpan
+import android.text.TextUtils
+import android.text.Spanned
+import android.text.SpannableString
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -129,15 +133,28 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "state=$state")
                     toolbar.subtitle = if (viewModel.isDemoMode()) getString(R.string.demo_badge) else null
 
-                    val batteryText = state.battery?.let { getString(R.string.battery_label, it) }
-                        ?: getString(if (state.batteryCritical) R.string.battery_critical else R.string.battery_ok)
+                    val colorErrorText = MaterialColors.getColor(tvBattery, androidx.appcompat.R.attr.colorError)
+                    val battery = state.battery
+                    val batteryLow = state.batteryCritical || (battery != null && battery < 20)
+                    val batteryWords = when {
+                        battery != null && batteryLow -> getString(R.string.battery_low_label, battery)
+                        battery != null -> getString(R.string.battery_label, battery)
+                        batteryLow -> getString(R.string.battery_critical)
+                        else -> getString(R.string.battery_ok)
+                    }
+                    // A low battery is said in words and shown in the error color
+                    val batteryText: CharSequence = if (batteryLow) {
+                        SpannableString(batteryWords).apply {
+                            setSpan(ForegroundColorSpan(colorErrorText), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        }
+                    } else batteryWords
                     // Door sensor info only when a sensor is in use; nothing changes without one
                     // Door first: whether the house is closed matters more than the battery
-                    tvBattery.text = listOfNotNull(
+                    tvBattery.text = TextUtils.join(" · ", listOfNotNull<CharSequence>(
                         state.doorState.doorLabelRes?.let { getString(R.string.door_label, getString(it)) },
                         batteryText,
                         if (state.doorSensorBatteryCritical) getString(R.string.door_sensor_battery_low) else null
-                    ).joinToString(" · ")
+                    ))
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
                     val colorPrimary = MaterialColors.getColor(btnAction, androidx.appcompat.R.attr.colorPrimary)

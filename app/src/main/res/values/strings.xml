@@ -16,6 +16,7 @@
     <string name="status_loading">Loading…</string>
     <string name="status_countdown">Opening in %1$d…</string>
     <string name="battery_label">Battery: %1$d%%</string>
+    <string name="battery_low_label">Battery low: %1$d%%</string>
     <!-- Locks that report no charge percentage, only whether the battery is critical -->
     <string name="battery_ok">Battery OK</string>
     <string name="battery_critical">Battery low</string>
