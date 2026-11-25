@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Behind the "close the door to lock" hint: tertiary (amber) marks an instruction;
-     compact label next to the status, not a button -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="?attr/colorTertiaryContainer" />
-    <corners android:radius="8dp" />
-</shape>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Message bar, hint style: tertiary (amber) for an instruction such as "close the door" -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="?attr/colorTertiaryContainer" />
+    <corners android:radius="16dp" />
+</shape>

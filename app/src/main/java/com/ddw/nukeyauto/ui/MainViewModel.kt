@@ -3,7 +3,6 @@ package com.ddw.nukeyauto.ui
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.repo.NukiRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -20,8 +19,6 @@ class MainViewModel @Inject constructor(
 
     val uiState = repository.uiState
 
-    /** Last error shown as a Snackbar; survives rotation so it is not shown again. */
-    var lastShownError: NukiError? = null
 
     /**
      * Refresh the lock state from the API.
