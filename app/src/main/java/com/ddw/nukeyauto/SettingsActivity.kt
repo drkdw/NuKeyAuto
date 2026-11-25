@@ -118,7 +118,7 @@ class SettingsActivity : AppCompatActivity() {
 
         // Dynamic colors switch, default ON, stored on Save like every other setting
         val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
-        switchDynamicColors.isChecked = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
+        switchDynamicColors.isChecked = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, PrefKeys.DYNAMIC_COLORS_DEFAULT)
 
         val switchDemo = findViewById<MaterialSwitch>(R.id.switchDemo)
         switchDemo.isChecked = repository.isDemoMode()
