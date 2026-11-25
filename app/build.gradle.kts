@@ -27,7 +27,10 @@ android {
         val versionCodeGenerated = (System.currentTimeMillis() / 1000).toInt()
 
         versionCode = versionCodeGenerated
-        versionName = "1.2.13"
+        versionName = "1.2.13" // x-release-please-version
+        // Internal-testing builds: ./gradlew bundleRelease -PversionSuffix=-it.1 -> "1.3.0-it.1".
+        // The version itself is only ever changed by release-please.
+        (project.findProperty("versionSuffix") as String?)?.let { versionNameSuffix = it }
     }
 
     signingConfigs {
