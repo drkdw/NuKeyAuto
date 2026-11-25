@@ -3,7 +3,10 @@ package com.ddw.nukeyauto.ui.auto
 import androidx.car.app.CarContext
 import androidx.car.app.CarToast
 import androidx.car.app.Screen
+import android.text.SpannableString
+import android.text.Spanned
 import androidx.car.app.model.Action
+import androidx.car.app.model.ForegroundCarColorSpan
 import androidx.car.app.model.CarColor
 import androidx.car.app.model.CarIcon
 import androidx.car.app.model.Header
@@ -144,6 +147,9 @@ class DoorControlScreen(
             statusRowIcon = if (state.lockedButDoorOpen) {
                 CarIcon.Builder(IconCompat.createWithResource(carContext, R.drawable.ic_warning))
                     .setTint(CarColor.YELLOW).build()
+            } else if (state.lockState == LockState.Unlatched && state.doorState.doorLabelRes != null) {
+                // Matches the "Unlocked" text; the door row shows the open door
+                lockStateToCarIcon(LockState.Unlocked)
             } else {
                 lockStateToCarIcon(state.lockState)
             }
@@ -153,56 +159,35 @@ class DoorControlScreen(
             } else if (state.lockedButDoorOpen) {
                 carContext.getString(R.string.door_open_while_locked)
             } else {
-                carContext.getString(state.lockState.statusRes)
+                carContext.getString(state.lockStatusRes)
             }
         }
 
+        val battery = state.battery
+        val titleWithBattery = if (battery != null && state.countdownSeconds == 0 && state.lockState != LockState.Unknown) {
+            carContext.getString(R.string.auto_row_title_battery, statusTitle, battery)
+        } else {
+            statusTitle
+        }
         val statusRow = Row.Builder()
-            .setTitle(statusTitle)
+            .setTitle(titleWithBattery)
             .addText(statusSubtitle)
+            .apply {
+                // Battery percentage sits in the title ("Smart lock (82%)"); only a low battery
+                // gets its own line
+                if (state.countdownSeconds == 0 && state.lockState != LockState.Unknown) {
+                    val battery = state.battery
+                    if (state.batteryCritical || (battery != null && battery < 20)) {
+                        // Yellow on top of the words: noticeable at a glance, never color alone
+                        val text = SpannableString(carContext.getString(R.string.auto_battery_low))
+                        text.setSpan(ForegroundCarColorSpan.create(CarColor.YELLOW), 0, text.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+                        addText(text)
+                    }
+                }
+            }
             .setImage(statusRowIcon)
             .build()
 
-        // --- Row 2: Battery (icon matches level) ---
-        val battery = state.battery
-        val batteryLow = state.batteryCritical || (battery != null && battery < 20)
-        val batteryIconRes = when {
-            battery == null -> if (state.batteryCritical) R.drawable.ic_battery_0 else R.drawable.ic_battery
-            battery < 15 -> R.drawable.ic_battery_0
-            battery < 30 -> R.drawable.ic_battery_1
-            battery < 45 -> R.drawable.ic_battery_2
-            battery < 55 -> R.drawable.ic_battery_3
-            battery < 70 -> R.drawable.ic_battery_4
-            battery < 85 -> R.drawable.ic_battery_5
-            battery < 95 -> R.drawable.ic_battery_6
-            else -> R.drawable.ic_battery
-        }
-        val batteryIcon = CarIcon.Builder(
-            IconCompat.createWithResource(carContext, batteryIconRes)
-        ).setTint(
-            if (batteryLow) CarColor.YELLOW else CarColor.DEFAULT
-        ).build()
-
-        // No lock data yet: don't claim a charge level
-        val noData = state.lockState == LockState.Unknown
-        val batteryTitle = when {
-            noData -> carContext.getString(R.string.battery_title)
-            battery != null -> carContext.getString(R.string.battery_label, battery)
-            state.batteryCritical -> carContext.getString(R.string.battery_critical)
-            else -> carContext.getString(R.string.battery_ok)
-        }
-        val batterySubtitle = when {
-            noData -> carContext.getString(R.string.auto_battery_unknown)
-            batteryLow -> carContext.getString(R.string.auto_battery_low)
-            battery != null && battery < 50 -> carContext.getString(R.string.auto_battery_medium)
-            else -> carContext.getString(R.string.auto_battery_good)
-        }
-
-        val batteryRow = Row.Builder()
-            .setTitle(batteryTitle)
-            .addText(batterySubtitle)
-            .setImage(batteryIcon)
-            .build()
 
         // --- Large image on the right side (padded pane versions) ---
         val paneImage = if (state.lockedButDoorOpen) statusRowIcon else lockStateToCarIcon(state.lockState)
@@ -212,26 +197,29 @@ class DoorControlScreen(
         // --- Build pane ---
         val paneBuilder = Pane.Builder()
             .addRow(statusRow)
-            .addRow(batteryRow)
+            .apply {
+                // Door row only when the sensor is sure (closed or open): two rows with two
+                // lines each still fit a small car screen without scrolling
+                state.doorState.doorLabelRes?.let { labelRes ->
+                    val open = state.doorState == DoorState.Open
+                    val doorRow = Row.Builder()
+                        .setTitle(carContext.getString(R.string.door_title))
+                        .addText(carContext.getString(labelRes).replaceFirstChar { it.uppercase() })
+                        .setImage(
+                            CarIcon.Builder(IconCompat.createWithResource(
+                                carContext, if (open) R.drawable.ic_door_open else R.drawable.ic_door_closed
+                            )).setTint(if (state.lockedButDoorOpen) CarColor.YELLOW else CarColor.DEFAULT).build()
+                        )
+                    when {
+                        open -> doorRow.addText(carContext.getString(R.string.door_close_first))
+                        state.doorSensorBatteryCritical ->
+                            doorRow.addText(carContext.getString(R.string.door_sensor_battery_low))
+                    }
+                    addRow(doorRow.build())
+                }
+            }
             .setImage(paneImage)
 
-        // --- Row 3: Door, only with a Nuki Door Sensor in use ---
-        state.doorState.doorLabelRes?.let { labelRes ->
-            val doorRow = Row.Builder()
-                .setTitle(carContext.getString(R.string.door_title))
-                .addText(carContext.getString(labelRes).replaceFirstChar { it.uppercase() })
-                .setImage(
-                    CarIcon.Builder(IconCompat.createWithResource(
-                        carContext,
-                        if (state.doorState == DoorState.Open) R.drawable.ic_door_open else R.drawable.ic_door_closed
-                    )).setTint(if (state.lockedButDoorOpen) CarColor.YELLOW else CarColor.DEFAULT).build()
-                )
-            when {
-                state.doorState == DoorState.Open -> doorRow.addText(carContext.getString(R.string.door_close_first))
-                state.doorSensorBatteryCritical -> doorRow.addText(carContext.getString(R.string.door_sensor_battery_low))
-            }
-            paneBuilder.addRow(doorRow.build())
-        }
 
         // --- Action buttons (hidden during transitions; only Cancel during the countdown) ---
         if (state.countdownSeconds > 0) {

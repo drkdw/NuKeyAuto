@@ -15,6 +15,12 @@ object PrefKeys {
     const val DYNAMIC_COLORS = "dynamic_colors"
     const val DEMO_MODE = "demo_mode"
 
+    /**
+     * New installs show the NuKey Auto brand colors; wallpaper colors are opt-in.
+     * Existing users keep the value they saved.
+     */
+    const val DYNAMIC_COLORS_DEFAULT = false
+
     /** Theme values stored in [THEME]. */
     const val THEME_SYSTEM = "system"
     const val THEME_LIGHT = "light"

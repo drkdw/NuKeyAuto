@@ -4,6 +4,10 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.text.style.ForegroundColorSpan
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.SpannableString
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -35,7 +39,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -65,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         // After super.onCreate: Hilt injects prefs there
-        dynamicColorsAtCreate = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
+        dynamicColorsAtCreate = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, PrefKeys.DYNAMIC_COLORS_DEFAULT)
         setContentView(R.layout.activity_main)
 
         // Handle window insets for edge-to-edge display
@@ -83,6 +86,11 @@ class MainActivity : AppCompatActivity() {
         val tvWelcome = findViewById<TextView>(R.id.tvWelcome)
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
+        val messageBar = findViewById<View>(R.id.messageBar)
+        val messageIcon = findViewById<ImageView>(R.id.messageIcon)
+        val messageText = findViewById<TextView>(R.id.messageText)
+        val messageAction = findViewById<MaterialButton>(R.id.messageAction)
+        messageAction.setOnClickListener { viewModel.refresh() }
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
         cardStatus = findViewById(R.id.cardStatus)
         val surfaceAttr = com.google.android.material.R.attr.colorSurfaceContainerHighest
@@ -90,7 +98,6 @@ class MainActivity : AppCompatActivity() {
         cardAnimator = ExpressiveCardAnimator(cardStatus)
         var isFirstState = true
         var countdownMax = 0
-        var lastShownError: NukiError? = null
 
         swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
@@ -129,14 +136,31 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "state=$state")
                     toolbar.subtitle = if (viewModel.isDemoMode()) getString(R.string.demo_badge) else null
 
-                    val batteryText = state.battery?.let { getString(R.string.battery_label, it) }
-                        ?: getString(if (state.batteryCritical) R.string.battery_critical else R.string.battery_ok)
+                    val colorErrorText = MaterialColors.getColor(tvBattery, androidx.appcompat.R.attr.colorError)
+                    val battery = state.battery
+                    val batteryLow = state.batteryCritical || (battery != null && battery < 20)
+                    val batteryWords = when {
+                        battery != null && batteryLow -> getString(R.string.battery_low_label, battery)
+                        battery != null -> getString(R.string.battery_label, battery)
+                        batteryLow -> getString(R.string.battery_critical)
+                        else -> getString(R.string.battery_ok)
+                    }
+                    // A low battery is said in words and shown in the error color
+                    val batteryText: CharSequence = if (batteryLow) {
+                        SpannableString(batteryWords).apply {
+                            setSpan(ForegroundColorSpan(colorErrorText), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        }
+                    } else batteryWords
                     // Door sensor info only when a sensor is in use; nothing changes without one
-                    tvBattery.text = listOfNotNull(
-                        batteryText,
-                        state.doorState.doorLabelRes?.let { getString(R.string.door_label, getString(it)) },
-                        if (state.doorSensorBatteryCritical) getString(R.string.door_sensor_battery_low) else null
-                    ).joinToString(" · ")
+                    // Door first: whether the house is closed matters more than the battery
+                    // SpannableStringBuilder keeps the error color; TextUtils.join would drop it
+                    tvBattery.text = SpannableStringBuilder().apply {
+                        listOfNotNull<CharSequence>(
+                            state.doorState.doorLabelRes?.let { getString(R.string.door_label, getString(it)) },
+                            batteryText,
+                            if (state.doorSensorBatteryCritical) getString(R.string.door_sensor_battery_low) else null
+                        ).forEachIndexed { i, part -> if (i > 0) append(" · "); append(part) }
+                    }
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0
 
                     val colorPrimary = MaterialColors.getColor(btnAction, android.R.attr.colorPrimary)
@@ -168,6 +192,8 @@ class MainActivity : AppCompatActivity() {
                     // Defaults: hide secondary button, welcome message, stroke (normal states)
                     btnSecondary.visibility = View.GONE
                     tvWelcome.visibility = View.GONE
+                    btnAction.visibility = View.VISIBLE
+                    var doorBlocksActions = false
                     if (state.countdownSeconds == 0 && state.lockState != LockState.MotorBlocked) {
                         cardStatus.stopStrokeLoader()
                     }
@@ -210,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                         ivIcon.setImageResource(lock.iconRes)
                         ivIcon.imageTintList =
                             ColorStateList.valueOf(if (lock.isFault) colorError else colorPrimary)
-                        tvStatus.text = getString(lock.statusRes)
+                        tvStatus.text = getString(state.lockStatusRes)
                         val btnRes = when {
                             lock == LockState.Unlatched -> R.string.btn_lock_door
                             lock in RETRY_STATES -> R.string.btn_retry
@@ -234,11 +260,11 @@ class MainActivity : AppCompatActivity() {
                             tvStatus.text = getString(R.string.door_open_while_locked)
                         }
                         // Locking or opening a door that stands open does nothing useful
-                        if (state.doorState == DoorState.Open && btnRes != null && lock !in RETRY_STATES) {
-                            btnAction.text = getString(R.string.door_close_first)
-                            btnAction.isEnabled = false
-                            btnSecondary.visibility = View.GONE
-                        }
+                        // A disabled button would show this instruction at 38% opacity; say it as text
+                        doorBlocksActions = state.doorState == DoorState.Open && btnRes != null &&
+                            lock !in RETRY_STATES && state.countdownSeconds == 0
+                        if (doorBlocksActions) btnSecondary.visibility = View.GONE
+                        btnAction.visibility = if (doorBlocksActions) View.INVISIBLE else View.VISIBLE
                         if (lock == LockState.MotorBlocked) {
                             val strokeWidthPx = 4f * resources.displayMetrics.density
                             cardStatus.setStrokeProgress(1f, colorError, strokeWidthPx)
@@ -276,20 +302,26 @@ class MainActivity : AppCompatActivity() {
                         cardAnimator.transitionTo(state.lockState, isError = isError)
                     }
 
-                    // Show Snackbar when an error occurs but the UI still shows a valid lock state.
-                    // Once per error: later emissions (ticks, polls) carry the same error object.
-                    val isNewError = state.error != lastShownError
-                    lastShownError = state.error
-                    if (isNewError && state.error != null && state.lockState != LockState.Unknown) {
-                        // "Did the door move?" must not vanish before it is read
-                        val duration = if (state.error is NukiError.ActionNotConfirmed) {
-                            UNCONFIRMED_SNACKBAR_MS
-                        } else {
-                            Snackbar.LENGTH_LONG
-                        }
-                        Snackbar.make(swipeRefresh, state.error.toLocalizedString(this@MainActivity), duration)
-                            .setAction(R.string.btn_retry) { viewModel.refresh() }
-                            .show()
+                    // Bottom message bar: an error while a lock state is known (red, with Retry) wins
+                    // over the open-door hint (amber). Errors without a lock state, and the welcome
+                    // screen, are explained in the status itself.
+                    val barError = state.error?.takeIf {
+                        state.lockState != LockState.Unknown && it !is NukiError.NoCredentials
+                    }
+                    when {
+                        barError != null -> showMessage(
+                            messageBar, messageIcon, messageText, messageAction,
+                            R.drawable.bg_message_error, R.drawable.ic_warning,
+                            com.google.android.material.R.attr.colorOnErrorContainer,
+                            barError.toLocalizedString(this@MainActivity), withRetry = true
+                        )
+                        doorBlocksActions -> showMessage(
+                            messageBar, messageIcon, messageText, messageAction,
+                            R.drawable.bg_message_hint, R.drawable.ic_door_open,
+                            com.google.android.material.R.attr.colorOnTertiaryContainer,
+                            getString(R.string.door_close_first), withRetry = false
+                        )
+                        else -> messageBar.visibility = View.GONE
                     }
 
                     // During the open delay the primary button is the way out
@@ -368,7 +400,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true) != dynamicColorsAtCreate) {
+        if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, PrefKeys.DYNAMIC_COLORS_DEFAULT) != dynamicColorsAtCreate) {
             recreate()
             return
         }
@@ -408,6 +440,22 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    /** Fill the bottom message bar; hint and error share the layout and differ in color and icon. */
+    private fun showMessage(
+        bar: View, icon: ImageView, text: TextView, action: MaterialButton,
+        backgroundRes: Int, iconRes: Int, onColorAttr: Int, message: String, withRetry: Boolean
+    ) {
+        val onColor = MaterialColors.getColor(bar, onColorAttr)
+        bar.setBackgroundResource(backgroundRes)
+        icon.setImageResource(iconRes)
+        icon.imageTintList = ColorStateList.valueOf(onColor)
+        text.text = message
+        text.setTextColor(onColor)
+        action.setTextColor(onColor)
+        action.visibility = if (withRetry) View.VISIBLE else View.GONE
+        bar.visibility = View.VISIBLE
+    }
+
     /**
      * Button background with a proper disabled look. A plain valueOf() tint keeps the full
      * color when disabled, so a disabled button looked enabled with unreadable text.
@@ -426,8 +474,6 @@ class MainActivity : AppCompatActivity() {
 
         /** Material 3 disabled container: onSurface at 12% opacity. */
         private const val DISABLED_CONTAINER_ALPHA = 31
-
-        private const val UNCONFIRMED_SNACKBAR_MS = 10_000
 
         private const val BRAND_ICON_SCALE = 1.7f
 

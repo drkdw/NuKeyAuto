@@ -24,7 +24,7 @@ class NukiApp : Application() {
         DynamicColors.applyToActivitiesIfAvailable(
             this,
             DynamicColorsOptions.Builder()
-                .setPrecondition { _, _ -> prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true) }
+                .setPrecondition { _, _ -> prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, PrefKeys.DYNAMIC_COLORS_DEFAULT) }
                 .build()
         )
     }

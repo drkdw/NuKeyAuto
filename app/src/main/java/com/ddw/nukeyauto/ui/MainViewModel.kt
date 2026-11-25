@@ -19,6 +19,7 @@ class MainViewModel @Inject constructor(
 
     val uiState = repository.uiState
 
+
     /**
      * Refresh the lock state from the API.
      * Called from MainActivity.onResume; the car screen refreshes on its own.

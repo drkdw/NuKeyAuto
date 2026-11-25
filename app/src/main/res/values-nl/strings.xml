@@ -14,14 +14,13 @@
     <string name="status_loading">Laden…</string>
     <string name="status_countdown">Opent over %1$d…</string>
     <string name="battery_label">Batterij: %1$d%%</string>
+    <string name="battery_low_label">Batterij bijna leeg: %1$d%%</string>
     <string name="battery_ok">Batterij OK</string>
     <string name="battery_critical">Batterij bijna leeg</string>
-    <string name="battery_title">Batterij</string>
     <string name="door_title">Deur</string>
     <string name="door_label">Deur: %1$s</string>
     <string name="door_closed">dicht</string>
     <string name="door_open">open</string>
-    <string name="door_unknown">onbekend</string>
     <string name="door_open_while_locked">Vergrendeld, maar de deur staat open</string>
     <string name="door_close_first">Sluit de deur om te vergrendelen</string>
     <string name="door_sensor_battery_low">Batterij deursensor bijna leeg</string>
@@ -31,10 +30,8 @@
 
     <!-- Android Auto -->
     <string name="auto_row_title">Smart lock</string>
-    <string name="auto_battery_good">Goede conditie</string>
-    <string name="auto_battery_medium">Overweeg op te laden</string>
+    <string name="auto_row_title_battery">%1$s (%2$d%%)</string>
     <string name="auto_battery_low">Batterij bijna leeg, laad op</string>
-    <string name="auto_battery_unknown">Status onbekend</string>
 
 
     <!-- Settings screen -->

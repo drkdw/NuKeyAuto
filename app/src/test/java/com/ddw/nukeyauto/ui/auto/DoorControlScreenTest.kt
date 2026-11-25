@@ -66,12 +66,14 @@ class DoorControlScreenTest {
     private fun Pane.actionTitles() = actions.map { it.title.toString() }
 
     @Test
-    fun `locked lock shows status, battery and an Open door action`() {
+    fun `locked lock shows one status row with battery and an Open door action`() {
         val (screen, _) = startScreen()
 
         val pane = screen.pane()
         assertEquals(false, pane.isLoading)
-        assertEquals(2, pane.rows.size)
+        assertEquals(1, pane.rows.size)
+        assertEquals("Smart lock (70%)", pane.rows[0].title.toString())
+        assertEquals(1, pane.rows[0].texts.size)
         assertEquals(listOf("Open door"), pane.actionTitles())
     }
 
@@ -100,20 +102,46 @@ class DoorControlScreenTest {
     }
 
     @Test
-    fun `without a door sensor the car shows no door row`() {
+    fun `a closed door gets its own row, battery stays a quiet line`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 70, doorState = 2)))
         val (screen, _) = startScreen()
-        assertEquals(2, screen.pane().rows.size)
+
+        val rows = screen.pane().rows
+        assertEquals(2, rows.size)
+        assertEquals("Smart lock (70%)", rows[0].title.toString())
+        assertEquals("Door", rows[1].title.toString())
+        assertEquals("Closed", rows[1].texts[0].toString())
     }
 
     @Test
-    fun `an open door shows the door row and hides Open and Lock`() = runBlocking<Unit> {
+    fun `an unsure door sensor shows no door row`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 70, doorState = 5)))
+        val (screen, _) = startScreen()
+
+        assertEquals(1, screen.pane().rows.size)
+    }
+
+    @Test
+    fun `a low battery says so under the lock status`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 12, batteryCritical = true)))
+        val (screen, _) = startScreen()
+
+        assertEquals("Low battery, charge soon", screen.pane().rows[0].texts[1].toString())
+    }
+
+    @Test
+    fun `an open door gets a door row with the instruction and hides Open and Lock`() = runBlocking<Unit> {
         whenever(api.getSmartLockState(any()))
             .thenReturn(SmartLockResponse(LockStateResponse(state = 3, batteryCharge = 70, doorState = 3)))
         val (screen, _) = startScreen()
 
         val pane = screen.pane()
-        assertEquals(3, pane.rows.size)
-        assertEquals("Door", pane.rows[2].title.toString())
+        // Two rows with two lines each: still no scrolling on a small car screen
+        assertEquals(2, pane.rows.size)
+        assertEquals("Close the door to lock", pane.rows[1].texts[1].toString())
         assertTrue(pane.actions.isEmpty())
     }
 
@@ -134,6 +162,6 @@ class DoorControlScreenTest {
 
         val template = screen.onGetTemplate() as PaneTemplate
         assertEquals("NuKey Auto demo", template.header!!.title.toString())
-        assertTrue(template.pane.isLoading || template.pane.rows.size == 2)
+        assertTrue(template.pane.isLoading || template.pane.rows.isNotEmpty())
     }
 }
