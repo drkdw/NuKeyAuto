@@ -101,33 +101,46 @@ class DoorControlScreenTest {
     }
 
     @Test
-    fun `with a door sensor door and battery share one quiet line`() = runBlocking<Unit> {
+    fun `a closed door gets its own row, battery stays a quiet line`() = runBlocking<Unit> {
         whenever(api.getSmartLockState(any()))
             .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 70, doorState = 2)))
         val (screen, _) = startScreen()
 
-        assertEquals("Door: closed · Battery: 70%", screen.pane().rows[0].texts[1].toString())
+        val rows = screen.pane().rows
+        assertEquals(2, rows.size)
+        assertEquals("Battery: 70%", rows[0].texts[1].toString())
+        assertEquals("Door", rows[1].title.toString())
+        assertEquals("Closed", rows[1].texts[0].toString())
     }
 
     @Test
-    fun `a low battery gets its own row`() = runBlocking<Unit> {
+    fun `an unsure door sensor shows no door row`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 70, doorState = 5)))
+        val (screen, _) = startScreen()
+
+        assertEquals(1, screen.pane().rows.size)
+    }
+
+    @Test
+    fun `a low battery says so under the lock status`() = runBlocking<Unit> {
         whenever(api.getSmartLockState(any()))
             .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 12, batteryCritical = true)))
         val (screen, _) = startScreen()
 
-        assertEquals(2, screen.pane().rows.size)
+        assertEquals("Low battery, charge soon", screen.pane().rows[0].texts[1].toString())
     }
 
     @Test
-    fun `an open door says so in the status row and hides Open and Lock`() = runBlocking<Unit> {
+    fun `an open door gets a door row with the instruction and hides Open and Lock`() = runBlocking<Unit> {
         whenever(api.getSmartLockState(any()))
             .thenReturn(SmartLockResponse(LockStateResponse(state = 3, batteryCharge = 70, doorState = 3)))
         val (screen, _) = startScreen()
 
         val pane = screen.pane()
-        // One row: nothing to scroll on a small car screen
-        assertEquals(1, pane.rows.size)
-        assertEquals("Close the door to lock", pane.rows[0].texts[1].toString())
+        // Two rows with two lines each: still no scrolling on a small car screen
+        assertEquals(2, pane.rows.size)
+        assertEquals("Close the door to lock", pane.rows[1].texts[1].toString())
         assertTrue(pane.actions.isEmpty())
     }
 

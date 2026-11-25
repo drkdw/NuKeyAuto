@@ -161,65 +161,19 @@ class DoorControlScreen(
             .setTitle(statusTitle)
             .addText(statusSubtitle)
             .apply {
-                // Door and battery as one quiet second line: the car screen stays one row plus
-                // the action, so nothing needs scrolling while driving. An open door replaces
-                // it with the instruction; a low battery gets its own row below.
-                val detailsLine = when {
-                    state.countdownSeconds > 0 || state.lockState == LockState.Unknown -> null
-                    state.doorState == DoorState.Open -> carContext.getString(R.string.door_close_first)
-                    else -> listOfNotNull(
-                        state.doorState.doorLabelRes?.let {
-                            carContext.getString(R.string.door_label, carContext.getString(it))
-                        },
-                        state.battery?.let { carContext.getString(R.string.battery_label, it) }
-                    ).joinToString(" · ").ifEmpty { null }
+                // Quiet battery line under the lock status; a low battery says so
+                if (state.countdownSeconds == 0 && state.lockState != LockState.Unknown) {
+                    val battery = state.battery
+                    val low = state.batteryCritical || (battery != null && battery < 20)
+                    when {
+                        low -> addText(carContext.getString(R.string.auto_battery_low))
+                        battery != null -> addText(carContext.getString(R.string.battery_label, battery))
+                    }
                 }
-                detailsLine?.let { addText(it) }
             }
             .setImage(statusRowIcon)
             .build()
 
-        // --- Row 2: Battery (icon matches level) ---
-        val battery = state.battery
-        val batteryLow = state.batteryCritical || (battery != null && battery < 20)
-        val batteryIconRes = when {
-            battery == null -> if (state.batteryCritical) R.drawable.ic_battery_0 else R.drawable.ic_battery
-            battery < 15 -> R.drawable.ic_battery_0
-            battery < 30 -> R.drawable.ic_battery_1
-            battery < 45 -> R.drawable.ic_battery_2
-            battery < 55 -> R.drawable.ic_battery_3
-            battery < 70 -> R.drawable.ic_battery_4
-            battery < 85 -> R.drawable.ic_battery_5
-            battery < 95 -> R.drawable.ic_battery_6
-            else -> R.drawable.ic_battery
-        }
-        val batteryIcon = CarIcon.Builder(
-            IconCompat.createWithResource(carContext, batteryIconRes)
-        ).setTint(
-            if (batteryLow) CarColor.YELLOW else CarColor.DEFAULT
-        ).build()
-
-        // No lock data yet: don't claim a charge level
-        val noData = state.lockState == LockState.Unknown
-        val batteryTitle = when {
-            noData -> carContext.getString(R.string.battery_title)
-            battery != null -> carContext.getString(R.string.battery_label, battery)
-            state.batteryCritical -> carContext.getString(R.string.battery_critical)
-            else -> carContext.getString(R.string.battery_ok)
-        }
-        val batterySubtitle = when {
-            noData -> carContext.getString(R.string.auto_battery_unknown)
-            batteryLow -> carContext.getString(R.string.auto_battery_low)
-            state.doorSensorBatteryCritical -> carContext.getString(R.string.door_sensor_battery_low)
-            battery != null && battery < 50 -> carContext.getString(R.string.auto_battery_medium)
-            else -> carContext.getString(R.string.auto_battery_good)
-        }
-
-        val batteryRow = Row.Builder()
-            .setTitle(batteryTitle)
-            .addText(batterySubtitle)
-            .setImage(batteryIcon)
-            .build()
 
         // --- Large image on the right side (padded pane versions) ---
         val paneImage = if (state.lockedButDoorOpen) statusRowIcon else lockStateToCarIcon(state.lockState)
@@ -230,8 +184,25 @@ class DoorControlScreen(
         val paneBuilder = Pane.Builder()
             .addRow(statusRow)
             .apply {
-                // Battery row only when it needs attention
-                if (!noData && (batteryLow || state.doorSensorBatteryCritical)) addRow(batteryRow)
+                // Door row only when the sensor is sure (closed or open): two rows with two
+                // lines each still fit a small car screen without scrolling
+                state.doorState.doorLabelRes?.let { labelRes ->
+                    val open = state.doorState == DoorState.Open
+                    val doorRow = Row.Builder()
+                        .setTitle(carContext.getString(R.string.door_title))
+                        .addText(carContext.getString(labelRes).replaceFirstChar { it.uppercase() })
+                        .setImage(
+                            CarIcon.Builder(IconCompat.createWithResource(
+                                carContext, if (open) R.drawable.ic_door_open else R.drawable.ic_door_closed
+                            )).setTint(if (state.lockedButDoorOpen) CarColor.YELLOW else CarColor.DEFAULT).build()
+                        )
+                    when {
+                        open -> doorRow.addText(carContext.getString(R.string.door_close_first))
+                        state.doorSensorBatteryCritical ->
+                            doorRow.addText(carContext.getString(R.string.door_sensor_battery_low))
+                    }
+                    addRow(doorRow.build())
+                }
             }
             .setImage(paneImage)
 
