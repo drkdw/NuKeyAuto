@@ -66,7 +66,7 @@
 
     <!-- Dynamic colors -->
     <string name="settings_dynamic_colors_title">Dynamische kleuren</string>
-    <string name="settings_dynamic_colors_summary">Pas de app kleuren aan op je achtergrond (Android 12+). Vereist dat \"Kleurenpalet\" of \"App-iconen met thema\" is ingeschakeld in je beeldscherminstellingen. Uitgeschakeld wordt het standaard paarse thema gebruikt.</string>
+    <string name="settings_dynamic_colors_summary">Pas de app kleuren aan op je achtergrond (Android 12+). Vereist dat \"Kleurenpalet\" of \"App-iconen met thema\" is ingeschakeld in je beeldscherminstellingen. Uitgeschakeld gebruikt de app de kleuren van NuKey Auto.</string>
 
     <!-- Welcome (eerste setup) -->
     <string name="welcome_title">Welkom bij NuKey Auto!</string>

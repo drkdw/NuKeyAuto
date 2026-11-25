@@ -1,45 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- M3 baseline palette (seed #6750A4), dark -->
-    <color name="md_dark_primary">#D0BCFF</color>
-    <color name="md_dark_onPrimary">#381E72</color>
-    <color name="md_dark_primaryContainer">#4F378B</color>
-    <color name="md_dark_onPrimaryContainer">#EADDFF</color>
+    <!-- NuKey Auto brand palette (seed #3A4AB8 indigo, amber #F2A93B tertiary; Material fidelity scheme), dark -->
+    <color name="md_dark_primary">#BCC3FF</color>
+    <color name="md_dark_onPrimary">#061D92</color>
+    <color name="md_dark_primaryContainer">#3A4AB8</color>
+    <color name="md_dark_onPrimaryContainer">#C2C8FF</color>
 
-    <color name="md_dark_secondary">#CCC2DC</color>
-    <color name="md_dark_onSecondary">#332D41</color>
-    <color name="md_dark_secondaryContainer">#4A4458</color>
-    <color name="md_dark_onSecondaryContainer">#E8DEF8</color>
+    <color name="md_dark_secondary">#BEC3F5</color>
+    <color name="md_dark_onSecondary">#272D55</color>
+    <color name="md_dark_secondaryContainer">#404670</color>
+    <color name="md_dark_onSecondaryContainer">#DFE0FF</color>
 
-    <color name="md_dark_tertiary">#EFB8C8</color>
-    <color name="md_dark_onTertiary">#492532</color>
-    <color name="md_dark_tertiaryContainer">#633B48</color>
-    <color name="md_dark_onTertiaryContainer">#FFD8E4</color>
+    <color name="md_dark_tertiary">#FFB956</color>
+    <color name="md_dark_onTertiary">#452B00</color>
+    <color name="md_dark_tertiaryContainer">#633F00</color>
+    <color name="md_dark_onTertiaryContainer">#FFDDB5</color>
 
-    <color name="md_dark_error">#F2B8B5</color>
-    <color name="md_dark_onError">#601410</color>
-    <color name="md_dark_errorContainer">#8C1D18</color>
-    <color name="md_dark_onErrorContainer">#F9DEDC</color>
+    <color name="md_dark_error">#FFB4AB</color>
+    <color name="md_dark_onError">#690005</color>
+    <color name="md_dark_errorContainer">#93000A</color>
+    <color name="md_dark_onErrorContainer">#FFDAD6</color>
 
-    <color name="md_dark_background">#1C1B1F</color>
-    <color name="md_dark_onBackground">#E6E1E5</color>
+    <color name="md_dark_background">#12131A</color>
+    <color name="md_dark_onBackground">#E3E1EB</color>
 
-    <color name="md_dark_surface">#141218</color>
-    <color name="md_dark_onSurface">#E6E1E5</color>
-    <color name="md_dark_surfaceVariant">#49454F</color>
-    <color name="md_dark_onSurfaceVariant">#CAC4D0</color>
-    <color name="md_dark_surfaceDim">#141218</color>
-    <color name="md_dark_surfaceBright">#3B383E</color>
-    <color name="md_dark_surfaceContainerLowest">#0F0D13</color>
-    <color name="md_dark_surfaceContainerLow">#1D1B20</color>
-    <color name="md_dark_surfaceContainer">#211F26</color>
-    <color name="md_dark_surfaceContainerHigh">#2B2930</color>
-    <color name="md_dark_surfaceContainerHighest">#36343B</color>
+    <color name="md_dark_surface">#12131A</color>
+    <color name="md_dark_onSurface">#E3E1EB</color>
+    <color name="md_dark_surfaceVariant">#454653</color>
+    <color name="md_dark_onSurfaceVariant">#C6C5D5</color>
+    <color name="md_dark_surfaceDim">#12131A</color>
+    <color name="md_dark_surfaceBright">#383940</color>
+    <color name="md_dark_surfaceContainerLowest">#0D0E14</color>
+    <color name="md_dark_surfaceContainerLow">#1B1B22</color>
+    <color name="md_dark_surfaceContainer">#1F1F26</color>
+    <color name="md_dark_surfaceContainerHigh">#292931</color>
+    <color name="md_dark_surfaceContainerHighest">#34343C</color>
 
-    <color name="md_dark_outline">#938F99</color>
-    <color name="md_dark_outlineVariant">#49454F</color>
+    <color name="md_dark_outline">#8F8F9E</color>
+    <color name="md_dark_outlineVariant">#454653</color>
     <color name="md_dark_scrim">#000000</color>
-    <color name="md_dark_inverseSurface">#E6E1E5</color>
-    <color name="md_dark_inverseOnSurface">#313033</color>
-    <color name="md_dark_inversePrimary">#6750A4</color>
+    <color name="md_dark_inverseSurface">#E3E1EB</color>
+    <color name="md_dark_inverseOnSurface">#2F3037</color>
+    <color name="md_dark_inversePrimary">#4353C1</color>
 </resources>
