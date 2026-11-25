@@ -20,9 +20,9 @@
     <string name="battery_ok">Battery OK</string>
     <string name="battery_critical">Battery low</string>
     <string name="battery_title">Battery</string>
-    <string name="btn_open_door">OPEN DOOR</string>
-    <string name="btn_lock_door">LOCK DOOR</string>
-    <string name="btn_open_settings">OPEN SETTINGS</string>
+    <string name="btn_open_door">Open door</string>
+    <string name="btn_lock_door">Lock door</string>
+    <string name="btn_open_settings">Open settings</string>
 
     <!-- Android Auto -->
     <string name="auto_row_title">Smart lock</string>
@@ -61,12 +61,17 @@
 
     <!-- Dynamic colors -->
     <string name="settings_dynamic_colors_title">Dynamic colors</string>
-    <string name="settings_dynamic_colors_summary">Match the app colors to your wallpaper (Android 12+). Requires \"Color palette\" or \"Themed icons\" to be enabled in your device display settings. When off, the default purple theme is used. Restart the app after changing this setting.</string>
+    <string name="settings_dynamic_colors_summary">Match the app colors to your wallpaper (Android 12+). Requires \"Color palette\" or \"Themed icons\" to be enabled in your device display settings. When off, the default purple theme is used.</string>
 
     <!-- Welcome (first setup) -->
     <string name="welcome_title">Welcome to NuKey Auto!</string>
     <string name="welcome_message">Control your Nuki smart lock from your phone and Android Auto. To get started, add your Nuki Web API token and Smart Lock ID in the settings.</string>
     <string name="btn_get_started">Get started</string>
+    <string name="btn_try_demo">Try the demo</string>
+    <string name="settings_demo_title">Demo mode</string>
+    <string name="settings_demo_summary">Try the app with a simulated lock. Your real lock and saved details are not used.</string>
+    <string name="demo_badge">Demo, simulated lock</string>
+    <string name="auto_title_demo">NuKey Auto demo</string>
 
     <!-- Share -->
     <string name="settings_share">Share app</string>
@@ -109,11 +114,12 @@
     <string name="error_connection_failed">No connection. Check your internet.</string>
     <string name="error_http_unauthorized">Invalid API token. Check your settings.</string>
     <string name="error_http_not_found">Smart Lock not found. Check your ID.</string>
+    <string name="error_action_not_confirmed">The lock did not confirm the action. Check the lock status before you try again.</string>
     <string name="error_http_rate_limit">Too many requests. Try again later.</string>
     <string name="error_http_server">Nuki server unavailable. Try again later.</string>
     <string name="error_generic">Something went wrong. Try again.</string>
-    <string name="btn_retry">RETRY</string>
-    <string name="btn_cancel">CANCEL</string>
+    <string name="btn_retry">Retry</string>
+    <string name="btn_cancel">Cancel</string>
 
     <!-- Support the developer -->
     <string name="support_title">Support the developer</string>

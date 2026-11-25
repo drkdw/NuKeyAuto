@@ -65,10 +65,17 @@ object AppModule {
         // unreadable either way, and retrying with the same broken key would crash the
         // app on every launch (this runs during Application.onCreate injection).
         Log.e(TAG, "Encrypted prefs corrupted, resetting: ${e.message}")
-        context.deleteSharedPreferences(PREFS_FILE)
-        KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-            .deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
-        return createEncryptedPrefs(context, buildMasterKey(context))
+        return try {
+            context.deleteSharedPreferences(PREFS_FILE)
+            KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+                .deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+            createEncryptedPrefs(context, buildMasterKey(context))
+        } catch (resetError: Exception) {
+            // Keystore unusable even after a wipe: start with memory-only prefs rather than
+            // crashing on every launch (phone and Android Auto share this process).
+            Log.e(TAG, "Encrypted prefs reset failed, using memory-only prefs: ${resetError.message}")
+            InMemoryPrefs()
+        }
     }
 
     @Suppress("DEPRECATION")

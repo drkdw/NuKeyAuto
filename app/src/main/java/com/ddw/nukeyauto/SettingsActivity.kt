@@ -62,8 +62,12 @@ class SettingsActivity : AppCompatActivity() {
 
         // Handle window insets for edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            // Include the keyboard, or it covers the lower half of the form and the Save button
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or
+                    WindowInsetsCompat.Type.ime()
+            )
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
 
@@ -115,6 +119,9 @@ class SettingsActivity : AppCompatActivity() {
         // Dynamic colors switch, default ON, stored on Save like every other setting
         val switchDynamicColors = findViewById<MaterialSwitch>(R.id.switchDynamicColors)
         switchDynamicColors.isChecked = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
+
+        val switchDemo = findViewById<MaterialSwitch>(R.id.switchDemo)
+        switchDemo.isChecked = repository.isDemoMode()
 
         // Confirmation switch, read from prefs, default ON
         switchConfirm.isChecked = prefs.safeBoolean(PrefKeys.CONFIRM_ACTION, true)
@@ -242,6 +249,15 @@ class SettingsActivity : AppCompatActivity() {
 
             applySelectedTheme(themeLabels, actvTheme.text.toString())
             applySelectedLanguage(langLabels, actvLanguage.text.toString())
+
+            if (switchDemo.isChecked != repository.isDemoMode()) {
+                repository.setDemoMode(switchDemo.isChecked)
+            }
+            // The demo needs no credentials; whatever is stored stays for later
+            if (switchDemo.isChecked && (token.isEmpty() || id.isEmpty())) {
+                finish()
+                return@setOnClickListener
+            }
 
             if (token.isEmpty() || id.isEmpty()) {
                 Toast.makeText(this, R.string.toast_fill_all_fields, Toast.LENGTH_SHORT).show()

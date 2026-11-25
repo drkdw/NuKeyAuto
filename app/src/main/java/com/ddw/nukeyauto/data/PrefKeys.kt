@@ -13,6 +13,7 @@ object PrefKeys {
     const val DONATION_COUNT = "donation_count"
     const val THEME = "theme"
     const val DYNAMIC_COLORS = "dynamic_colors"
+    const val DEMO_MODE = "demo_mode"
 
     /** Theme values stored in [THEME]. */
     const val THEME_SYSTEM = "system"

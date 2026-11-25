@@ -12,6 +12,8 @@ import androidx.car.app.model.PaneTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.ddw.nukeyauto.R
 import com.ddw.nukeyauto.data.model.LockState
@@ -64,7 +66,11 @@ class DoorControlScreen(
             }
         }
 
-        refresh()
+        // Refresh every time the screen becomes visible again, not only once: the lock can be
+        // operated elsewhere (Nuki app, key) while the car session stays alive in the background.
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) = refresh()
+        })
     }
 
     // Launched in the Screen's own lifecycleScope: it is cancelled when the car session
@@ -82,7 +88,9 @@ class DoorControlScreen(
 
         val header = Header.Builder()
             .setStartHeaderAction(Action.APP_ICON)
-            .setTitle(carContext.getString(R.string.app_name))
+            .setTitle(carContext.getString(
+                if (repository.isDemoMode()) R.string.auto_title_demo else R.string.app_name
+            ))
             .addEndHeaderAction(
                 Action.Builder()
                     .setIcon(

@@ -41,6 +41,14 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch { repository.performLockAction(true) }
     }
 
+    /** Switch to the simulated lock, e.g. from the welcome screen. */
+    fun startDemo() {
+        repository.setDemoMode(true)
+        refresh()
+    }
+
+    fun isDemoMode(): Boolean = repository.isDemoMode()
+
     /** Whether the user wants a confirmation dialog before door actions. */
     fun isConfirmationEnabled(): Boolean = repository.isConfirmationEnabled()
 

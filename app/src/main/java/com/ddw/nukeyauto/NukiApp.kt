@@ -7,6 +7,7 @@ import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.safeBoolean
 import com.ddw.nukeyauto.data.safeString
 import com.google.android.material.color.DynamicColors
+import com.google.android.material.color.DynamicColorsOptions
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -18,10 +19,14 @@ class NukiApp : Application() {
     override fun onCreate() {
         super.onCreate()
         applyStoredTheme()
-        // Android 12+ Material You dynamic color, no-op on older versions.
-        if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)) {
-            DynamicColors.applyToActivitiesIfAvailable(this)
-        }
+        // Android 12+ Material You dynamic color, no-op on older versions. The precondition
+        // is checked for every new activity, so the setting applies without an app restart.
+        DynamicColors.applyToActivitiesIfAvailable(
+            this,
+            DynamicColorsOptions.Builder()
+                .setPrecondition { _, _ -> prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true) }
+                .build()
+        )
     }
 
     /**

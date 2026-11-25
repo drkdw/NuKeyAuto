@@ -15,6 +15,9 @@ sealed class NukiError {
     data class HttpError(val code: Int) : NukiError()
     data object ApiException : NukiError()
 
+    /** An action may or may not have reached the lock: the user must check before retrying. */
+    data object ActionNotConfirmed : NukiError()
+
     /**
      * Whether this error is a configuration issue fixable via settings.
      * True for missing/invalid credentials and auth-related HTTP errors.
@@ -42,6 +45,7 @@ sealed class NukiError {
             is ConnectionFailed -> context.getString(R.string.error_connection_failed)
             is HttpError -> context.getString(httpErrorStringRes(code))
             is ApiException -> context.getString(R.string.error_generic)
+            is ActionNotConfirmed -> context.getString(R.string.error_action_not_confirmed)
         }
     }
 
