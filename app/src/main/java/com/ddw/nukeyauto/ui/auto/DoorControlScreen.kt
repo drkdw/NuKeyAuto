@@ -3,7 +3,10 @@ package com.ddw.nukeyauto.ui.auto
 import androidx.car.app.CarContext
 import androidx.car.app.CarToast
 import androidx.car.app.Screen
+import android.text.SpannableString
+import android.text.Spanned
 import androidx.car.app.model.Action
+import androidx.car.app.model.ForegroundCarColorSpan
 import androidx.car.app.model.CarColor
 import androidx.car.app.model.CarIcon
 import androidx.car.app.model.Header
@@ -175,7 +178,10 @@ class DoorControlScreen(
                 if (state.countdownSeconds == 0 && state.lockState != LockState.Unknown) {
                     val battery = state.battery
                     if (state.batteryCritical || (battery != null && battery < 20)) {
-                        addText(carContext.getString(R.string.auto_battery_low))
+                        // Yellow on top of the words: noticeable at a glance, never color alone
+                        val text = SpannableString(carContext.getString(R.string.auto_battery_low))
+                        text.setSpan(ForegroundCarColorSpan.create(CarColor.YELLOW), 0, text.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+                        addText(text)
                     }
                 }
             }

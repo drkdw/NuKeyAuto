@@ -14,6 +14,7 @@
     <string name="status_loading">Laden…</string>
     <string name="status_countdown">Opent over %1$d…</string>
     <string name="battery_label">Batterij: %1$d%%</string>
+    <string name="battery_low_label">Batterij bijna leeg: %1$d%%</string>
     <string name="battery_ok">Batterij OK</string>
     <string name="battery_critical">Batterij bijna leeg</string>
     <string name="door_title">Deur</string>
