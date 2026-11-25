@@ -72,7 +72,8 @@ class DoorControlScreenTest {
         val pane = screen.pane()
         assertEquals(false, pane.isLoading)
         assertEquals(1, pane.rows.size)
-        assertEquals("Battery: 70%", pane.rows[0].texts[1].toString())
+        assertEquals("Smart lock (70%)", pane.rows[0].title.toString())
+        assertEquals(1, pane.rows[0].texts.size)
         assertEquals(listOf("Open door"), pane.actionTitles())
     }
 
@@ -108,7 +109,7 @@ class DoorControlScreenTest {
 
         val rows = screen.pane().rows
         assertEquals(2, rows.size)
-        assertEquals("Battery: 70%", rows[0].texts[1].toString())
+        assertEquals("Smart lock (70%)", rows[0].title.toString())
         assertEquals("Door", rows[1].title.toString())
         assertEquals("Closed", rows[1].texts[0].toString())
     }

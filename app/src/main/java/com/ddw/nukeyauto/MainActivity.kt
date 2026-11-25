@@ -213,7 +213,7 @@ class MainActivity : AppCompatActivity() {
                         ivIcon.setImageResource(lock.iconRes)
                         ivIcon.imageTintList =
                             ColorStateList.valueOf(if (lock.isFault) colorError else colorPrimary)
-                        tvStatus.text = getString(lock.statusRes)
+                        tvStatus.text = getString(state.lockStatusRes)
                         val btnRes = when {
                             lock == LockState.Unlatched -> R.string.btn_lock_door
                             lock in RETRY_STATES -> R.string.btn_retry
