@@ -11,5 +11,11 @@ data class UiState(
     val batteryCritical: Boolean = false,
     val isLoading: Boolean = false,
     val error: NukiError? = null,
-    val countdownSeconds: Int = 0
-)
+    val countdownSeconds: Int = 0,
+    val doorState: DoorState = DoorState.None,
+    val doorSensorBatteryCritical: Boolean = false
+) {
+    /** The bolt is thrown but the door is ajar: the house is not actually locked. */
+    val lockedButDoorOpen: Boolean
+        get() = lockState == LockState.Locked && doorState == DoorState.Open
+}

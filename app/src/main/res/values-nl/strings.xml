@@ -17,6 +17,14 @@
     <string name="battery_ok">Batterij OK</string>
     <string name="battery_critical">Batterij bijna leeg</string>
     <string name="battery_title">Batterij</string>
+    <string name="door_title">Deur</string>
+    <string name="door_label">Deur: %1$s</string>
+    <string name="door_closed">dicht</string>
+    <string name="door_open">open</string>
+    <string name="door_unknown">onbekend</string>
+    <string name="door_open_while_locked">Vergrendeld, maar de deur staat open</string>
+    <string name="door_close_first">Sluit de deur om te vergrendelen</string>
+    <string name="door_sensor_battery_low">Batterij deursensor bijna leeg</string>
     <string name="btn_open_door">Deur openen</string>
     <string name="btn_lock_door">Deur vergrendelen</string>
     <string name="btn_open_settings">Instellingen openen</string>

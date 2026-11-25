@@ -5,6 +5,7 @@ import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.api.NukiApiService
 import com.ddw.nukeyauto.data.demo.DemoLock
 import com.ddw.nukeyauto.data.model.ActionRequest
+import com.ddw.nukeyauto.data.model.DoorState
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.LockStateResponse
 import com.ddw.nukeyauto.data.model.NukiError
@@ -606,6 +607,60 @@ class NukiRepositoryTest {
         val state = repository.uiState.value
         assertEquals(LockState.Unknown, state.lockState)
         assertTrue(state.error is NukiError.ActionNotConfirmed)
+    }
+
+    // --- door sensor ---
+
+    private fun doorResponse(lock: Int, door: Int?) =
+        SmartLockResponse(LockStateResponse(state = lock, batteryCharge = 70, doorState = door))
+
+    @Test
+    fun `door state maps sensor codes and hides locks without a sensor`() = runTest {
+        mockCredentials()
+        val expected = mapOf(
+            null to DoorState.None, 0 to DoorState.None, 1 to DoorState.None, 240 to DoorState.None,
+            2 to DoorState.Closed, 3 to DoorState.Open,
+            4 to DoorState.Unknown, 5 to DoorState.Unknown, 16 to DoorState.Unknown, 255 to DoorState.Unknown
+        )
+        for ((code, door) in expected) {
+            whenever(api.getSmartLockState(123456789L)).thenReturn(doorResponse(1, code))
+            repository.fetchState()
+            assertEquals("doorState=$code", door, repository.uiState.value.doorState)
+        }
+    }
+
+    @Test
+    fun `locked with an open door is flagged`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(doorResponse(1, 3))
+
+        repository.fetchState()
+
+        assertTrue(repository.uiState.value.lockedButDoorOpen)
+    }
+
+    @Test
+    fun `an open door is refreshed until it closes`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L))
+            .thenReturn(doorResponse(3, 3), doorResponse(3, 3), doorResponse(3, 2))
+        repository.fetchState()
+
+        repository.refreshWhileDoorOpen()
+
+        verify(api, times(3)).getSmartLockState(123456789L)
+        assertEquals(DoorState.Closed, repository.uiState.value.doorState)
+    }
+
+    @Test
+    fun `a door left open stops being refreshed after the limit`() = runTest {
+        mockCredentials()
+        whenever(api.getSmartLockState(123456789L)).thenReturn(doorResponse(3, 3))
+        repository.fetchState()
+
+        repository.refreshWhileDoorOpen()
+
+        verify(api, times(1 + 24)).getSmartLockState(123456789L)
     }
 
     // --- demo mode ---

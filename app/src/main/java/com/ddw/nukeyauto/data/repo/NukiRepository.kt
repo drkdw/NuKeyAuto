@@ -7,6 +7,8 @@ import com.ddw.nukeyauto.data.api.NukiApiService
 import com.ddw.nukeyauto.data.PrefKeys
 import com.ddw.nukeyauto.data.demo.DemoLock
 import com.ddw.nukeyauto.data.model.ActionRequest
+import com.ddw.nukeyauto.data.model.DoorState
+import com.ddw.nukeyauto.data.model.doorStateFrom
 import com.ddw.nukeyauto.data.model.LockState
 import com.ddw.nukeyauto.data.model.NukiError
 import com.ddw.nukeyauto.data.model.UiState
@@ -124,6 +126,8 @@ class NukiRepository @Inject constructor(
                     lockState = lockState,
                     battery = batteryLevel,
                     batteryCritical = response.state.batteryCritical,
+                    doorState = doorStateFrom(response.state.doorState),
+                    doorSensorBatteryCritical = response.state.doorSensorBatteryCritical,
                     isLoading = it.busy(),
                     error = error
                 )
@@ -140,6 +144,7 @@ class NukiRepository @Inject constructor(
                     // Token revoked or lock gone: the last known state is no longer trustworthy,
                     // and Unknown routes both screens to their "fix your settings" flow.
                     it.copy(lockState = LockState.Unknown, battery = null, batteryCritical = false,
+                        doorState = DoorState.None, doorSensorBatteryCritical = false,
                         isLoading = it.busy(), error = error)
                 } else {
                     it.copy(isLoading = it.busy(), error = error)
@@ -267,6 +272,21 @@ class NukiRepository @Inject constructor(
     }
 
     /**
+     * Keep refreshing while the door sensor reports an open door, so "close the door to lock"
+     * turns into a Lock button as soon as it closes. Call from a visible screen's lifecycle
+     * scope only; bounded so a door left open does not poll forever.
+     */
+    suspend fun refreshWhileDoorOpen() {
+        var count = 0
+        while (_uiState.value.doorState == DoorState.Open && count < DOOR_WATCH_MAX_REFRESHES) {
+            delay(DOOR_WATCH_INTERVAL_MS)
+            // A running action polls on its own
+            if (!actionMutex.isLocked) fetchState()
+            count++
+        }
+    }
+
+    /**
      * Abort a running open-delay countdown before the door is unlatched. Works from either
      * surface, whichever one started the countdown. No-op once the action has been sent.
      */
@@ -322,6 +342,9 @@ class NukiRepository @Inject constructor(
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 5
         private const val DEMO_SMARTLOCK_ID = 0L
+        // ponytail: fixed 5 s / 2 min; Nuki Web caches anyway, add backoff if rate limits bite
+        private const val DOOR_WATCH_INTERVAL_MS = 5_000L
+        private const val DOOR_WATCH_MAX_REFRESHES = 24
         private val LOCK_RESULT = setOf(LockState.Locked)
         // After an unlatch the lock briefly reports Unlatched, then settles on Unlocked
         private val OPEN_RESULT = setOf(LockState.Unlatched, LockState.Unlocked)

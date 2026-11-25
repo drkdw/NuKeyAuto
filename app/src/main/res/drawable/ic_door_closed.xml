@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Closed door: frame and leaf from ic_door_open, with the handle on the closed leaf -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+  <path
+      android:pathData="M198.46,800q-8.54,0 -14.27,-5.73T178.46,780q0,-8.54 5.73,-14.27t14.27,-5.73L240,760v-555.38q0,-26.85 18.88,-45.74Q277.77,140 304.62,140h350.76q26.85,0 45.74,18.88Q720,177.77 720,204.62L720,760h41.54q8.54,0 14.27,5.73t5.73,14.27q0,8.54 -5.73,14.27T761.54,800L198.46,800ZM280,760h400v-555.38q0,-10.77 -6.92,-17.7 -6.93,-6.92 -17.7,-6.92L304.62,180q-10.77,0 -17.7,6.92 -6.92,6.93 -6.92,17.7L280,760ZM640,480a20,20 0,1 1,-40,0a20,20 0,1 1,40,0Z"
+      android:fillColor="#FFFFFF"/>
+</vector>

@@ -20,6 +20,14 @@
     <string name="battery_ok">Battery OK</string>
     <string name="battery_critical">Battery low</string>
     <string name="battery_title">Battery</string>
+    <string name="door_title">Door</string>
+    <string name="door_label">Door: %1$s</string>
+    <string name="door_closed">closed</string>
+    <string name="door_open">open</string>
+    <string name="door_unknown">unknown</string>
+    <string name="door_open_while_locked">Locked, but the door is open</string>
+    <string name="door_close_first">Close the door to lock</string>
+    <string name="door_sensor_battery_low">Door sensor battery low</string>
     <string name="btn_open_door">Open door</string>
     <string name="btn_lock_door">Lock door</string>
     <string name="btn_open_settings">Open settings</string>

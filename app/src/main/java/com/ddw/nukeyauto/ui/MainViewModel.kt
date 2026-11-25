@@ -47,6 +47,8 @@ class MainViewModel @Inject constructor(
         refresh()
     }
 
+    suspend fun refreshWhileDoorOpen() = repository.refreshWhileDoorOpen()
+
     fun isDemoMode(): Boolean = repository.isDemoMode()
 
     /** Whether the user wants a confirmation dialog before door actions. */

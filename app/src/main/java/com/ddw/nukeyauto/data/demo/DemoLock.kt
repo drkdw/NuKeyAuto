@@ -9,28 +9,36 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Simulated Nuki lock for demo mode: lets people try every screen (and Play reviewers
- * test the app) without a Nuki account. Never talks to the network or a real door.
- * Moves through the same states as a real lock, one state per poll.
+ * Simulated Nuki lock with a door sensor for demo mode: lets people try every screen (and
+ * Play reviewers test the app) without a Nuki account. Never talks to the network or a
+ * real door. Moves through the same states as a real lock, one state per poll; after an
+ * open the door stands open for a few refreshes, then closes, like someone walking in.
  */
 @Singleton
 class DemoLock @Inject constructor() : NukiApiService {
-    private var state = LOCKED
-    /** States reported on the next fetches, oldest first. */
-    private val upcoming = ArrayDeque<Int>()
+    private var lock = LOCKED
+    private var door = DOOR_CLOSED
+    /** (lock, door) pairs reported on the next fetches, oldest first. */
+    private val upcoming = ArrayDeque<Pair<Int, Int>>()
 
     override suspend fun getSmartLockState(smartlockId: Long): SmartLockResponse {
         delay(NETWORK_DELAY_MS)
-        upcoming.removeFirstOrNull()?.let { state = it }
-        return SmartLockResponse(LockStateResponse(state, batteryCharge = BATTERY))
+        upcoming.removeFirstOrNull()?.let { (l, d) -> lock = l; door = d }
+        return SmartLockResponse(LockStateResponse(lock, batteryCharge = BATTERY, doorState = door))
     }
 
     override suspend fun performAction(smartlockId: Long, actionRequest: ActionRequest) {
         delay(NETWORK_DELAY_MS)
         upcoming.clear()
         when (actionRequest.action) {
-            2 -> upcoming += listOf(LOCKING, LOCKED)
-            3 -> upcoming += listOf(UNLATCHING, UNLATCHED, UNLOCKED)
+            2 -> upcoming += listOf(LOCKING to door, LOCKED to door)
+            3 -> upcoming += listOf(
+                UNLATCHING to DOOR_CLOSED,
+                UNLATCHED to DOOR_OPEN,
+                UNLOCKED to DOOR_OPEN,
+                UNLOCKED to DOOR_OPEN,
+                UNLOCKED to DOOR_CLOSED
+            )
         }
     }
 
@@ -42,5 +50,7 @@ class DemoLock @Inject constructor() : NukiApiService {
         const val LOCKING = 4
         const val UNLATCHED = 5
         const val UNLATCHING = 7
+        const val DOOR_CLOSED = 2
+        const val DOOR_OPEN = 3
     }
 }
