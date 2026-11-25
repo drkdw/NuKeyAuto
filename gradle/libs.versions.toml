@@ -19,10 +19,15 @@ graphicsShapes = "1.1.0"
 swiperefreshlayout = "1.2.0"
 junit = "4.13.2"
 kotlinxCoroutinesTest = "1.11.0"
+robolectric = "4.18.1"
+androidxTestCore = "1.7.0"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-app = { module = "androidx.car.app:app", version.ref = "app" }
+androidx-app-testing = { module = "androidx.car.app:app-testing", version.ref = "app" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }

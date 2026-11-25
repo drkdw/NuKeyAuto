@@ -50,6 +50,8 @@ android {
         // Android framework classes (Log, etc.) return default values instead of throwing
         // RuntimeException when called from JVM unit tests.
         unitTests.isReturnDefaultValues = true
+        // Robolectric (Android Auto screen tests) needs the merged resources
+        unitTests.isIncludeAndroidResources = true
     }
 
     buildTypes {
@@ -116,6 +118,9 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.app.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.robolectric)
 
 }
 
