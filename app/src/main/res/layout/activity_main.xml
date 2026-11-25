@@ -97,7 +97,43 @@
                 app:layout_constraintTop_toBottomOf="@id/tvCountdown"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/tvWelcome" />
+                app:layout_constraintBottom_toTopOf="@id/doorHint" />
+
+            <!-- Door left open: a compact status label under the status line (info belongs with
+                 the status; the action area stays empty because nothing can be done yet) -->
+            <LinearLayout
+                android:id="@+id/doorHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_door_hint"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:accessibilityLiveRegion="polite"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/tvBattery"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/tvWelcome">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_door_open"
+                    app:tint="?attr/colorOnTertiaryContainer"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/door_close_first"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnTertiaryContainer" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvWelcome"
@@ -110,7 +146,7 @@
                 android:gravity="center"
                 android:layout_marginTop="8dp"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/tvBattery"
+                app:layout_constraintTop_toBottomOf="@id/doorHint"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/buttonRow" />
@@ -133,40 +169,6 @@
                     android:layout_height="56dp"
                     android:text="@string/btn_open_door"
                     app:cornerRadius="28dp" />
-
-                <!-- Shown instead of the buttons while the door stands open. Icon and text are
-                     centered as one group, on the same axis as the status above. -->
-                <LinearLayout
-                    android:id="@+id/doorHint"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:minHeight="56dp"
-                    android:background="@drawable/bg_door_hint"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="12dp"
-                    android:accessibilityLiveRegion="polite"
-                    android:visibility="gone">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_door_open"
-                        app:tint="?attr/colorOnTertiaryContainer"
-                        android:importantForAccessibility="no" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="@string/door_close_first"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        android:textColor="?attr/colorOnTertiaryContainer" />
-
-                </LinearLayout>
-
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSecondary"
                     style="@style/Widget.Material3.Button.TonalButton"

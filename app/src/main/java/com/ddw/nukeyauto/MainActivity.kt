@@ -240,7 +240,7 @@ class MainActivity : AppCompatActivity() {
                         val doorBlocksActions = state.doorState == DoorState.Open && btnRes != null &&
                             lock !in RETRY_STATES && state.countdownSeconds == 0
                         if (doorBlocksActions) btnSecondary.visibility = View.GONE
-                        btnAction.visibility = if (doorBlocksActions) View.GONE else View.VISIBLE
+                        btnAction.visibility = if (doorBlocksActions) View.INVISIBLE else View.VISIBLE
                         doorHint.visibility = if (doorBlocksActions) View.VISIBLE else View.GONE
                         if (lock == LockState.MotorBlocked) {
                             val strokeWidthPx = 4f * resources.displayMetrics.density
