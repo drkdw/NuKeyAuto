@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         val tvWelcome = findViewById<TextView>(R.id.tvWelcome)
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
-        val tvDoorHint = findViewById<TextView>(R.id.tvDoorHint)
+        val doorHint = findViewById<View>(R.id.doorHint)
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
         cardStatus = findViewById(R.id.cardStatus)
         val surfaceAttr = com.google.android.material.R.attr.colorSurfaceContainerHighest
@@ -169,7 +169,7 @@ class MainActivity : AppCompatActivity() {
                     btnSecondary.visibility = View.GONE
                     tvWelcome.visibility = View.GONE
                     btnAction.visibility = View.VISIBLE
-                    tvDoorHint.visibility = View.GONE
+                    doorHint.visibility = View.GONE
                     if (state.countdownSeconds == 0 && state.lockState != LockState.MotorBlocked) {
                         cardStatus.stopStrokeLoader()
                     }
@@ -241,7 +241,7 @@ class MainActivity : AppCompatActivity() {
                             lock !in RETRY_STATES && state.countdownSeconds == 0
                         if (doorBlocksActions) btnSecondary.visibility = View.GONE
                         btnAction.visibility = if (doorBlocksActions) View.GONE else View.VISIBLE
-                        tvDoorHint.visibility = if (doorBlocksActions) View.VISIBLE else View.GONE
+                        doorHint.visibility = if (doorBlocksActions) View.VISIBLE else View.GONE
                         if (lock == LockState.MotorBlocked) {
                             val strokeWidthPx = 4f * resources.displayMetrics.density
                             cardStatus.setStrokeProgress(1f, colorError, strokeWidthPx)
