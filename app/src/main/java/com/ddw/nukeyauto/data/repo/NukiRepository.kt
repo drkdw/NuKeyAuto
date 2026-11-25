@@ -58,6 +58,9 @@ class NukiRepository @Inject constructor(
     /** Set by [cancelOpen], read by the countdown in [performLockAction]. */
     @Volatile private var openCancelled = false
 
+    /** Wall-clock time until which the Nuki Web API asked us not to call again (HTTP 429). */
+    @Volatile private var rateLimitedUntil = 0L
+
     /** Held for the whole of [performLockAction], so phone and car can never send two actions at once. */
     private val actionMutex = Mutex()
 
@@ -80,6 +83,11 @@ class NukiRepository @Inject constructor(
      * a SecurityException if the AndroidKeyStore key is invalidated.
      */
     suspend fun fetchState() {
+        // Rate limited: asking again only extends the block, keep showing the last state
+        if (System.currentTimeMillis() < rateLimitedUntil) {
+            _uiState.update { it.copy(isLoading = it.busy(), error = NukiError.HttpError(429)) }
+            return
+        }
         try {
             Log.d(TAG, "fetchState() started")
 
@@ -138,6 +146,11 @@ class NukiRepository @Inject constructor(
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "fetchState() failed: ${e::class.simpleName}: ${e.message}", e)
+            if (e is HttpException && e.code() == 429) {
+                val retryAfterSec = e.response()?.headers()?.get("Retry-After")?.toLongOrNull()
+                    ?: DEFAULT_RETRY_AFTER_SEC
+                rateLimitedUntil = System.currentTimeMillis() + retryAfterSec * 1000
+            }
             val error = mapException(e)
             _uiState.update {
                 if (error.isConfigError()) {
@@ -342,6 +355,7 @@ class NukiRepository @Inject constructor(
         private const val POLL_INTERVAL_MS = 2000L
         private const val MAX_POLL_ATTEMPTS = 5
         private const val DEMO_SMARTLOCK_ID = 0L
+        private const val DEFAULT_RETRY_AFTER_SEC = 30L
         // ponytail: fixed 5 s / 2 min; Nuki Web caches anyway, add backoff if rate limits bite
         private const val DOOR_WATCH_INTERVAL_MS = 5_000L
         private const val DOOR_WATCH_MAX_REFRESHES = 24

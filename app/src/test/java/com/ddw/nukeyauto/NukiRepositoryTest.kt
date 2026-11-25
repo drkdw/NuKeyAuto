@@ -609,6 +609,19 @@ class NukiRepositoryTest {
         assertTrue(state.error is NukiError.ActionNotConfirmed)
     }
 
+    @Test
+    fun `after HTTP 429 the API is left alone until the wait is over`() = runTest {
+        mockCredentials()
+        val response = Response.error<SmartLockResponse>(429, "Too many".toResponseBody())
+        whenever(api.getSmartLockState(any())).thenThrow(HttpException(response))
+
+        repository.fetchState()
+        repository.fetchState()
+
+        verify(api, times(1)).getSmartLockState(any())
+        assertEquals(429, (repository.uiState.value.error as NukiError.HttpError).code)
+    }
+
     // --- door sensor ---
 
     private fun doorResponse(lock: Int, door: Int?) =

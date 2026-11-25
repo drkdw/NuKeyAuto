@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         // After super.onCreate: Hilt injects prefs there
-        dynamicColorsAtCreate = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true)
+        dynamicColorsAtCreate = prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, PrefKeys.DYNAMIC_COLORS_DEFAULT)
         setContentView(R.layout.activity_main)
 
         // Handle window insets for edge-to-edge display
@@ -90,7 +90,6 @@ class MainActivity : AppCompatActivity() {
         cardAnimator = ExpressiveCardAnimator(cardStatus)
         var isFirstState = true
         var countdownMax = 0
-        var lastShownError: NukiError? = null
 
         swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
@@ -278,8 +277,8 @@ class MainActivity : AppCompatActivity() {
 
                     // Show Snackbar when an error occurs but the UI still shows a valid lock state.
                     // Once per error: later emissions (ticks, polls) carry the same error object.
-                    val isNewError = state.error != lastShownError
-                    lastShownError = state.error
+                    val isNewError = state.error != viewModel.lastShownError
+                    viewModel.lastShownError = state.error
                     if (isNewError && state.error != null && state.lockState != LockState.Unknown) {
                         // "Did the door move?" must not vanish before it is read
                         val duration = if (state.error is NukiError.ActionNotConfirmed) {
@@ -368,7 +367,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, true) != dynamicColorsAtCreate) {
+        if (prefs.safeBoolean(PrefKeys.DYNAMIC_COLORS, PrefKeys.DYNAMIC_COLORS_DEFAULT) != dynamicColorsAtCreate) {
             recreate()
             return
         }

@@ -122,14 +122,31 @@ class BillingHelper(
             )
             .build()
 
-        billingClient.launchBillingFlow(activity, flowParams)
+        val result = billingClient.launchBillingFlow(activity, flowParams)
+        if (result.responseCode != BillingClient.BillingResponseCode.OK &&
+            result.responseCode != BillingClient.BillingResponseCode.USER_CANCELED
+        ) {
+            // Otherwise the support button silently does nothing (disconnected, item owned, ...)
+            Log.e(TAG, "launchBillingFlow failed: ${result.responseCode} ${result.debugMessage}")
+            onPurchaseComplete(false)
+            if (result.responseCode == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED) connect()
+        }
     }
+
+    /**
+     * Purchase tokens already being consumed. The purchase listener and the pending-purchase
+     * query can both deliver the same purchase; consuming it twice showed a failure toast
+     * after a successful donation.
+     */
+    private val handledTokens = mutableSetOf<String>()
 
     /**
      * Consume the purchase so the user can buy it again (donation = consumable).
      */
     private fun handlePurchase(purchase: Purchase) {
-        if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+        if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+            synchronized(handledTokens) { handledTokens.add(purchase.purchaseToken) }
+        ) {
             val consumeParams = ConsumeParams.newBuilder()
                 .setPurchaseToken(purchase.purchaseToken)
                 .build()
