@@ -39,7 +39,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -87,7 +86,11 @@ class MainActivity : AppCompatActivity() {
         val tvWelcome = findViewById<TextView>(R.id.tvWelcome)
         val btnAction = findViewById<MaterialButton>(R.id.btnAction)
         val btnSecondary = findViewById<MaterialButton>(R.id.btnSecondary)
-        val doorHint = findViewById<View>(R.id.doorHint)
+        val messageBar = findViewById<View>(R.id.messageBar)
+        val messageIcon = findViewById<ImageView>(R.id.messageIcon)
+        val messageText = findViewById<TextView>(R.id.messageText)
+        val messageAction = findViewById<MaterialButton>(R.id.messageAction)
+        messageAction.setOnClickListener { viewModel.refresh() }
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
         cardStatus = findViewById(R.id.cardStatus)
         val surfaceAttr = com.google.android.material.R.attr.colorSurfaceContainerHighest
@@ -190,7 +193,7 @@ class MainActivity : AppCompatActivity() {
                     btnSecondary.visibility = View.GONE
                     tvWelcome.visibility = View.GONE
                     btnAction.visibility = View.VISIBLE
-                    doorHint.visibility = View.GONE
+                    var doorBlocksActions = false
                     if (state.countdownSeconds == 0 && state.lockState != LockState.MotorBlocked) {
                         cardStatus.stopStrokeLoader()
                     }
@@ -258,11 +261,10 @@ class MainActivity : AppCompatActivity() {
                         }
                         // Locking or opening a door that stands open does nothing useful
                         // A disabled button would show this instruction at 38% opacity; say it as text
-                        val doorBlocksActions = state.doorState == DoorState.Open && btnRes != null &&
+                        doorBlocksActions = state.doorState == DoorState.Open && btnRes != null &&
                             lock !in RETRY_STATES && state.countdownSeconds == 0
                         if (doorBlocksActions) btnSecondary.visibility = View.GONE
                         btnAction.visibility = if (doorBlocksActions) View.INVISIBLE else View.VISIBLE
-                        doorHint.visibility = if (doorBlocksActions) View.VISIBLE else View.GONE
                         if (lock == LockState.MotorBlocked) {
                             val strokeWidthPx = 4f * resources.displayMetrics.density
                             cardStatus.setStrokeProgress(1f, colorError, strokeWidthPx)
@@ -300,20 +302,26 @@ class MainActivity : AppCompatActivity() {
                         cardAnimator.transitionTo(state.lockState, isError = isError)
                     }
 
-                    // Show Snackbar when an error occurs but the UI still shows a valid lock state.
-                    // Once per error: later emissions (ticks, polls) carry the same error object.
-                    val isNewError = state.error != viewModel.lastShownError
-                    viewModel.lastShownError = state.error
-                    if (isNewError && state.error != null && state.lockState != LockState.Unknown) {
-                        // "Did the door move?" must not vanish before it is read
-                        val duration = if (state.error is NukiError.ActionNotConfirmed) {
-                            UNCONFIRMED_SNACKBAR_MS
-                        } else {
-                            Snackbar.LENGTH_LONG
-                        }
-                        Snackbar.make(swipeRefresh, state.error.toLocalizedString(this@MainActivity), duration)
-                            .setAction(R.string.btn_retry) { viewModel.refresh() }
-                            .show()
+                    // Bottom message bar: an error while a lock state is known (red, with Retry) wins
+                    // over the open-door hint (amber). Errors without a lock state, and the welcome
+                    // screen, are explained in the status itself.
+                    val barError = state.error?.takeIf {
+                        state.lockState != LockState.Unknown && it !is NukiError.NoCredentials
+                    }
+                    when {
+                        barError != null -> showMessage(
+                            messageBar, messageIcon, messageText, messageAction,
+                            R.drawable.bg_message_error, R.drawable.ic_warning,
+                            com.google.android.material.R.attr.colorOnErrorContainer,
+                            barError.toLocalizedString(this@MainActivity), withRetry = true
+                        )
+                        doorBlocksActions -> showMessage(
+                            messageBar, messageIcon, messageText, messageAction,
+                            R.drawable.bg_message_hint, R.drawable.ic_door_open,
+                            com.google.android.material.R.attr.colorOnTertiaryContainer,
+                            getString(R.string.door_close_first), withRetry = false
+                        )
+                        else -> messageBar.visibility = View.GONE
                     }
 
                     // During the open delay the primary button is the way out
@@ -432,6 +440,22 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    /** Fill the bottom message bar; hint and error share the layout and differ in color and icon. */
+    private fun showMessage(
+        bar: View, icon: ImageView, text: TextView, action: MaterialButton,
+        backgroundRes: Int, iconRes: Int, onColorAttr: Int, message: String, withRetry: Boolean
+    ) {
+        val onColor = MaterialColors.getColor(bar, onColorAttr)
+        bar.setBackgroundResource(backgroundRes)
+        icon.setImageResource(iconRes)
+        icon.imageTintList = ColorStateList.valueOf(onColor)
+        text.text = message
+        text.setTextColor(onColor)
+        action.setTextColor(onColor)
+        action.visibility = if (withRetry) View.VISIBLE else View.GONE
+        bar.visibility = View.VISIBLE
+    }
+
     /**
      * Button background with a proper disabled look. A plain valueOf() tint keeps the full
      * color when disabled, so a disabled button looked enabled with unreadable text.
@@ -450,8 +474,6 @@ class MainActivity : AppCompatActivity() {
 
         /** Material 3 disabled container: onSurface at 12% opacity. */
         private const val DISABLED_CONTAINER_ALPHA = 31
-
-        private const val UNCONFIRMED_SNACKBAR_MS = 10_000
 
         private const val BRAND_ICON_SCALE = 1.7f
 
