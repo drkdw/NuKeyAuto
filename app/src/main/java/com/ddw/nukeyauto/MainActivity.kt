@@ -132,9 +132,10 @@ class MainActivity : AppCompatActivity() {
                     val batteryText = state.battery?.let { getString(R.string.battery_label, it) }
                         ?: getString(if (state.batteryCritical) R.string.battery_critical else R.string.battery_ok)
                     // Door sensor info only when a sensor is in use; nothing changes without one
+                    // Door first: whether the house is closed matters more than the battery
                     tvBattery.text = listOfNotNull(
-                        batteryText,
                         state.doorState.doorLabelRes?.let { getString(R.string.door_label, getString(it)) },
+                        batteryText,
                         if (state.doorSensorBatteryCritical) getString(R.string.door_sensor_battery_low) else null
                     ).joinToString(" · ")
                     swipeRefresh.isRefreshing = state.isLoading && state.countdownSeconds == 0

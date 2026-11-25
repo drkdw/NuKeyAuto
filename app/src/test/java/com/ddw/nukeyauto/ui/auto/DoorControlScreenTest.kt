@@ -66,12 +66,13 @@ class DoorControlScreenTest {
     private fun Pane.actionTitles() = actions.map { it.title.toString() }
 
     @Test
-    fun `locked lock shows status, battery and an Open door action`() {
+    fun `locked lock shows one status row with battery and an Open door action`() {
         val (screen, _) = startScreen()
 
         val pane = screen.pane()
         assertEquals(false, pane.isLoading)
-        assertEquals(2, pane.rows.size)
+        assertEquals(1, pane.rows.size)
+        assertEquals("Battery: 70%", pane.rows[0].texts[1].toString())
         assertEquals(listOf("Open door"), pane.actionTitles())
     }
 
@@ -100,11 +101,21 @@ class DoorControlScreenTest {
     }
 
     @Test
-    fun `without a door sensor the status row has no door line`() {
+    fun `with a door sensor door and battery share one quiet line`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 70, doorState = 2)))
         val (screen, _) = startScreen()
-        val pane = screen.pane()
-        assertEquals(2, pane.rows.size)
-        assertEquals(1, pane.rows[0].texts.size)
+
+        assertEquals("Door: closed · Battery: 70%", screen.pane().rows[0].texts[1].toString())
+    }
+
+    @Test
+    fun `a low battery gets its own row`() = runBlocking<Unit> {
+        whenever(api.getSmartLockState(any()))
+            .thenReturn(SmartLockResponse(LockStateResponse(state = 1, batteryCharge = 12, batteryCritical = true)))
+        val (screen, _) = startScreen()
+
+        assertEquals(2, screen.pane().rows.size)
     }
 
     @Test
@@ -114,8 +125,8 @@ class DoorControlScreenTest {
         val (screen, _) = startScreen()
 
         val pane = screen.pane()
-        // Two rows only: a third would need scrolling on a small car screen
-        assertEquals(2, pane.rows.size)
+        // One row: nothing to scroll on a small car screen
+        assertEquals(1, pane.rows.size)
         assertEquals("Close the door to lock", pane.rows[0].texts[1].toString())
         assertTrue(pane.actions.isEmpty())
     }
@@ -137,6 +148,6 @@ class DoorControlScreenTest {
 
         val template = screen.onGetTemplate() as PaneTemplate
         assertEquals("NuKey Auto demo", template.header!!.title.toString())
-        assertTrue(template.pane.isLoading || template.pane.rows.size == 2)
+        assertTrue(template.pane.isLoading || template.pane.rows.isNotEmpty())
     }
 }
