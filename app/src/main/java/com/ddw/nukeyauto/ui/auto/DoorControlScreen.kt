@@ -161,16 +161,20 @@ class DoorControlScreen(
             .setTitle(statusTitle)
             .addText(statusSubtitle)
             .apply {
-                // Door sensor as a second line in this row: a small car screen fits two rows
-                // plus the action, and a third row would need scrolling while driving
-                val doorLine = when {
-                    state.countdownSeconds > 0 -> null
+                // Door and battery as one quiet second line: the car screen stays one row plus
+                // the action, so nothing needs scrolling while driving. An open door replaces
+                // it with the instruction; a low battery gets its own row below.
+                val detailsLine = when {
+                    state.countdownSeconds > 0 || state.lockState == LockState.Unknown -> null
                     state.doorState == DoorState.Open -> carContext.getString(R.string.door_close_first)
-                    else -> state.doorState.doorLabelRes?.let {
-                        carContext.getString(R.string.door_label, carContext.getString(it))
-                    }
+                    else -> listOfNotNull(
+                        state.doorState.doorLabelRes?.let {
+                            carContext.getString(R.string.door_label, carContext.getString(it))
+                        },
+                        state.battery?.let { carContext.getString(R.string.battery_label, it) }
+                    ).joinToString(" · ").ifEmpty { null }
                 }
-                doorLine?.let { addText(it) }
+                detailsLine?.let { addText(it) }
             }
             .setImage(statusRowIcon)
             .build()
@@ -225,7 +229,10 @@ class DoorControlScreen(
         // --- Build pane ---
         val paneBuilder = Pane.Builder()
             .addRow(statusRow)
-            .addRow(batteryRow)
+            .apply {
+                // Battery row only when it needs attention
+                if (!noData && (batteryLow || state.doorSensorBatteryCritical)) addRow(batteryRow)
+            }
             .setImage(paneImage)
 
 
