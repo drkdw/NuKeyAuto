@@ -144,6 +144,9 @@ class DoorControlScreen(
             statusRowIcon = if (state.lockedButDoorOpen) {
                 CarIcon.Builder(IconCompat.createWithResource(carContext, R.drawable.ic_warning))
                     .setTint(CarColor.YELLOW).build()
+            } else if (state.lockState == LockState.Unlatched && state.doorState.doorLabelRes != null) {
+                // Matches the "Unlocked" text; the door row shows the open door
+                lockStateToCarIcon(LockState.Unlocked)
             } else {
                 lockStateToCarIcon(state.lockState)
             }
