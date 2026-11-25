@@ -134,6 +134,24 @@
                     android:text="@string/btn_open_door"
                     app:cornerRadius="28dp" />
 
+                <!-- Shown instead of the buttons while the door stands open -->
+                <TextView
+                    android:id="@+id/tvDoorHint"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_door_hint"
+                    android:gravity="center"
+                    android:paddingHorizontal="24dp"
+                    android:drawablePadding="12dp"
+                    android:drawableStart="@drawable/ic_door_open"
+                    android:drawableTint="?attr/colorOnTertiaryContainer"
+                    android:text="@string/door_close_first"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorOnTertiaryContainer"
+                    android:accessibilityLiveRegion="polite"
+                    android:visibility="gone" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSecondary"
                     style="@style/Widget.Material3.Button.TonalButton"
