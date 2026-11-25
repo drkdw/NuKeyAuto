@@ -52,13 +52,13 @@ fun doorStateFrom(code: Int?): DoorState = when (code) {
     else -> DoorState.None // missing, 0 not paired, 1 deactivated, 240 removed
 }
 
-/** "closed" / "open" / "unknown" for the door line, or null without a sensor. */
+/** "closed" / "open" for the door line; null when there is no sensor or it is not sure. */
 val DoorState.doorLabelRes: Int?
     get() = when (this) {
         DoorState.Closed -> R.string.door_closed
         DoorState.Open -> R.string.door_open
-        DoorState.Unknown -> R.string.door_unknown
-        DoorState.None -> null
+        // Calibrating or unsure: showing a door state we do not know helps nobody
+        DoorState.Unknown, DoorState.None -> null
     }
 
 /** True while the lock is still moving or booting, so no action should be offered. */
