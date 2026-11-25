@@ -1,16 +1,18 @@
-/* NuKey Auto site styles. Shared by index, support and privacy pages. */
+/* NuKey Auto site styles. Shared by index, support and privacy pages.
+   Brand: indigo #3A4AB8 with amber #F2A93B as the headlight accent (same as the app). */
 
 :root {
-    --violet: #62539A;
-    --lilac: #CFBCFF;
-    --night: #16121F;
-    --night-2: #221C30;
-    --ink: #241F33;
-    --muted: #5E5873;
-    --paper: #F7F5FB;
+    --brand: #3A4AB8;
+    --brand-light: #C2C8FF;
+    --amber: #F2A93B;
+    --night: #12131A;
+    --night-2: #1F2133;
+    --ink: #1B1B21;
+    --muted: #46464F;
+    --paper: #FBF8FF;
     --surface: #FFFFFF;
-    --line: #E3DDF0;
-    --link: #5B4A9E;
+    --line: #E3E1EC;
+    --link: #1E30A0;
     --radius-lg: 28px;
     --radius-sm: 12px;
     --wrap: 1120px;
@@ -20,12 +22,12 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --ink: #ECE7F7;
-        --muted: #B3ABC8;
-        --paper: #121019;
-        --surface: #1C1826;
-        --line: #2E2840;
-        --link: #CFBCFF;
+        --ink: #E3E1EB;
+        --muted: #C6C5D5;
+        --paper: #12131A;
+        --surface: #1B1B21;
+        --line: #34343C;
+        --link: #BCC3FF;
     }
 }
 
@@ -44,7 +46,7 @@ body {
 
 a { color: var(--link); }
 a:focus-visible, button:focus-visible, summary:focus-visible {
-    outline: 3px solid var(--lilac);
+    outline: 3px solid var(--brand-light);
     outline-offset: 3px;
     border-radius: 6px;
 }
@@ -103,8 +105,8 @@ code {
     white-space: nowrap;
 }
 .btn svg { width: 20px; height: 20px; flex: none; }
-.btn-primary { background: var(--lilac); color: #21183D; }
-.btn-primary:hover { background: #DCCEFF; }
+.btn-primary { background: var(--amber); color: #2A1800; }
+.btn-primary:hover { background: #FFB956; }
 .btn-outline { color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.45); }
 .btn-outline:hover { box-shadow: inset 0 0 0 1.5px #fff; }
 .btn-small { padding: 8px 14px; font-size: 0.9rem; }
@@ -112,7 +114,7 @@ code {
 
 /* Hero: the car dashboard at night */
 .hero {
-    background: radial-gradient(120% 90% at 85% 10%, #3A2E5E 0%, var(--night-2) 45%, var(--night) 100%);
+    background: radial-gradient(120% 90% at 85% 10%, #2A3270 0%, var(--night-2) 45%, var(--night) 100%);
     color: #fff;
     padding: 72px 0 88px;
 }
@@ -133,7 +135,7 @@ code {
 .dash-screen {
     border-radius: var(--radius-lg);
     padding: 14px;
-    background: #0B0910;
+    background: #0D0E13;
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 30px 80px rgba(0, 0, 0, 0.55);
 }
 .dash-screen img { display: block; width: 100%; height: auto; border-radius: 16px; }
@@ -148,7 +150,7 @@ code {
     padding: 6px 14px;
     cursor: pointer;
 }
-.states button[aria-pressed="true"] { background: var(--lilac); border-color: var(--lilac); color: #21183D; }
+.states button[aria-pressed="true"] { background: var(--brand-light); border-color: var(--brand-light); color: #061D92; }
 
 /* Sections */
 .section { padding: 88px 0; }
@@ -168,7 +170,7 @@ code {
     height: auto;
     border-radius: 24px;
     background: var(--night);
-    box-shadow: 0 16px 40px rgba(22, 18, 31, 0.18);
+    box-shadow: 0 16px 40px rgba(18, 19, 26, 0.18);
 }
 .phones figcaption { margin-top: 12px; font-size: 0.95rem; color: var(--muted); }
 
@@ -176,8 +178,8 @@ code {
 .features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
 .features h3 { margin-bottom: 8px; }
 .features p { color: var(--muted); }
-.features svg { width: 28px; height: 28px; color: var(--violet); margin-bottom: 14px; }
-@media (prefers-color-scheme: dark) { .features svg { color: var(--lilac); } }
+.features svg { width: 28px; height: 28px; color: var(--brand); margin-bottom: 14px; }
+@media (prefers-color-scheme: dark) { .features svg { color: var(--brand-light); } }
 
 /* Setup steps: a real sequence, so numbered */
 .steps { list-style: none; counter-reset: step; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
@@ -189,7 +191,7 @@ code {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--violet);
+    background: var(--brand);
     color: #fff;
     font-family: var(--display);
     font-weight: 600;
@@ -204,8 +206,8 @@ code {
 .band .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
 .band h3 { font-size: 1.4rem; margin-bottom: 10px; }
 .band p { color: var(--muted); margin-bottom: 20px; max-width: 46ch; }
-.band .btn-primary { background: var(--violet); color: #fff; }
-.band .btn-primary:hover { background: #4F4282; }
+.band .btn-primary { background: var(--brand); color: #fff; }
+.band .btn-primary:hover { background: #1E30A0; }
 
 /* Footer */
 .footer { background: var(--night); color: rgba(255, 255, 255, 0.7); padding: 56px 0 40px; font-size: 0.95rem; }
@@ -227,7 +229,7 @@ code {
 .prose p + p { margin-top: 12px; }
 .prose .note { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 18px 20px; margin-bottom: 12px; }
 .prose ol { padding-left: 1.4em; display: grid; gap: 16px; }
-.prose ol li::marker { font-family: var(--display); font-weight: 600; color: var(--violet); }
+.prose ol li::marker { font-family: var(--display); font-weight: 600; color: var(--brand); }
 details { border-bottom: 1px solid var(--line); }
 details summary {
     cursor: pointer;
@@ -239,7 +241,7 @@ details summary {
 details[open] summary { color: var(--link); }
 details p { padding: 0 0 18px; color: var(--muted); }
 .contact { margin-top: 56px; }
-.contact .btn-primary { background: var(--violet); color: #fff; margin-top: 16px; }
+.contact .btn-primary { background: var(--brand); color: #fff; margin-top: 16px; }
 
 /* Responsive */
 @media (max-width: 900px) {
